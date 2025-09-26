@@ -1,0 +1,26 @@
+use_frameworks!
+
+platform :ios, '13.0'
+
+target 'DoSwift_Example' do
+
+  # Development pods using path for local development
+  pod 'DoSwift', :path => '../'
+
+  # Optional: Add DTBKit for enhanced functionality
+  # pod 'DTBKit/Basic', :git => 'https://github.com/darkThanBlack/DTBKit.git', :branch => 'main'
+
+  # Other dependencies can be added here
+  # pod 'SnapKit', '~> 5.0'
+
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      # Uncomment if needed for simulator builds
+      # config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+    end
+  end
+end

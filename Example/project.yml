@@ -1,0 +1,49 @@
+# https://github.com/yonaskolb/XcodeGen/blob/master/Docs/ProjectSpec.md
+# https://help.apple.com/xcode/mac/9.0/index.html?localePath=en.lproj#/dev7fe737ce0
+
+name: DoSwiftExample
+attributes:
+  ORGANIZATIONNAME: darkThanBlack
+targets:
+  DoSwift_Example:
+    type: application
+    platform: [iOS]
+    platformSuffix: ""
+    scheme:
+      management:
+        shared: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.darkThanBlack.demo.DoSwift
+        IPHONEOS_DEPLOYMENT_TARGET: 13.0
+        SWIFT_VERSION: 5.9
+        # 1: iPhone
+        TARGETED_DEVICE_FAMILY: 1
+        UILaunchStoryboardName: LaunchScreen
+        FRAMEWORK_SEARCH_PATHS:
+          - $(inherited)
+          - $(PODS_CONFIGURATION_BUILD_DIR)/DoSwift
+        LIBRARY_SEARCH_PATHS:
+          - $(inherited)
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: $(inherited)
+        ENABLE_BITCODE: true
+        WARNING_CFLAGS:
+        - -Wno-documentation
+        - -Wno-unguarded-availability
+        - -Wno-strict-prototypes
+        - -Wno-implicit-retain-self
+    sources:
+      ## Metadata
+      - path: "../DoSwift.podspec"
+        group: "Metadata"
+      - path: "../README.md"
+        group: "Metadata"
+      - path: "../LICENSE"
+        group: "Metadata"
+      - path: "Podfile"
+        group: "Metadata"
+      - path: "project.yml"
+        group: "Metadata"
+
+      ## Example Sources
+      - path: "Example"

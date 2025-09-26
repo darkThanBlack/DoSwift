@@ -1,0 +1,16 @@
+PODS:
+  - DoSwift (0.1.0)
+
+DEPENDENCIES:
+  - DoSwift (from `../`)
+
+EXTERNAL SOURCES:
+  DoSwift:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  DoSwift: 07de2a3ba9067af5ff8f6d364ef990fac4c718cd
+
+PODFILE CHECKSUM: 9df9283a51a85d4f7eb5245b91277de78ca72a24
+
+COCOAPODS: 1.15.2
