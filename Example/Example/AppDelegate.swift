@@ -36,11 +36,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // 设置主应用窗口引用
         DoSwiftCore.shared.setup(window)
 
-        // 创建自定义菜单项
-        let customMenuItems = createCustomMenuItems()
+        // 使用默认菜单初始化（也可以传入自定义菜单）
+        DoSwiftCore.shared.initialize()
 
-        // 初始化 DoSwift
-        DoSwiftCore.shared.initialize(with: customMenuItems)
+        // 可选：添加自定义菜单项到默认菜单
+        addCustomMenuItems()
 
         // 显示 DoSwift 悬浮窗（仅在 Debug 构建中）
         #if DEBUG
@@ -48,208 +48,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         #endif
     }
 
-    private func createCustomMenuItems() -> [DoSwiftMenuItem] {
-
-        // App Info Menu
-        let appInfoItem = DoSwiftMenuItem(
-            identifier: "app_info",
-            title: "应用信息",
-            icon: UIImage(systemName: "info.circle")
+    private func addCustomMenuItems() {
+        // 示例：添加自定义菜单项
+        let customItem = DoSwiftMenuItem(
+            identifier: "custom_example",
+            title: "示例功能",
+            icon: UIImage(systemName: "star.fill")
         ) { _ in
-            self.showAppInfo()
+            self.showCustomFeature()
         }
 
-        // Network Menu with sub-items
-        let networkItem = DoSwiftMenuItem(
-            identifier: "network",
-            title: "网络工具",
-            icon: UIImage(systemName: "network")
-        )
-
-        let networkMonitorItem = DoSwiftMenuItem(
-            identifier: "network_monitor",
-            title: "网络监控"
-        ) { _ in
-            print("启动网络监控")
-        }
-
-        let networkLogItem = DoSwiftMenuItem(
-            identifier: "network_log",
-            title: "网络日志"
-        ) { _ in
-            print("查看网络日志")
-        }
-
-        networkItem.addSubMenuItem(networkMonitorItem)
-        networkItem.addSubMenuItem(networkLogItem)
-
-        // Performance Menu
-        let performanceItem = DoSwiftMenuItem(
-            identifier: "performance",
-            title: "性能监控",
-            icon: UIImage(systemName: "speedometer")
-        ) { _ in
-            self.showPerformanceInfo()
-        }
-
-        // UI Debug Menu
-        let uiDebugItem = DoSwiftMenuItem(
-            identifier: "ui_debug",
-            title: "UI 调试",
-            icon: UIImage(systemName: "eye")
-        ) { _ in
-            self.toggleUIDebugMode()
-        }
-
-        // Memory Menu
-        let memoryItem = DoSwiftMenuItem(
-            identifier: "memory",
-            title: "内存分析",
-            icon: UIImage(systemName: "memorychip")
-        ) { _ in
-            self.showMemoryInfo()
-        }
-
-        // Settings Menu with sub-items
-        let settingsItem = DoSwiftMenuItem(
-            identifier: "settings",
-            title: "设置",
-            icon: UIImage(systemName: "gearshape")
-        )
-
-        let themeItem = DoSwiftMenuItem(
-            identifier: "theme",
-            title: "切换主题"
-        ) { _ in
-            self.toggleTheme()
-        }
-
-        let aboutItem = DoSwiftMenuItem(
-            identifier: "about",
-            title: "关于 DoSwift"
-        ) { _ in
-            self.showAbout()
-        }
-
-        settingsItem.addSubMenuItem(themeItem)
-        settingsItem.addSubMenuItem(aboutItem)
-
-        // Close Menu
-        let closeItem = DoSwiftMenuItem.closeItem { _ in
-            DoSwiftCore.shared.hide()
-        }
-
-        return [
-            appInfoItem,
-            networkItem,
-            performanceItem,
-            uiDebugItem,
-            memoryItem,
-            DoSwiftMenuItem.separator(),
-            settingsItem,
-            closeItem
-        ]
+        DoSwiftCore.shared.addMenuItem(customItem)
     }
 
-    // MARK: - Menu Actions
-
-    private func showAppInfo() {
+    private func showCustomFeature() {
         let alertController = UIAlertController(
-            title: "应用信息",
-            message: """
-            应用名称: DoSwift Example
-            版本: 1.0.0
-            构建版本: 1
-            Bundle ID: \(Bundle.main.bundleIdentifier ?? "Unknown")
-            """,
+            title: "自定义功能",
+            message: "这是 Example 项目添加的自定义功能示例",
             preferredStyle: .alert
         )
 
         alertController.addAction(UIAlertAction(title: "确定", style: .default))
-
-        window?.rootViewController?.present(alertController, animated: true)
-    }
-
-    private func showPerformanceInfo() {
-        let alertController = UIAlertController(
-            title: "性能信息",
-            message: """
-            CPU 使用率: ~5%
-            内存使用: ~64MB
-            FPS: 60
-            """,
-            preferredStyle: .alert
-        )
-
-        alertController.addAction(UIAlertAction(title: "确定", style: .default))
-
-        window?.rootViewController?.present(alertController, animated: true)
-    }
-
-    private func toggleUIDebugMode() {
-        // Toggle UI debug visualization
-        let message = "UI 调试模式已切换"
-
-        let alertController = UIAlertController(
-            title: "UI 调试",
-            message: message,
-            preferredStyle: .alert
-        )
-
-        alertController.addAction(UIAlertAction(title: "确定", style: .default))
-
-        window?.rootViewController?.present(alertController, animated: true)
-    }
-
-    private func showMemoryInfo() {
-        let memoryUsage = getMemoryUsage()
-
-        let alertController = UIAlertController(
-            title: "内存使用情况",
-            message: """
-            已使用内存: \(String(format: "%.1f", memoryUsage.used)) MB
-            可用内存: \(String(format: "%.1f", memoryUsage.free)) MB
-            总内存: \(String(format: "%.1f", memoryUsage.total)) MB
-            """,
-            preferredStyle: .alert
-        )
-
-        alertController.addAction(UIAlertAction(title: "确定", style: .default))
-
-        window?.rootViewController?.present(alertController, animated: true)
-    }
-
-    private func toggleTheme() {
-        // Toggle between light and dark theme
-        let alertController = UIAlertController(
-            title: "主题切换",
-            message: "主题已切换",
-            preferredStyle: .alert
-        )
-
-        alertController.addAction(UIAlertAction(title: "确定", style: .default))
-
-        window?.rootViewController?.present(alertController, animated: true)
-    }
-
-    private func showAbout() {
-        let alertController = UIAlertController(
-            title: "关于 DoSwift",
-            message: """
-            DoSwift v0.1.0
-
-            基于 DoKit-iOS 重构的纯 Swift 调试工具库
-
-            • 标准 UIWindow 处理框架
-            • 悬浮控件和多级菜单
-            • 插件化架构设计
-            • 支持 iOS 12+
-            """,
-            preferredStyle: .alert
-        )
-
-        alertController.addAction(UIAlertAction(title: "确定", style: .default))
-
         window?.rootViewController?.present(alertController, animated: true)
     }
 

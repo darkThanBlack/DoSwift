@@ -23,7 +23,7 @@ for debugging tools.
   s.author           = { 'darkThanBlack' => 'darkthanblack@example.com' }
   s.source           = { :git => 'https://github.com/darkThanBlack/DoSwift.git', :tag => s.version.to_s }
 
-  s.ios.deployment_target = '12.0'
+  s.ios.deployment_target = '13.0'
   s.swift_versions = '5.0'
 
   # All source files in one library

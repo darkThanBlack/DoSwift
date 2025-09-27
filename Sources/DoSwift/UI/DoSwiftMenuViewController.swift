@@ -40,6 +40,8 @@ class DoSwiftMenuViewController: UIViewController {
         table.backgroundColor = UIColor.systemBackground
         table.separatorStyle = .singleLine
         table.rowHeight = 54
+        table.layer.cornerRadius = 12
+        table.layer.masksToBounds = true
         table.register(DoSwiftMenuCell.self, forCellReuseIdentifier: DoSwiftMenuCell.identifier)
         table.translatesAutoresizingMaskIntoConstraints = false
         return table
@@ -47,7 +49,7 @@ class DoSwiftMenuViewController: UIViewController {
 
     private lazy var backgroundView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        view.backgroundColor = .clear  // 移除灰色背景
         view.translatesAutoresizingMaskIntoConstraints = false
 
         // 添加背景点击手势
@@ -61,7 +63,14 @@ class DoSwiftMenuViewController: UIViewController {
         let view = UIView()
         view.backgroundColor = UIColor.systemBackground
         view.layer.cornerRadius = 12
-        view.layer.masksToBounds = true
+        view.layer.masksToBounds = false
+
+        // 添加阴影效果替代灰色背景
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOffset = CGSize(width: 0, height: 4)
+        view.layer.shadowRadius = 16
+        view.layer.shadowOpacity = 0.25
+
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
