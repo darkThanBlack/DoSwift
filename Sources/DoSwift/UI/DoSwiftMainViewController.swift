@@ -108,8 +108,8 @@ extension DoSwiftMainViewController: DoSwiftMenuViewControllerDelegate {
             // 执行菜单项动作
             menuItem.performAction()
 
-            // 如果不是关闭动作，返回主界面
-            if menuItem.identifier != "close" {
+            // 只有关闭动作才返回主界面，其他动作（如打开新页面）保持在当前状态
+            if menuItem.identifier == "close" {
                 navigationController?.popToRootViewController(animated: true)
             }
         }

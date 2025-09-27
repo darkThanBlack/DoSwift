@@ -188,4 +188,115 @@ DoSwiftCore.shared.addMenuItem(menuItem)
 🚀 **开发状态**:
 核心框架已完成，可正常构建和运行。Example 项目展示了完整的功能演示。
 
-**最后更新**: 2025-09-26 17:55 (DoSwiftDriftView frame 布局改进完成)
+**最后更新**: 2025-09-27 UI Hierarchy 功能完成
+
+## UI 结构查看器迁移记录 (2025-09-27)
+
+### DoKit-iOS 原始架构分析
+
+**原始实现特点**:
+1. **交互式指示器模式**: 启动后显示可拖拽的圆形指示器，用户通过拖拽来选择屏幕上的控件
+2. **实时属性浮窗**: 底部显示跟随指示器选择的控件属性信息，支持拖拽重新定位
+3. **多窗口架构**: DoKit 使用 `DoraemonHierarchyWindow` 等多个独立调试窗口
+
+**关键组件**:
+- `DKHierarchyPickerView`: 可拖拽的圆形选择指示器
+- `DKHierarchyInfoView`: 实时属性显示浮窗
+- `DoraemonHierarchyWindow`: 专用调试窗口
+- `DoraemonHierarchyViewController`: 统一管理所有调试组件
+
+### DoSwift 重构架构决策
+
+**重要架构变更 - 单窗口设计**:
+
+**DoKit 方式**: 多个独立 UIWindow + 窗口层级管理
+```objective-c
+// DoKit 使用多个独立调试窗口
+DoraemonHierarchyWindow *hierarchyWindow = [[DoraemonHierarchyWindow alloc] init];
+hierarchyWindow.windowLevel = UIWindowLevelAlert - 1;
+```
+
+**DoSwift 方式**: 单一 DoSwiftWindow + 统一事件穿透
+```swift
+// DoSwift 复用单一窗口架构，避免多窗口复杂性
+DoSwiftCore.shared.window  // 统一的调试窗口
+DoSwiftCore.shared.pushViewController(hierarchyViewController) // 导航管理
+```
+
+**架构优势**:
+1. **简化窗口管理**: 避免多窗口生命周期复杂性
+2. **统一事件处理**: 基于导航控制器的成熟事件分发
+3. **减少系统资源**: 单窗口减少内存和渲染开销
+4. **一致用户体验**: 统一的导航模式，符合 iOS 设计规范
+
+### 已完成的 UI Hierarchy 功能
+
+**实现文件**:
+```
+Sources/DoSwift/UI/ViewHierarchy/
+├── DoSwiftHierarchyModels.swift      # 数据模型 (DoSwiftViewNode, DoSwiftProperty)
+├── DoSwiftHierarchyHelper.swift      # 窗口管理和层级遍历
+├── DoSwiftPropertyInspector.swift    # 动态属性检查和修改 (KVC)
+├── DoSwiftHierarchyViewController.swift  # 主界面控制器 (分段控制)
+└── DoSwiftHierarchyCells.swift       # 自定义表格单元格
+```
+
+**核心功能**:
+- ✅ 视图层级遍历 (支持 iOS 13+ Scene-based)
+- ✅ 动态属性编辑 (Key-Value Coding 实现)
+- ✅ 属性分类展示 (基础、布局、外观、交互等)
+- ✅ 视图高亮显示 (红色边框覆盖层)
+- ✅ 实时属性修改 (UISwitch, UIStepper, 颜色选择器)
+
+**技术实现亮点**:
+```swift
+// 使用 KVC 替代 Objective-C Runtime 进行属性修改
+public func updateProperty(_ property: DoSwiftProperty, newValue: Any?) {
+    let convertedValue = try convertValue(newValue, for: property.type)
+    targetView.setValue(convertedValue, forKeyPath: property.keyPath)
+}
+
+// 兼容 iOS 13+ Scene-based 窗口获取
+if #available(iOS 13.0, *) {
+    for scene in UIApplication.shared.connectedScenes {
+        if let windowScene = scene as? UIWindowScene {
+            allWindows.append(contentsOf: windowScene.windows)
+        }
+    }
+}
+```
+
+### 菜单系统集成
+
+**集成方式**:
+- 在 `DoSwiftCore.createDefaultMenuItems()` 中添加 "UI 调试" 分类
+- "UI 结构查看器" 作为子菜单项，点击后推入层级查看界面
+- 修复了菜单选择后立即返回的问题 (DoSwiftMainViewController.swift:112)
+
+**修复的关键 bug**:
+```swift
+// 修复前: 所有非 close 动作都会立即返回主界面
+if menuItem.identifier != "close" {
+    navigationController?.popToRootViewController(animated: true)
+}
+
+// 修复后: 只有 close 动作才返回，其他动作保持导航状态
+if menuItem.identifier == "close" {
+    navigationController?.popToRootViewController(animated: true)
+}
+```
+
+### 未来改进方向
+
+**潜在的交互式模式**:
+如果需要实现类似 DoKit 的交互式指示器模式，可以考虑：
+1. 在当前 DoSwiftWindow 中添加拖拽指示器视图
+2. 使用坐标转换处理跨窗口位置计算
+3. 实现实时属性浮窗跟随选择更新
+4. 保持单窗口架构的简洁性
+
+**当前实现评估**:
+- ✅ 功能完整: 覆盖 DoKit UI Hierarchy 的核心功能
+- ✅ 架构清晰: 单窗口设计避免复杂性
+- ✅ 技术成熟: 基于 KVC 的动态属性修改可靠稳定
+- ✅ 用户体验: 符合 iOS 导航设计模式

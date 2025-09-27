@@ -134,11 +134,28 @@ public class DoSwiftCore {
 
         networkItem.addSubMenuItem(networkMonitorItem)
 
+        // UI 调试工具
+        let uiDebugItem = DoSwiftMenuItem(
+            identifier: "ui_debug",
+            title: "UI 调试",
+            icon: UIImage(systemName: "eye")
+        )
+
+        let hierarchyItem = DoSwiftMenuItem(
+            identifier: "ui_hierarchy",
+            title: "UI 结构查看器",
+            icon: UIImage(systemName: "list.dash.header.rectangle")
+        ) { _ in
+            self.showUIHierarchy()
+        }
+
+        uiDebugItem.addSubMenuItem(hierarchyItem)
+
         let closeItem = DoSwiftMenuItem.closeItem { _ in
             self.hide()
         }
 
-        return [appInfoItem, networkItem, closeItem]
+        return [appInfoItem, networkItem, uiDebugItem, closeItem]
     }
 
     private func showAppInfo() {
@@ -157,6 +174,11 @@ public class DoSwiftCore {
         if let topController = topMostController() {
             topController.present(alertController, animated: true)
         }
+    }
+
+    private func showUIHierarchy() {
+        let hierarchyViewController = DoSwiftHierarchyViewController()
+        pushViewController(hierarchyViewController, animated: true)
     }
 
     /// 获取当前最顶层的控制器
