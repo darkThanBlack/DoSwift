@@ -24,7 +24,7 @@ for debugging tools.
   s.source           = { :git => 'https://github.com/darkThanBlack/DoSwift.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '13.0'
-  s.swift_versions = '5.0'
+  s.swift_versions = '5.9'
 
   # All source files in one library
   s.source_files = 'Sources/DoSwift/**/*'
@@ -36,6 +36,6 @@ for debugging tools.
   # Build settings
   s.pod_target_xcconfig = {
     'SWIFT_VERSION' => '5.9',
-    'IPHONEOS_DEPLOYMENT_TARGET' => '12.0'
+    'IPHONEOS_DEPLOYMENT_TARGET' => '13.0'
   }
 end

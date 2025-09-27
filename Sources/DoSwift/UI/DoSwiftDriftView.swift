@@ -111,11 +111,11 @@ class DoSwiftDriftView: UIView {
     // MARK: - Layout
 
     override var intrinsicContentSize: CGSize {
-        return CGSize(width: 56, height: 56)
+        return CGSize(width: 44, height: 44)  // 56→44
     }
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        return CGSize(width: 56, height: 56)
+        return CGSize(width: 44, height: 44)  // 56→44
     }
 
     override func layoutSubviews() {
@@ -124,15 +124,20 @@ class DoSwiftDriftView: UIView {
         // contentView 填满整个 bounds
         contentView.frame = bounds
 
+        // 设置圆角 - 根据控件高度动态计算
+        contentView.layer.cornerRadius = bounds.height / 2  // 44/2=22
+
         // 设置 iconView 的 frame - 居中显示
         if let iconView = contentView.subviews.first {
-            let iconSize: CGFloat = 24
+            let iconSize: CGFloat = 20  // 24→20，按比例缩小
             iconView.frame = CGRect(
                 x: (bounds.width - iconSize) / 2,
                 y: (bounds.height - iconSize) / 2,
                 width: iconSize,
                 height: iconSize
             )
+            // 图标圆角也动态计算
+            iconView.layer.cornerRadius = iconSize / 2  // 20/2=10
         }
     }
 
@@ -148,7 +153,6 @@ class DoSwiftDriftView: UIView {
     private lazy var contentView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.systemBlue
-        view.layer.cornerRadius = 28  // 56/2
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOffset = CGSize(width: 0, height: 2)
         view.layer.shadowRadius = 8
@@ -157,7 +161,6 @@ class DoSwiftDriftView: UIView {
         // 添加图标色块 - 使用 frame 布局
         let iconView = UIView()
         iconView.backgroundColor = UIColor.white
-        iconView.layer.cornerRadius = 12  // 24/2
         view.addSubview(iconView)
 
         // 添加点击手势

@@ -40,10 +40,8 @@ class DoSwiftMenuViewController: UIViewController {
         table.backgroundColor = UIColor.systemBackground
         table.separatorStyle = .singleLine
         table.rowHeight = 54
-        table.layer.cornerRadius = 12
         table.layer.masksToBounds = true
         table.register(DoSwiftMenuCell.self, forCellReuseIdentifier: DoSwiftMenuCell.identifier)
-        table.translatesAutoresizingMaskIntoConstraints = false
         return table
     }()
 
@@ -62,7 +60,6 @@ class DoSwiftMenuViewController: UIViewController {
     private lazy var menuContainerView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.systemBackground
-        view.layer.cornerRadius = 12
         view.layer.masksToBounds = false
 
         // 添加阴影效果替代灰色背景
@@ -71,7 +68,6 @@ class DoSwiftMenuViewController: UIViewController {
         view.layer.shadowRadius = 16
         view.layer.shadowOpacity = 0.25
 
-        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
@@ -79,8 +75,7 @@ class DoSwiftMenuViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
-        setupConstraints()
+        loadViews(in: view)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -88,36 +83,51 @@ class DoSwiftMenuViewController: UIViewController {
         animateIn()
     }
 
-    // MARK: - Setup
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
 
-    private func setupUI() {
-        view.backgroundColor = .clear
-        navigationController?.isNavigationBarHidden = true
-
-        view.addSubview(backgroundView)
-        view.addSubview(menuContainerView)
-        menuContainerView.addSubview(tableView)
+        // 动态设置圆角
+        tableView.layer.cornerRadius = 12
+        menuContainerView.layer.cornerRadius = 12
     }
 
-    private func setupConstraints() {
+    // MARK: - Setup
+
+    private func loadViews(in box: UIView) {
+        box.backgroundColor = .clear
+        navigationController?.isNavigationBarHidden = true
+
+        [backgroundView, menuContainerView].forEach({
+            box.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        })
+
+        [tableView].forEach({
+            menuContainerView.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        })
+
+        // Background constraints
         NSLayoutConstraint.activate([
-            // Background
-            backgroundView.topAnchor.constraint(equalTo: view.topAnchor),
-            backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backgroundView.topAnchor.constraint(equalTo: box.topAnchor),
+            backgroundView.leadingAnchor.constraint(equalTo: box.leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: box.trailingAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: box.bottomAnchor),
+        ])
 
-            // Menu Container
-            menuContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            menuContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        // Menu Container constraints
+        NSLayoutConstraint.activate([
+            menuContainerView.centerXAnchor.constraint(equalTo: box.centerXAnchor),
+            menuContainerView.centerYAnchor.constraint(equalTo: box.centerYAnchor),
             menuContainerView.widthAnchor.constraint(equalToConstant: 220),
-            menuContainerView.heightAnchor.constraint(lessThanOrEqualToConstant: 400),
+        ])
 
-            // Table View
+        // Table View constraints
+        NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: menuContainerView.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: menuContainerView.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: menuContainerView.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: menuContainerView.bottomAnchor)
+            tableView.bottomAnchor.constraint(equalTo: menuContainerView.bottomAnchor),
         ])
 
         // 动态计算菜单高度
@@ -126,7 +136,9 @@ class DoSwiftMenuViewController: UIViewController {
         let visibleItems = min(itemCount, maxVisibleItems)
         let menuHeight = CGFloat(visibleItems * 54)
 
-        menuContainerView.heightAnchor.constraint(equalToConstant: menuHeight).isActive = true
+        NSLayoutConstraint.activate([
+            menuContainerView.heightAnchor.constraint(equalToConstant: menuHeight),
+        ])
     }
 
     // MARK: - Actions
@@ -215,7 +227,6 @@ private class DoSwiftMenuCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = .systemBlue
-        imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
 
@@ -223,7 +234,6 @@ private class DoSwiftMenuCell: UITableViewCell {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
@@ -232,7 +242,6 @@ private class DoSwiftMenuCell: UITableViewCell {
         imageView.image = UIImage(systemName: "chevron.right")
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = .systemGray
-        imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
 
@@ -251,24 +260,33 @@ private class DoSwiftMenuCell: UITableViewCell {
     // MARK: - Setup
 
     private func setupUI() {
-        contentView.addSubview(iconImageView)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(arrowImageView)
+        loadViews(in: contentView)
+    }
+
+    private func loadViews(in box: UIView) {
+        [iconImageView, titleLabel, arrowImageView].forEach({
+            box.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        })
 
         NSLayoutConstraint.activate([
-            iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconImageView.leadingAnchor.constraint(equalTo: box.leadingAnchor, constant: 16),
+            iconImageView.centerYAnchor.constraint(equalTo: box.centerYAnchor),
             iconImageView.widthAnchor.constraint(equalToConstant: 24),
             iconImageView.heightAnchor.constraint(equalToConstant: 24),
+        ])
 
+        NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 12),
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: box.centerYAnchor),
             titleLabel.trailingAnchor.constraint(equalTo: arrowImageView.leadingAnchor, constant: -8),
+        ])
 
-            arrowImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            arrowImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        NSLayoutConstraint.activate([
+            arrowImageView.trailingAnchor.constraint(equalTo: box.trailingAnchor, constant: -16),
+            arrowImageView.centerYAnchor.constraint(equalTo: box.centerYAnchor),
             arrowImageView.widthAnchor.constraint(equalToConstant: 12),
-            arrowImageView.heightAnchor.constraint(equalToConstant: 12)
+            arrowImageView.heightAnchor.constraint(equalToConstant: 12),
         ])
     }
 
