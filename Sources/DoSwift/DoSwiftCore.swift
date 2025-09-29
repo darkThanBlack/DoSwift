@@ -177,8 +177,8 @@ public class DoSwiftCore {
     }
 
     private func showUIHierarchy() {
-        let hierarchyViewController = DoSwiftHierarchyViewController()
-        pushViewController(hierarchyViewController, animated: true)
+        let inspectorController = DoSwiftHierarchyInspectorController()
+        pushViewController(inspectorController, animated: true)
     }
 
     /// 获取当前最顶层的控制器

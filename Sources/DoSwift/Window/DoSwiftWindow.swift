@@ -34,6 +34,11 @@ public class DoSwiftWindow: UIWindow {
         noResponses.append(Weaker(value))
     }
 
+    /// 移除不响应事件的视图
+    public func removeNoResponseView(_ value: UIView) {
+        noResponses.removeAll(where: { $0.me == nil || $0.me === value })
+    }
+
     // MARK: - Hit Test Override
 
     /// 重写 hitTest 实现事件穿透
