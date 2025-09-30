@@ -1,5 +1,5 @@
 //
-//  DoSwiftDriftView.swift
+//  DriftView.swift
 //  DoSwift
 //
 //  Created by Claude Code on 2025/09/26.
@@ -10,21 +10,30 @@ import UIKit
 
 // MARK: - Delegate Protocol
 
-protocol DoSwiftDriftViewDelegate: AnyObject {
-    func driftViewDidTap(_ driftView: DoSwiftDriftView)
+protocol DriftViewDelegate: AnyObject {
+    func driftViewDidTap(_ driftView: DriftView)
+    func driftViewDidBeginDrag(_ driftView: DriftView)
+    func driftViewDidDrag(_ driftView: DriftView, location: CGPoint)
+    func driftViewDidEndDrag(_ driftView: DriftView, location: CGPoint)
 }
 
-// MARK: - DoSwiftDriftView
+// MARK: - DriftView
 
-/// DoSwift 悬浮按钮视图，参考 DriftView 设计
-class DoSwiftDriftView: UIView {
+/// 纯拖拽组件，不持有业务逻辑
+class DriftView: UIView {
 
     // MARK: - Properties
 
-    weak var delegate: DoSwiftDriftViewDelegate?
+    weak var delegate: DriftViewDelegate?
 
-    /// 菜单项（用于显示未读数量等）
-    var menuItems: [DoSwiftMenuItem] = []
+    /// 是否启用边缘吸附
+    var isEdgeAbsorbEnabled: Bool = true
+
+    /// 是否启用淡化效果
+    var isFadeEnabled: Bool = true
+
+    /// 是否可拖拽
+    var isDragEnabled: Bool = true
 
     /// 是否正在拖拽
     private var isMoving: Bool = false
@@ -33,12 +42,6 @@ class DoSwiftDriftView: UIView {
     private var originalPoint: CGPoint = .zero
 
     // MARK: - Fade Properties
-
-    /// 是否启用淡化效果
-    private let canFade: Bool = true
-
-    /// 是否启用延迟淡化
-    private let canDelay: Bool = true
 
     /// 淡化定时器
     private var fadeTimer: Timer?
@@ -68,6 +71,8 @@ class DoSwiftDriftView: UIView {
 
     /// 执行边缘吸附动画
     func fireAbsorb() {
+        guard isEdgeAbsorbEnabled else { return }
+
         let parentBounds = superview?.bounds ?? UIScreen.main.bounds
         let safeInsets = superview?.safeAreaInsets ?? .zero
         let barrier = parentBounds.inset(by: safeInsets)
@@ -86,7 +91,7 @@ class DoSwiftDriftView: UIView {
             completion: { _ in
                 // 保存位置到 UserDefaults
                 let frameDict = ["x": newFrame.origin.x, "y": newFrame.origin.y]
-                UserDefaults.standard.set(frameDict, forKey: DoSwiftUserDefaults.driftFrameKey)
+                UserDefaults.standard.set(frameDict, forKey: UserDefaults.driftFrameKey)
                 UserDefaults.standard.synchronize()
             }
         )
@@ -94,7 +99,7 @@ class DoSwiftDriftView: UIView {
 
     /// 执行淡化效果
     func fireFade(_ isFade: Bool) {
-        guard canFade else { return }
+        guard isFadeEnabled else { return }
 
         if isFade {
             UIView.animate(withDuration: 0.5) {
@@ -178,9 +183,11 @@ class DoSwiftDriftView: UIView {
     // MARK: - Fade Timer
 
     private func fadeTimerRestart() {
+        guard isFadeEnabled else { return }
+
         fadeCounts = fadeDelayTime
 
-        guard fadeTimer == nil, canDelay else { return }
+        guard fadeTimer == nil else { return }
 
         fadeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             self?.fadeTimerEvent(timer)
@@ -207,31 +214,80 @@ class DoSwiftDriftView: UIView {
     // MARK: - Touch Events
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let point = touches.first?.location(in: self) else { return }
+        guard isDragEnabled, let point = touches.first?.location(in: self) else { return }
 
         originalPoint = point
         isMoving = true
 
         fireFade(false)
+        delegate?.driftViewDidBeginDrag(self)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let point = touches.first?.location(in: self) else { return }
+        guard isDragEnabled, let point = touches.first?.location(in: self) else { return }
 
         var newFrame = frame
         newFrame.origin.x += (point.x - originalPoint.x)
         newFrame.origin.y += (point.y - originalPoint.y)
 
+        // 自由拖拽模式下，限制中心点不超出边界
+        if !isEdgeAbsorbEnabled {
+            let parentBounds = superview?.bounds ?? UIScreen.main.bounds
+            let safeInsets = superview?.safeAreaInsets ?? .zero
+            let barrier = parentBounds.inset(by: safeInsets)
+
+            // 计算中心点位置
+            let centerX = newFrame.midX
+            let centerY = newFrame.midY
+
+            // 限制中心点在边界内
+            let minCenterX = barrier.minX + newFrame.width / 2
+            let maxCenterX = barrier.maxX - newFrame.width / 2
+            let minCenterY = barrier.minY + newFrame.height / 2
+            let maxCenterY = barrier.maxY - newFrame.height / 2
+
+            if centerX < minCenterX {
+                newFrame.origin.x = barrier.minX
+            } else if centerX > maxCenterX {
+                newFrame.origin.x = barrier.maxX - newFrame.width
+            }
+
+            if centerY < minCenterY {
+                newFrame.origin.y = barrier.minY
+            } else if centerY > maxCenterY {
+                newFrame.origin.y = barrier.maxY - newFrame.height
+            }
+        }
+
         frame = newFrame
+
+        // 通知代理拖拽位置变化
+        let center = CGPoint(x: newFrame.midX, y: newFrame.midY)
+        let locationInSuperview = superview?.convert(center, to: nil) ?? center
+        delegate?.driftViewDidDrag(self, location: locationInSuperview)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard isDragEnabled else { return }
+
         isMoving = false
+
+        let center = CGPoint(x: frame.midX, y: frame.midY)
+        let locationInSuperview = superview?.convert(center, to: nil) ?? center
+        delegate?.driftViewDidEndDrag(self, location: locationInSuperview)
+
         fireAbsorb()
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard isDragEnabled else { return }
+
         isMoving = false
+
+        let center = CGPoint(x: frame.midX, y: frame.midY)
+        let locationInSuperview = superview?.convert(center, to: nil) ?? center
+        delegate?.driftViewDidEndDrag(self, location: locationInSuperview)
+
         fireAbsorb()
     }
 
@@ -278,6 +334,6 @@ class DoSwiftDriftView: UIView {
 
 // MARK: - UserDefaults Keys
 
-enum DoSwiftUserDefaults {
-    static let driftFrameKey = "kDoSwiftDriftFrameKey"
+extension UserDefaults {
+    static let driftFrameKey = "kDriftFrameKey"
 }

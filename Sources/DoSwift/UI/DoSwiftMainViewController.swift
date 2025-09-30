@@ -17,8 +17,8 @@ class DoSwiftMainViewController: UIViewController {
     var menuItems: [DoSwiftMenuItem] = []
 
     /// 悬浮按钮视图
-    lazy var driftView: DoSwiftDriftView = {
-        let view = DoSwiftDriftView()
+    lazy var driftView: DriftView = {
+        let view = DriftView()
         view.delegate = self
         return view
     }()
@@ -39,7 +39,6 @@ class DoSwiftMainViewController: UIViewController {
     /// 更新菜单项
     func updateMenuItems(_ items: [DoSwiftMenuItem]) {
         menuItems = items
-        driftView.menuItems = items
     }
 
     // MARK: - Private Methods
@@ -50,7 +49,7 @@ class DoSwiftMainViewController: UIViewController {
         let driftSize = driftView.sizeThatFits(UIScreen.main.bounds.size)
 
         // 从 UserDefaults 恢复位置
-        let savedFrame: [String: CGFloat]? = UserDefaults.standard.object(forKey: DoSwiftUserDefaults.driftFrameKey) as? [String: CGFloat]
+        let savedFrame: [String: CGFloat]? = UserDefaults.standard.object(forKey: UserDefaults.driftFrameKey) as? [String: CGFloat]
 
         let defaultX = view.bounds.width - driftSize.width - 20
         let defaultY = view.bounds.height * 0.3
@@ -64,17 +63,26 @@ class DoSwiftMainViewController: UIViewController {
 
         // 初始化时执行吸附
         driftView.fireAbsorb()
-
-        // 设置菜单项
-        driftView.menuItems = menuItems
     }
 }
 
-// MARK: - DoSwiftDriftViewDelegate
+// MARK: - DriftViewDelegate
 
-extension DoSwiftMainViewController: DoSwiftDriftViewDelegate {
+extension DoSwiftMainViewController: DriftViewDelegate {
+    func driftViewDidBeginDrag(_ driftView: DriftView) {
 
-    func driftViewDidTap(_ driftView: DoSwiftDriftView) {
+    }
+
+    func driftViewDidDrag(_ driftView: DriftView, location: CGPoint) {
+
+    }
+
+    func driftViewDidEndDrag(_ driftView: DriftView, location: CGPoint) {
+
+    }
+
+
+    func driftViewDidTap(_ driftView: DriftView) {
         // 显示菜单
         showMenu()
     }

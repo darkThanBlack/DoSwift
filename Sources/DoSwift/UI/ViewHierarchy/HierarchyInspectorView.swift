@@ -1,5 +1,5 @@
 //
-//  DoSwiftHierarchyInspectorView.swift
+//  HierarchyInspectorView.swift
 //  DoSwift
 //
 //  Created by Claude Code on 2025/09/29.
@@ -8,20 +8,24 @@
 
 import UIKit
 
-/// 浮窗式 UI 结构属性检查器
-class DoSwiftHierarchyInspectorView: UIView {
+// MARK: - Delegate Protocol
+
+protocol HierarchyInspectorViewDelegate: AnyObject {
+    func inspectorViewDidRequestClose(_ inspectorView: HierarchyInspectorView)
+    func inspectorViewDidRequestMoreInfo(_ inspectorView: HierarchyInspectorView)
+    func inspectorViewDidRequestParentViews(_ inspectorView: HierarchyInspectorView)
+    func inspectorViewDidRequestSubviews(_ inspectorView: HierarchyInspectorView)
+}
+
+/// 浮窗式 UI 结构属性检查器 - 纯 UI 展示
+class HierarchyInspectorView: UIView {
 
     // MARK: - Properties
 
-    weak var selectedView: UIView? {
-        didSet {
-            updateInspectorInfo()
-        }
-    }
+    weak var delegate: HierarchyInspectorViewDelegate?
 
-    var onParentViewsTapped: (() -> Void)?
-    var onSubviewsTapped: (() -> Void)?
-    var onMoreInfoTapped: (() -> Void)?
+    private var selectedView: UIView?
+    private var currentDragLocation: CGPoint = .zero
 
     // MARK: - UI Elements
 
@@ -41,10 +45,28 @@ class DoSwiftHierarchyInspectorView: UIView {
         return label
     }()
 
+    private let closeButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("关闭", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        button.backgroundColor = UIColor.red.withAlphaComponent(0.8)
+        button.layer.cornerRadius = 12
+        return button
+    }()
+
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         label.textColor = .white
+        return label
+    }()
+
+    private let coordinateLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.textColor = UIColor.white.withAlphaComponent(0.8)
+        label.text = "Position: (0, 0)"
         return label
     }()
 
@@ -87,7 +109,7 @@ class DoSwiftHierarchyInspectorView: UIView {
 
     private let parentViewsButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Parent Views", for: .normal)
+        button.setTitle("父视图", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
         button.backgroundColor = UIColor.white.withAlphaComponent(0.1)
@@ -96,7 +118,7 @@ class DoSwiftHierarchyInspectorView: UIView {
 
     private let subviewsButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Subviews", for: .normal)
+        button.setTitle("子视图", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
         button.backgroundColor = UIColor.white.withAlphaComponent(0.1)
@@ -105,7 +127,7 @@ class DoSwiftHierarchyInspectorView: UIView {
 
     private let moreInfoButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("More Info", for: .normal)
+        button.setTitle("详细信息", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
         button.backgroundColor = UIColor.white.withAlphaComponent(0.1)
@@ -133,7 +155,7 @@ class DoSwiftHierarchyInspectorView: UIView {
 
         addSubview(containerView)
 
-        [titleLabel, nameLabel, frameLabel, backgroundLabel, textColorLabel, fontLabel, buttonStackView].forEach {
+        [titleLabel, closeButton, nameLabel, coordinateLabel, frameLabel, backgroundLabel, textColorLabel, fontLabel, buttonStackView].forEach {
             containerView.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -150,20 +172,31 @@ class DoSwiftHierarchyInspectorView: UIView {
             containerView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             containerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             containerView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            containerView.heightAnchor.constraint(equalToConstant: 180),
+            containerView.heightAnchor.constraint(equalToConstant: 200),
 
             // Title
             titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            titleLabel.trailingAnchor.constraint(equalTo: closeButton.leadingAnchor, constant: -8),
+
+            // Close Button
+            closeButton.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 8),
+            closeButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
+            closeButton.widthAnchor.constraint(equalToConstant: 50),
+            closeButton.heightAnchor.constraint(equalToConstant: 28),
 
             // Name
             nameLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             nameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
             nameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
 
+            // Coordinate
+            coordinateLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            coordinateLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            coordinateLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+
             // Frame
-            frameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            frameLabel.topAnchor.constraint(equalTo: coordinateLabel.bottomAnchor, constant: 4),
             frameLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
             frameLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
 
@@ -194,25 +227,44 @@ class DoSwiftHierarchyInspectorView: UIView {
         parentViewsButton.addTarget(self, action: #selector(parentViewsButtonTapped), for: .touchUpInside)
         subviewsButton.addTarget(self, action: #selector(subviewsButtonTapped), for: .touchUpInside)
         moreInfoButton.addTarget(self, action: #selector(moreInfoButtonTapped), for: .touchUpInside)
+        closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
     }
 
     // MARK: - Actions
 
     @objc private func parentViewsButtonTapped() {
-        onParentViewsTapped?()
+        delegate?.inspectorViewDidRequestParentViews(self)
     }
 
     @objc private func subviewsButtonTapped() {
-        onSubviewsTapped?()
+        delegate?.inspectorViewDidRequestSubviews(self)
     }
 
     @objc private func moreInfoButtonTapped() {
-        onMoreInfoTapped?()
+        delegate?.inspectorViewDidRequestMoreInfo(self)
+    }
+
+    @objc private func closeButtonTapped() {
+        delegate?.inspectorViewDidRequestClose(self)
+    }
+
+    // MARK: - Public Methods
+
+    func updateSelectedView(_ view: UIView) {
+        selectedView = view
+        updateInspectorInfo()
+    }
+
+    func updateDragLocation(_ location: CGPoint) {
+        currentDragLocation = location
+        updateCoordinateDisplay()
     }
 
     // MARK: - Update Methods
 
     private func updateInspectorInfo() {
+        updateCoordinateDisplay()
+
         guard let view = selectedView else {
             nameLabel.text = "No Selection"
             frameLabel.text = ""
@@ -231,25 +283,25 @@ class DoSwiftHierarchyInspectorView: UIView {
 
         // Background Color
         if let backgroundColor = view.backgroundColor {
-            if backgroundColor == .clear {
+            if backgroundColor == UIColor.clear {
                 backgroundLabel.text = "Background: Clear Color"
             } else {
-                backgroundLabel.text = "Background: \(colorDescription(backgroundColor))"
+                backgroundLabel.text = "Background: \(hexStringFromColor(backgroundColor))"
             }
         } else {
             backgroundLabel.text = "Background: nil"
         }
 
-        // Text Color & Font (if it's a UILabel)
+        // Text Color and Font (for UILabel)
         if let label = view as? UILabel {
             if let textColor = label.textColor {
-                textColorLabel.text = "Text Color: \(colorDescription(textColor))"
+                textColorLabel.text = "Text Color: \(hexStringFromColor(textColor))"
             } else {
                 textColorLabel.text = "Text Color: nil"
             }
 
             if let font = label.font {
-                fontLabel.text = "Font: \(String(format: "%.2f", font.pointSize))"
+                fontLabel.text = "Font: \(font.fontName) \(String(format: "%.1f", font.pointSize))pt"
             } else {
                 fontLabel.text = "Font: nil"
             }
@@ -259,53 +311,17 @@ class DoSwiftHierarchyInspectorView: UIView {
         }
     }
 
-    private func colorDescription(_ color: UIColor) -> String {
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var alpha: CGFloat = 0
-
-        if color.getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
-            let r = Int(red * 255)
-            let g = Int(green * 255)
-            let b = Int(blue * 255)
-            return String(format: "#%02X%02X%02X", r, g, b)
-        }
-
-        return "Unknown"
+    private func updateCoordinateDisplay() {
+        coordinateLabel.text = "Position: (\(String(format: "%.0f", currentDragLocation.x)), \(String(format: "%.0f", currentDragLocation.y)))"
     }
 
-    // MARK: - Public Methods
+    private func hexStringFromColor(_ color: UIColor) -> String {
+        let components = color.cgColor.components
+        let r: CGFloat = components?[0] ?? 0.0
+        let g: CGFloat = components?[1] ?? 0.0
+        let b: CGFloat = components?[2] ?? 0.0
 
-    func show(in parentView: UIView) {
-        guard superview == nil else { return }
-
-        parentView.addSubview(self)
-        translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: parentView.topAnchor),
-            leadingAnchor.constraint(equalTo: parentView.leadingAnchor),
-            trailingAnchor.constraint(equalTo: parentView.trailingAnchor),
-            bottomAnchor.constraint(equalTo: parentView.bottomAnchor)
-        ])
-
-        // 入场动画
-        containerView.transform = CGAffineTransform(translationX: 0, y: 200)
-        containerView.alpha = 0
-
-        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: [], animations: {
-            self.containerView.transform = .identity
-            self.containerView.alpha = 1
-        })
-    }
-
-    func hide() {
-        UIView.animate(withDuration: 0.25, animations: {
-            self.containerView.transform = CGAffineTransform(translationX: 0, y: 200)
-            self.containerView.alpha = 0
-        }) { _ in
-            self.removeFromSuperview()
-        }
+        let hexString = String.init(format: "#%02lX%02lX%02lX", lroundf(Float(r * 255)), lroundf(Float(g * 255)), lroundf(Float(b * 255)))
+        return hexString
     }
 }
