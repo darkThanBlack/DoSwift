@@ -247,7 +247,7 @@ class ViewController: UIViewController {
     }
 
     private func createButton(title: String, action: Selector) -> UIButton {
-        let button = UIButton(type: .system)
+        let button = UIButton(type: .custom)
         button.setTitle(title, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = UIColor.systemBlue

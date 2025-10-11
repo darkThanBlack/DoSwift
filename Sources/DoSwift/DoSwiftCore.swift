@@ -177,7 +177,7 @@ public class DoSwiftCore {
     }
 
     private func showUIHierarchy() {
-        let inspectorController = DoSwiftHierarchyInspectorController()
+        let inspectorController = HierarchyInspectorController()
         pushViewController(inspectorController, animated: true)
     }
 

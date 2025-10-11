@@ -188,7 +188,7 @@ DoSwiftCore.shared.addMenuItem(menuItem)
 🚀 **开发状态**:
 核心框架已完成，可正常构建和运行。Example 项目展示了完整的功能演示。
 
-**最后更新**: 2025-09-29 交互式 UI Hierarchy + CI 脚本完成
+**最后更新**: 2025-10-11 架构重构完成 - 移除前缀，协议化，依赖注入
 
 ## 开发工具脚本 (2025-09-29)
 
@@ -339,17 +339,119 @@ if menuItem.identifier == "close" {
 }
 ```
 
-### 未来改进方向
+## UI 结构查看器架构重构 (2025-10-11)
 
-**潜在的交互式模式**:
-如果需要实现类似 DoKit 的交互式指示器模式，可以考虑：
-1. 在当前 DoSwiftWindow 中添加拖拽指示器视图
-2. 使用坐标转换处理跨窗口位置计算
-3. 实现实时属性浮窗跟随选择更新
-4. 保持单窗口架构的简洁性
+### 重大架构变更
 
-**当前实现评估**:
-- ✅ 功能完整: 覆盖 DoKit UI Hierarchy 的核心功能
-- ✅ 架构清晰: 单窗口设计避免复杂性
-- ✅ 技术成熟: 基于 KVC 的动态属性修改可靠稳定
-- ✅ 用户体验: 符合 iOS 导航设计模式
+#### 1. 移除所有 DoSwift 前缀
+为适应第三方库使用，移除了所有文件和类的 DoSwift 前缀：
+- `DoSwiftDriftView` → `DriftView`
+- `DoSwiftHierarchyInspectorController` → `HierarchyInspectorController`
+- `DoSwiftHierarchyInspectorView` → `HierarchyInspectorView`
+- `DoSwiftHierarchyInspectorOverlayView` → `HierarchyInspectorOverlayView`
+
+#### 2. 协议-委托模式迁移
+从闭包回调全面转换为协议-委托模式：
+
+```swift
+// 修改前: 闭包回调
+var onTap: (() -> Void)?
+var onDrag: ((CGPoint) -> Void)?
+
+// 修改后: 协议委托
+protocol DriftViewDelegate: AnyObject {
+    func driftViewDidTap(_ driftView: DriftView)
+    func driftViewDidBeginDrag(_ driftView: DriftView)
+    func driftViewDidDrag(_ driftView: DriftView, location: CGPoint)
+    func driftViewDidEndDrag(_ driftView: DriftView, location: CGPoint)
+}
+
+protocol HierarchyInspectorDelegate: AnyObject {
+    func inspectorDidRequestClose(_ controller: HierarchyInspectorController)
+    func inspectorDidRequestDetailView(_ controller: HierarchyInspectorController, for view: UIView)
+}
+```
+
+#### 3. 依赖注入架构重构
+重构控制器和视图之间的依赖关系：
+
+**控制器持有 DriftView**：
+```swift
+class HierarchyInspectorController: UIViewController {
+    private lazy var driftView: DriftView = {
+        let view = DriftView()
+        view.delegate = self
+        view.isEdgeAbsorbEnabled = false
+        view.isFadeEnabled = false
+        return view
+    }()
+
+    private lazy var overlayView: HierarchyInspectorOverlayView = {
+        let view = HierarchyInspectorOverlayView(frame: view.bounds)
+        view.configure(driftView: driftView)  // 弱注入
+        view.delegate = self
+        return view
+    }()
+}
+```
+
+**OverlayView 接受弱注入**：
+```swift
+class HierarchyInspectorOverlayView: UIView {
+    weak var driftView: DriftView?
+
+    func configure(driftView: DriftView) {
+        self.driftView = driftView
+    }
+}
+```
+
+#### 4. UI 改进 - 文字按钮替换图标
+将所有图标按钮替换为文字按钮以提升可用性：
+- 父视图: "父视图"
+- 子视图: "子视图"
+- 详细信息: "详细信息"
+- 关闭: "关闭"
+
+### 三层架构设计
+
+#### 1. Controller 层 (HierarchyInspectorController)
+**职责**: 业务逻辑和状态管理
+- 持有 DriftView 和 OverlayView
+- 实现所有委托协议：`DriftViewDelegate`, `HierarchyInspectorOverlayViewDelegate`
+- 处理视图查找、选择、父子视图导航等业务逻辑
+- 管理 selectedView 状态
+
+#### 2. Overlay 层 (HierarchyInspectorOverlayView)
+**职责**: UI 容器和布局管理
+- 通过弱引用接收 DriftView 注入
+- 管理拖拽指示线 (X轴线、Y轴线)
+- 包含并管理 HierarchyInspectorView
+- 转发所有业务事件到 Controller
+
+#### 3. Inspector 层 (HierarchyInspectorView)
+**职责**: 属性展示面板
+- 纯 UI 组件，显示选中视图的属性信息
+- 文字按钮交互界面
+- 通过委托将用户操作传递给上层
+
+### 已识别的技术问题
+
+#### 事件响应问题
+**问题**: HierarchyInspectorView 中的所有控件不响应用户事件
+
+**根本原因**: AutoLayout 与 Frame Layout 冲突
+- HierarchyInspectorView 使用 AutoLayout 约束布局
+- 父视图 HierarchyInspectorOverlayView 使用 Frame 布局设置位置
+- 约束系统与手动 frame 设置产生冲突，导致按钮 frame 计算错误
+- UIKit 的点击检测基于视图的几何属性，错误的 frame 导致触摸事件无法正确路由
+
+**解决方案**: 将 HierarchyInspectorView 转换为 Frame 布局以保持架构一致性
+
+### 架构优势
+
+1. **清晰的职责分离**: Controller-Overlay-Inspector 三层各司其职
+2. **弱引用依赖注入**: 避免循环引用，支持未来基类提取
+3. **协议委托模式**: 类型安全的事件传递，便于测试和维护
+4. **一致的布局方式**: 统一使用 Frame 布局提升性能
+5. **可扩展架构**: 为未来 ViewController 基类提取做好准备
