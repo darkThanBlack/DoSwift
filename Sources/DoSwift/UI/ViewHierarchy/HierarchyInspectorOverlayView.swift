@@ -23,7 +23,6 @@ class HierarchyInspectorOverlayView: UIView {
     // MARK: - Properties
 
     weak var delegate: HierarchyInspectorOverlayViewDelegate?
-    weak var targetWindow: UIWindow?
     weak var driftView: DriftView?
 
     private var selectedView: UIView?
@@ -47,20 +46,10 @@ class HierarchyInspectorOverlayView: UIView {
         return view
     }()
 
-    // 高亮边框
-    private let highlightView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        view.layer.borderColor = UIColor.systemRed.cgColor
-        view.layer.borderWidth = 2.0
-        view.isUserInteractionEnabled = false
-        view.isHidden = true
-        return view
-    }()
-
     // 属性检查器浮窗
     private let inspectorView: HierarchyInspectorView = {
         let view = HierarchyInspectorView()
+        view.isUserInteractionEnabled = true
         view.isHidden = true
         return view
     }()
@@ -83,7 +72,7 @@ class HierarchyInspectorOverlayView: UIView {
         backgroundColor = .clear
 
         // 添加所有子视图
-        [xAxisLine, yAxisLine, highlightView, inspectorView].forEach {
+        [xAxisLine, yAxisLine, inspectorView].forEach {
             addSubview($0)
         }
 
@@ -134,35 +123,13 @@ class HierarchyInspectorOverlayView: UIView {
 
     // MARK: - Public Methods
 
-    func configure(targetWindow: UIWindow, driftView: DriftView) {
-        self.targetWindow = targetWindow
+    func configure(driftView: DriftView) {
         self.driftView = driftView
     }
 
     func updateSelectedView(_ view: UIView) {
         selectedView = view
         inspectorView.updateSelectedView(view)
-    }
-
-    func highlightView(_ view: UIView) {
-        guard let appWindow = DoSwiftCore.shared.appWindow,
-              let superview = view.superview else { return }
-
-        // 计算在主应用窗口中的位置
-        let frameInWindow = superview.convert(view.frame, to: appWindow)
-
-        // 由于覆盖层就在主应用窗口中，直接使用窗口坐标
-        highlightView.frame = frameInWindow
-        highlightView.isHidden = false
-
-        // 3秒后自动隐藏
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            self.hideHighlight()
-        }
-    }
-
-    func hideHighlight() {
-        highlightView.isHidden = true
     }
 
     func showInspector() {
@@ -172,7 +139,6 @@ class HierarchyInspectorOverlayView: UIView {
     func hideInspector() {
         inspectorView.isHidden = true
         hideDragIndicators()
-        hideHighlight()
     }
 
     func toggleInspector() {

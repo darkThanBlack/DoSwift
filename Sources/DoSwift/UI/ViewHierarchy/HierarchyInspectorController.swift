@@ -22,95 +22,45 @@ class HierarchyInspectorController: UIViewController {
 
     weak var delegate: HierarchyInspectorDelegate?
 
-    private var overlayView: HierarchyInspectorOverlayView!
-    private var driftView: DriftView!
+    // 覆盖层视图
+    private lazy var overlayView: HierarchyInspectorOverlayView = {
+        let view = HierarchyInspectorOverlayView(frame: view.bounds)
+        view.isUserInteractionEnabled = true
+        view.configure(driftView: driftView)
+        view.delegate = self
+        return view
+    }()
+    
+    private lazy var driftView: DriftView = {
+        let view = DriftView()
+        view.delegate = self
+        view.isEdgeAbsorbEnabled = false
+        view.isFadeEnabled = false
+        return view
+    }()
     private var selectedView: UIView?
 
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupInspector()
+        setupSubviews(in: view)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        exitInspectorMode()
+        
     }
-
+    
+    override func viewDidLayoutSubviews() {
+        overlayView.frame = view.bounds
+    }
+    
     // MARK: - Setup
 
-    private func setupInspector() {
-        guard let appWindow = DoSwiftCore.shared.appWindow else {
-            print("无法获取主应用窗口")
-            return
-        }
-
-        // 创建 DriftView
-        setupDriftView()
-
-        // 创建覆盖层视图
-        overlayView = HierarchyInspectorOverlayView(frame: appWindow.bounds)
-        overlayView.configure(targetWindow: appWindow, driftView: driftView)
-        overlayView.delegate = self
-
-        // 添加到主应用窗口
-        appWindow.addSubview(overlayView)
-
-        // 更新 DoSwift 窗口的 noResponseViews
-        updateNoResponseViews()
-
-        // 显示提示
-        showInstructionAlert()
-    }
-
-    private func setupDriftView() {
-        driftView = DriftView()
-        driftView.delegate = self
-        driftView.isEdgeAbsorbEnabled = false  // 自由拖动
-        driftView.isFadeEnabled = false        // 不淡化
-    }
-
-    private func exitInspectorMode() {
-        overlayView?.removeFromSuperview()
-        overlayView = nil
-        driftView = nil
-
-        // 恢复 DoSwift 窗口的 noResponseViews
-        restoreNoResponseViews()
-    }
-
-    // MARK: - Window Management
-
-    private func updateNoResponseViews() {
-        guard let doSwiftWindow = DoSwiftCore.shared.window else { return }
-
-        // 将当前控制器的 view 添加到 noResponseViews，保证事件不被 DoSwift 窗口拦截
-        doSwiftWindow.addNoResponseView(self.view)
-    }
-
-    private func restoreNoResponseViews() {
-        guard let doSwiftWindow = DoSwiftCore.shared.window else { return }
-
-        // 从 noResponseViews 中移除当前控制器的 view
-        doSwiftWindow.removeNoResponseView(self.view)
-    }
-
-    // MARK: - UI Actions
-
-    private func showInstructionAlert() {
-        let alert = UIAlertController(
-            title: "UI 结构检查器",
-            message: "• 拖拽浮窗按钮显示坐标辅助线\n• 拖拽结束时检测控件\n• 单击浮窗按钮切换检查器\n• 点击关闭按钮退出",
-            preferredStyle: .alert
-        )
-
-        alert.addAction(UIAlertAction(title: "开始检查", style: .default))
-
-        // 从 DoSwift 窗口弹出
-        if let doSwiftVC = DoSwiftCore.shared.mainController {
-            doSwiftVC.present(alert, animated: true)
-        }
+    private func setupSubviews(in box: UIView) {
+        box.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        box.addSubview(overlayView)
     }
 
     // MARK: - View Finding
@@ -150,7 +100,6 @@ class HierarchyInspectorController: UIViewController {
     private func selectView(_ view: UIView) {
         selectedView = view
         overlayView.updateSelectedView(view)
-        overlayView.highlightView(view)
         overlayView.showInspector()
     }
 

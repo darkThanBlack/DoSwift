@@ -169,7 +169,7 @@ class DoSwiftPropertyCell: UITableViewCell {
     }()
 
     private let colorButton: UIButton = {
-        let button = UIButton(type: .system)
+        let button = UIButton(type: .custom)
         button.isHidden = true
         button.layer.cornerRadius = 8
         button.layer.borderWidth = 1

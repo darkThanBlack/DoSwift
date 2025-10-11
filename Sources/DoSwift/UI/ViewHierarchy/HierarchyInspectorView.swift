@@ -29,7 +29,7 @@ class HierarchyInspectorView: UIView {
 
     // MARK: - UI Elements
 
-    private let containerView: UIView = {
+    private lazy var containerView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.black.withAlphaComponent(0.9)
         view.layer.cornerRadius = 12
@@ -37,7 +37,7 @@ class HierarchyInspectorView: UIView {
         return view
     }()
 
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         label.textColor = .white
@@ -45,8 +45,8 @@ class HierarchyInspectorView: UIView {
         return label
     }()
 
-    private let closeButton: UIButton = {
-        let button = UIButton(type: .system)
+    private lazy var closeButton: UIButton = {
+        let button = UIButton(type: .custom)
         button.setTitle("关闭", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
@@ -55,14 +55,14 @@ class HierarchyInspectorView: UIView {
         return button
     }()
 
-    private let nameLabel: UILabel = {
+    private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         label.textColor = .white
         return label
     }()
 
-    private let coordinateLabel: UILabel = {
+    private lazy var coordinateLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = UIColor.white.withAlphaComponent(0.8)
@@ -70,7 +70,7 @@ class HierarchyInspectorView: UIView {
         return label
     }()
 
-    private let frameLabel: UILabel = {
+    private lazy var frameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = UIColor.white.withAlphaComponent(0.8)
@@ -78,28 +78,28 @@ class HierarchyInspectorView: UIView {
         return label
     }()
 
-    private let backgroundLabel: UILabel = {
+    private lazy var backgroundLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = UIColor.white.withAlphaComponent(0.8)
         return label
     }()
 
-    private let textColorLabel: UILabel = {
+    private lazy var textColorLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = UIColor.white.withAlphaComponent(0.8)
         return label
     }()
 
-    private let fontLabel: UILabel = {
+    private lazy var fontLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = UIColor.white.withAlphaComponent(0.8)
         return label
     }()
 
-    private let buttonStackView: UIStackView = {
+    private lazy var buttonStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .horizontal
         stack.distribution = .fillEqually
@@ -107,8 +107,8 @@ class HierarchyInspectorView: UIView {
         return stack
     }()
 
-    private let parentViewsButton: UIButton = {
-        let button = UIButton(type: .system)
+    private lazy var parentViewsButton: UIButton = {
+        let button = UIButton(type: .custom)
         button.setTitle("父视图", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
@@ -116,8 +116,8 @@ class HierarchyInspectorView: UIView {
         return button
     }()
 
-    private let subviewsButton: UIButton = {
-        let button = UIButton(type: .system)
+    private lazy var subviewsButton: UIButton = {
+        let button = UIButton(type: .custom)
         button.setTitle("子视图", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
@@ -125,8 +125,8 @@ class HierarchyInspectorView: UIView {
         return button
     }()
 
-    private let moreInfoButton: UIButton = {
-        let button = UIButton(type: .system)
+    private lazy var moreInfoButton: UIButton = {
+        let button = UIButton(type: .custom)
         button.setTitle("详细信息", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
@@ -141,13 +141,11 @@ class HierarchyInspectorView: UIView {
         setupViews()
         setupActions()
     }
-
+    
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupViews()
-        setupActions()
+        fatalError("init(coder:) has not been implemented")
     }
-
+    
     // MARK: - Setup
 
     private func setupViews() {
