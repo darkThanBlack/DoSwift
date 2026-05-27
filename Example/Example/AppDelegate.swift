@@ -27,7 +27,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window?.makeKeyAndVisible()
 
         // Initialize DoSwift with custom menu items
-        setupDoSwift()
+//        setupDoSwift()
 
         return true
     }
