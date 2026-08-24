@@ -29,6 +29,12 @@ class HierarchyDetailViewController: HierarchyTableViewController {
 
         title = "UI Structure"
 
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .close,
+            target: self,
+            action: #selector(dismissDetail)
+        )
+
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 50))
         headerView.addSubview(segmentedControl)
         tableView.tableHeaderView = headerView
@@ -45,11 +51,12 @@ class HierarchyDetailViewController: HierarchyTableViewController {
 
     // MARK: - Data
 
+    // Property lists come from HierarchyPropertyEngine (JSON-driven).
     private func loadData() {
         guard let view = selectView else { return }
 
-        objectDatas = view.hierarchy_categoryModels
-        sizeDatas = view.hierarchy_sizeCategoryModels
+        objectDatas = HierarchyPropertyEngine.shared.categoryModels(for: view)
+        sizeDatas = HierarchyPropertyEngine.shared.sizeCategoryModels(for: view)
 
         reloadTableView()
     }
@@ -79,15 +86,15 @@ class HierarchyDetailViewController: HierarchyTableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let model = dataArray[indexPath.section].items[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: model.cellClass, for: indexPath)
-        cell.setValue(model, forKey: "model")
         if let detailCell = cell as? HierarchyDetailTitleCell {
+            detailCell.model = model
             detailCell.detailLabel.textAlignment = .left
         }
         cell.separatorInset = model.separatorInsets
         return cell
     }
 
-    func dismissDetail() {
+    @objc func dismissDetail() {
         dismiss(animated: true)
     }
 }

@@ -27,7 +27,12 @@ for debugging tools.
   s.swift_versions = '5.9'
 
   # All source files in one library
-  s.source_files = 'Sources/DoSwift/**/*'
+  s.source_files = 'Sources/DoSwift/**/*.{swift,m,h}'
+
+  # JSON property config for the Hierarchy inspector
+  s.resource_bundles = {
+    'DoSwift' => ['Sources/DoSwift/UI/Hierarchy/HierarchyProperties.json']
+  }
 
   # Framework settings
   s.frameworks = 'UIKit', 'Foundation'

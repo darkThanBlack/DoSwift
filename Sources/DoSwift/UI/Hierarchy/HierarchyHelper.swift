@@ -12,6 +12,13 @@ class HierarchyHelper {
 
     var window: HierarchyWindow?
 
+    /// 业务 app 的主窗口（由 `DoSwiftCore.setup(_:)` 注入，weak 持有）。
+    /// Hierarchy 的拾取与坐标换算以此为基准，区别于本模块的遮罩 `window`。
+    /// TODO: 后续补充 DTBKit 风格的默认搜索作为兜底。
+    var businessWindow: UIWindow? {
+        DoSwiftContext.shared.appWindow
+    }
+
     /// 是否忽略私有类（类名以下划线开头）
     var isIgnorePrivateClass: Bool = false
 

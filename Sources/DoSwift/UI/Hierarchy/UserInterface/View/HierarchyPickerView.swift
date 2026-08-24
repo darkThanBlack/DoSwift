@@ -48,17 +48,18 @@ class HierarchyPickerView: PickerView {
 
     /// 找到指定坐标处可选择的视图数组
     func viewsForSelection(at pointInWindow: CGPoint) -> [UIView] {
-        guard let keyWindow = UIApplication.shared.keyWindow else { return [] }
-
-        var windowForSelection: UIWindow? = keyWindow
-        for window in HierarchyHelper.shared.allWindowsIgnorePrefix("Doraemon").reversed() {
-            if window.hitTest(pointInWindow, with: nil) != nil {
-                windowForSelection = window
-                break
-            }
-        }
-
-        guard let targetWindow = windowForSelection else { return [] }
+        // 业务 window 已由 DoSwiftContext 注入，无需再遍历所有 window 猜目标。
+        //
+        // 原版（DoKit-iOS）无业务 window 注入，故遍历所有 window 逐个 hitTest 定位目标：
+        //   var windowForSelection: UIWindow? = keyWindow
+        //   for window in HierarchyHelper.shared.allWindowsIgnorePrefix("Doraemon").reversed() {
+        //       if window.hitTest(pointInWindow, with: nil) != nil {
+        //           windowForSelection = window
+        //           break
+        //       }
+        //   }
+        // 恢复该逻辑的场景：不注入业务 window、或需支持多 window（含键盘/alert）拾取。
+        guard let targetWindow = HierarchyHelper.shared.businessWindow else { return [] }
 
         if #available(iOS 26.0, *) {
             let topVC = Self.topMostViewController(targetWindow.rootViewController)

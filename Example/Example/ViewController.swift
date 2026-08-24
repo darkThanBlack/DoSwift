@@ -48,6 +48,8 @@ class ViewController: UIViewController {
     }
 
     @objc private func launchHierarchy() {
+        // 注入业务主 window 到全局上下文（Hierarchy 拾取以此为基准）
+        DoSwiftContext.shared.setup(view.window)
         HierarchyPlugin().pluginDidLoad()
     }
 }

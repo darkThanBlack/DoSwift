@@ -66,7 +66,7 @@ class HierarchyInspectorController: UIViewController {
     // MARK: - View Finding
 
     private func findViewAtLocation(_ location: CGPoint) -> UIView? {
-        guard let appWindow = DoSwiftCore.shared.appWindow else { return nil }
+        guard let appWindow = DoSwiftContext.shared.appWindow else { return nil }
 
         // 转换坐标到主应用窗口
         let locationInWindow = appWindow.convert(location, from: overlayView)
@@ -82,7 +82,7 @@ class HierarchyInspectorController: UIViewController {
         }
 
         // 检查点击是否在当前视图范围内
-        let localPoint = view.convert(location, from: DoSwiftCore.shared.appWindow)
+        let localPoint = view.convert(location, from: DoSwiftContext.shared.appWindow)
         if !view.bounds.contains(localPoint) {
             return nil
         }
@@ -124,7 +124,7 @@ class HierarchyInspectorController: UIViewController {
         alert.addAction(UIAlertAction(title: "取消", style: .cancel))
 
         // 从目标窗口的根控制器弹出
-        if let rootViewController = DoSwiftCore.shared.appWindow?.rootViewController {
+        if let rootViewController = DoSwiftContext.shared.appWindow?.rootViewController {
             var presentingVC = rootViewController
             while let presented = presentingVC.presentedViewController {
                 presentingVC = presented
@@ -140,7 +140,7 @@ class HierarchyInspectorController: UIViewController {
             let alert = UIAlertController(title: "子视图", message: "该视图没有子视图", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "确定", style: .default))
 
-            if let rootViewController = DoSwiftCore.shared.appWindow?.rootViewController {
+            if let rootViewController = DoSwiftContext.shared.appWindow?.rootViewController {
                 var presentingVC = rootViewController
                 while let presented = presentingVC.presentedViewController {
                     presentingVC = presented
@@ -161,7 +161,7 @@ class HierarchyInspectorController: UIViewController {
 
         alert.addAction(UIAlertAction(title: "取消", style: .cancel))
 
-        if let rootViewController = DoSwiftCore.shared.appWindow?.rootViewController {
+        if let rootViewController = DoSwiftContext.shared.appWindow?.rootViewController {
             var presentingVC = rootViewController
             while let presented = presentingVC.presentedViewController {
                 presentingVC = presented

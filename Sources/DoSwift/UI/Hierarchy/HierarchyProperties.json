@@ -1,0 +1,2135 @@
+{
+  "types": {
+    "NSObject": {
+      "groups": [
+        {
+          "title": "Object",
+          "items": [
+            {
+              "key": "class",
+              "title": "Class Name",
+              "editor": "className"
+            },
+            {
+              "key": "address",
+              "title": "Address",
+              "editor": "address"
+            },
+            {
+              "key": "description",
+              "title": "Description",
+              "editor": "readonly"
+            }
+          ]
+        }
+      ]
+    },
+    "UIView": {
+      "groups": [
+        {
+          "title": "View",
+          "items": [
+            {
+              "key": "layer.description",
+              "title": "Layer",
+              "editor": "readonly"
+            },
+            {
+              "key": "layer.class",
+              "title": "Layer Class",
+              "editor": "layerClass"
+            },
+            {
+              "key": "contentMode",
+              "title": "Content Mode",
+              "editor": "enum",
+              "enumType": "viewContentMode"
+            },
+            {
+              "key": "tag",
+              "title": "Tag",
+              "editor": "int"
+            },
+            {
+              "key": "isUserInteractionEnabled",
+              "title": "User Interaction",
+              "editor": "bool",
+              "trueTitle": "Enabled",
+              "falseTitle": "Not Enabled"
+            },
+            {
+              "key": "isMultipleTouchEnabled",
+              "editor": "bool",
+              "trueTitle": "Multiple Touch",
+              "falseTitle": "Single Touch"
+            },
+            {
+              "key": "alpha",
+              "title": "Alpha",
+              "editor": "double"
+            },
+            {
+              "key": "backgroundColor",
+              "title": "Background",
+              "editor": "color"
+            },
+            {
+              "key": "tintColor",
+              "title": "Tint",
+              "editor": "color"
+            },
+            {
+              "key": "isOpaque",
+              "title": "Drawing",
+              "editor": "bool",
+              "trueTitle": "Opaque",
+              "falseTitle": "Transparent"
+            },
+            {
+              "key": "isHidden",
+              "editor": "bool",
+              "trueTitle": "Hidden",
+              "falseTitle": "Visible"
+            },
+            {
+              "key": "clearsContextBeforeDrawing",
+              "editor": "bool",
+              "trueTitle": "Clears Graphics Context",
+              "falseTitle": "Preserves Graphics Context"
+            },
+            {
+              "key": "clipsToBounds",
+              "editor": "bool",
+              "trueTitle": "Clip To Bounds",
+              "falseTitle": "No Clipping"
+            },
+            {
+              "key": "autoresizesSubviews",
+              "editor": "bool",
+              "trueTitle": "Autoresizes Subviews",
+              "falseTitle": "Fixed Subviews"
+            },
+            {
+              "key": "traitCollection",
+              "title": "Trait Collection",
+              "editor": "readonly"
+            },
+            {
+              "key": "traitCollection.userInterfaceStyle",
+              "title": null,
+              "editor": "enum",
+              "enumType": "userInterfaceStyle"
+            },
+            {
+              "key": "traitCollection.verticalSizeClass",
+              "title": null,
+              "editor": "enum",
+              "enumType": "userInterfaceSizeClass",
+              "label": "Vertical"
+            },
+            {
+              "key": "traitCollection.horizontalSizeClass",
+              "title": null,
+              "editor": "enum",
+              "enumType": "userInterfaceSizeClass",
+              "label": "Horizontal"
+            },
+            {
+              "key": "traitCollection.layoutDirection",
+              "title": null,
+              "editor": "enum",
+              "enumType": "traitEnvironmentLayoutDirection"
+            }
+          ]
+        },
+        {
+          "title": "View",
+          "isSize": true,
+          "items": [
+            {
+              "key": "frame",
+              "title": "Frame",
+              "editor": "frame"
+            },
+            {
+              "key": "bounds",
+              "title": "Bounds",
+              "editor": "frame"
+            },
+            {
+              "key": "center",
+              "title": "Center",
+              "editor": "point"
+            },
+            {
+              "key": "layer.position",
+              "title": "Position",
+              "editor": "point"
+            },
+            {
+              "key": "layer.zPosition",
+              "title": "Z Position",
+              "editor": "double"
+            },
+            {
+              "key": "layer.anchorPoint",
+              "title": "Anchor Point",
+              "editor": "point"
+            },
+            {
+              "key": "layer.anchorPointZ",
+              "title": "Anchor Point Z",
+              "editor": "double"
+            }
+          ]
+        }
+      ]
+    },
+    "UILabel": {
+      "groups": [
+        {
+          "title": "Label",
+          "items": [
+            {
+              "key": "text",
+              "title": "Text",
+              "editor": "text"
+            },
+            {
+              "key": "attributedText",
+              "title": null,
+              "editor": "attributedTextStyle"
+            },
+            {
+              "key": "textColor",
+              "title": "Text",
+              "editor": "color"
+            },
+            {
+              "key": "font",
+              "title": null,
+              "editor": "font"
+            },
+            {
+              "key": "textAlignment",
+              "title": null,
+              "editor": "enum",
+              "enumType": "textAlignment",
+              "label": "Aligned"
+            },
+            {
+              "key": "numberOfLines",
+              "title": "Lines",
+              "editor": "int"
+            },
+            {
+              "key": "isEnabled",
+              "title": "Behavior",
+              "editor": "bool",
+              "trueTitle": "Enabled",
+              "falseTitle": "Not Enabled"
+            },
+            {
+              "key": "isHighlighted",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Highlighted",
+              "falseTitle": "Not Highlighted"
+            },
+            {
+              "key": "baselineAdjustment",
+              "title": "Baseline",
+              "editor": "enum",
+              "enumType": "baselineAdjustment",
+              "label": "Align"
+            },
+            {
+              "key": "lineBreakMode",
+              "title": "Line Break",
+              "editor": "enum",
+              "enumType": "lineBreakMode"
+            },
+            {
+              "key": "minimumScaleFactor",
+              "title": "Min Font Scale",
+              "editor": "double"
+            },
+            {
+              "key": "highlightedTextColor",
+              "title": "Highlighted",
+              "editor": "color"
+            },
+            {
+              "key": "shadowColor",
+              "title": "Shadow",
+              "editor": "color"
+            },
+            {
+              "key": "shadowOffset",
+              "title": "Shadow Offset",
+              "editor": "size"
+            }
+          ]
+        }
+      ]
+    },
+    "UIControl": {
+      "groups": [
+        {
+          "title": "Control",
+          "items": [
+            {
+              "key": "contentHorizontalAlignment",
+              "title": "Alignment",
+              "editor": "enum",
+              "enumType": "controlContentHorizontalAlignment",
+              "label": "Horizontally"
+            },
+            {
+              "key": "contentVerticalAlignment",
+              "title": null,
+              "editor": "enum",
+              "enumType": "controlContentVerticalAlignment",
+              "label": "Vertically"
+            },
+            {
+              "key": "isSelected",
+              "title": "Content",
+              "editor": "bool",
+              "trueTitle": "Selected",
+              "falseTitle": "Not Selected"
+            },
+            {
+              "key": "isEnabled",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Enabled",
+              "falseTitle": "Not Enabled"
+            },
+            {
+              "key": "isHighlighted",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Highlighted",
+              "falseTitle": "Not Highlighted"
+            }
+          ]
+        }
+      ]
+    },
+    "UIButton": {
+      "groups": [
+        {
+          "title": "Button",
+          "items": [
+            {
+              "key": "buttonType",
+              "title": "Type",
+              "editor": "enum",
+              "enumType": "buttonType"
+            },
+            {
+              "key": "state",
+              "title": "State",
+              "editor": "enum",
+              "enumType": "controlState"
+            },
+            {
+              "key": "currentTitle",
+              "title": "Title",
+              "editor": "text"
+            },
+            {
+              "key": "currentAttributedTitle",
+              "title": null,
+              "editor": "attributedTextStyle"
+            },
+            {
+              "key": "currentTitleColor",
+              "title": "Text Color",
+              "editor": "color"
+            },
+            {
+              "key": "currentTitleShadowColor",
+              "title": "Shadow Color",
+              "editor": "color"
+            },
+            {
+              "key": "currentImage",
+              "title": "Image",
+              "editor": "image"
+            },
+            {
+              "key": "titleShadowOffset",
+              "title": "Shadow Offset",
+              "editor": "size"
+            },
+            {
+              "key": "reversesTitleShadowWhenHighlighted",
+              "title": "On Highlight",
+              "editor": "bool",
+              "trueTitle": "Shadow Reverses",
+              "falseTitle": "Normal Shadow"
+            },
+            {
+              "key": "showsTouchWhenHighlighted",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Shows Touch",
+              "falseTitle": "Doesn't Show Touch"
+            },
+            {
+              "key": "adjustsImageWhenHighlighted",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Adjusts Image",
+              "falseTitle": "No Image Adjustment"
+            },
+            {
+              "key": "adjustsImageWhenDisabled",
+              "title": "When Disabled",
+              "editor": "bool",
+              "trueTitle": "Adjusts Image",
+              "falseTitle": "No Image Adjustment"
+            },
+            {
+              "key": "lineBreakMode",
+              "title": "Line Break",
+              "editor": "enum",
+              "enumType": "lineBreakMode"
+            },
+            {
+              "key": "contentEdgeInsets",
+              "title": "Content Insets",
+              "editor": "insets"
+            },
+            {
+              "key": "titleEdgeInsets",
+              "title": "Title Insets",
+              "editor": "insets"
+            },
+            {
+              "key": "imageEdgeInsets",
+              "title": "Image Insets",
+              "editor": "insets"
+            }
+          ]
+        }
+      ]
+    },
+    "UIImageView": {
+      "groups": [
+        {
+          "title": "Image View",
+          "items": [
+            {
+              "key": "image",
+              "title": "Image",
+              "editor": "image"
+            },
+            {
+              "key": "highlightedImage",
+              "title": "Highlighted",
+              "editor": "image"
+            },
+            {
+              "key": "isHighlighted",
+              "title": "State",
+              "editor": "bool",
+              "trueTitle": "Highlighted",
+              "falseTitle": "Not Highlighted"
+            }
+          ]
+        }
+      ]
+    },
+    "UITextField": {
+      "groups": [
+        {
+          "title": "Text Field",
+          "items": [
+            {
+              "key": "text",
+              "title": "Plain Text",
+              "editor": "text"
+            },
+            {
+              "key": "attributedText",
+              "title": "Attributed Text",
+              "editor": "readonly"
+            },
+            {
+              "key": "allowsEditingTextAttributes",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Allows Editing Attributes",
+              "falseTitle": "No Attribute Editing"
+            },
+            {
+              "key": "textColor",
+              "title": "Color",
+              "editor": "color"
+            },
+            {
+              "key": "font",
+              "title": "Font",
+              "editor": "font"
+            },
+            {
+              "key": "textAlignment",
+              "title": "Alignment",
+              "editor": "enum",
+              "enumType": "textAlignment"
+            },
+            {
+              "key": "placeholder",
+              "title": "Placeholder",
+              "editor": "text"
+            },
+            {
+              "key": "background",
+              "title": "Background",
+              "editor": "image"
+            },
+            {
+              "key": "disabledBackground",
+              "title": "Disabled",
+              "editor": "image"
+            },
+            {
+              "key": "borderStyle",
+              "title": "Border Style",
+              "editor": "enum",
+              "enumType": "textBorderStyle"
+            },
+            {
+              "key": "clearButtonMode",
+              "title": "Clear Button",
+              "editor": "enum",
+              "enumType": "textFieldViewMode"
+            },
+            {
+              "key": "clearsOnBeginEditing",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Clear when editing begins",
+              "falseTitle": "Keep text on edit"
+            },
+            {
+              "key": "minimumFontSize",
+              "title": "Min Font Size",
+              "editor": "double"
+            },
+            {
+              "key": "adjustsFontSizeToFitWidth",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Adjusts to Fit",
+              "falseTitle": "Fixed Size"
+            },
+            {
+              "key": "autocapitalizationType",
+              "title": "Capitalization",
+              "editor": "enum",
+              "enumType": "textAutocapitalizationType"
+            },
+            {
+              "key": "autocorrectionType",
+              "title": "Correction",
+              "editor": "enum",
+              "enumType": "textAutocorrectionType"
+            },
+            {
+              "key": "keyboardType",
+              "title": "Keyboard",
+              "editor": "enum",
+              "enumType": "keyboardType"
+            },
+            {
+              "key": "keyboardAppearance",
+              "title": "Appearance",
+              "editor": "enum",
+              "enumType": "keyboardAppearance"
+            },
+            {
+              "key": "returnKeyType",
+              "title": "Return Key",
+              "editor": "enum",
+              "enumType": "returnKeyType"
+            },
+            {
+              "key": "enablesReturnKeyAutomatically",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Auto-enable Return Key",
+              "falseTitle": "Manual Return Key"
+            },
+            {
+              "key": "isSecureTextEntry",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Secure Entry",
+              "falseTitle": "Plain Entry"
+            }
+          ]
+        }
+      ]
+    },
+    "UISlider": {
+      "groups": [
+        {
+          "title": "Slider",
+          "items": [
+            {
+              "key": "value",
+              "title": "Current",
+              "editor": "double"
+            },
+            {
+              "key": "minimumValue",
+              "title": "Minimum",
+              "editor": "double"
+            },
+            {
+              "key": "maximumValue",
+              "title": "Maximum",
+              "editor": "double"
+            },
+            {
+              "key": "minimumValueImage",
+              "title": "Min Image",
+              "editor": "image"
+            },
+            {
+              "key": "maximumValueImage",
+              "title": "Max Image",
+              "editor": "image"
+            },
+            {
+              "key": "minimumTrackTintColor",
+              "title": "Min Track Tint",
+              "editor": "color"
+            },
+            {
+              "key": "maximumTrackTintColor",
+              "title": "Max Track Tint",
+              "editor": "color"
+            },
+            {
+              "key": "thumbTintColor",
+              "title": "Thumb Tint",
+              "editor": "color"
+            },
+            {
+              "key": "isContinuous",
+              "title": "Events",
+              "editor": "bool",
+              "trueTitle": "Continuous Update",
+              "falseTitle": "On Release"
+            }
+          ]
+        }
+      ]
+    },
+    "UISwitch": {
+      "groups": [
+        {
+          "title": "Switch",
+          "items": [
+            {
+              "key": "isOn",
+              "title": "State",
+              "editor": "bool",
+              "trueTitle": "On",
+              "falseTitle": "Off"
+            },
+            {
+              "key": "onTintColor",
+              "title": "On Tint",
+              "editor": "color"
+            },
+            {
+              "key": "thumbTintColor",
+              "title": "Thumb Tint",
+              "editor": "color"
+            }
+          ]
+        }
+      ]
+    },
+    "UIActivityIndicatorView": {
+      "groups": [
+        {
+          "title": "Activity Indicator View",
+          "items": [
+            {
+              "key": "activityIndicatorViewStyle",
+              "title": "Style",
+              "editor": "enum",
+              "enumType": "activityIndicatorViewStyle"
+            },
+            {
+              "key": "color",
+              "title": "Color",
+              "editor": "color"
+            },
+            {
+              "key": "isAnimating",
+              "title": "Behavior",
+              "editor": "bool",
+              "trueTitle": "Animating",
+              "falseTitle": "Stopped"
+            },
+            {
+              "key": "hidesWhenStopped",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Hides When Stopped",
+              "falseTitle": "Shows When Stopped"
+            }
+          ]
+        }
+      ]
+    },
+    "UIProgressView": {
+      "groups": [
+        {
+          "title": "Progress View",
+          "items": [
+            {
+              "key": "progressViewStyle",
+              "title": "Style",
+              "editor": "enum",
+              "enumType": "progressViewStyle"
+            },
+            {
+              "key": "progress",
+              "title": "Progress",
+              "editor": "double"
+            },
+            {
+              "key": "progressTintColor",
+              "title": "Progress Tint",
+              "editor": "color"
+            },
+            {
+              "key": "trackTintColor",
+              "title": "Track Tint",
+              "editor": "color"
+            },
+            {
+              "key": "progressImage",
+              "title": "Progress Image",
+              "editor": "image"
+            },
+            {
+              "key": "trackImage",
+              "title": "Track Image",
+              "editor": "image"
+            }
+          ]
+        }
+      ]
+    },
+    "UIPageControl": {
+      "groups": [
+        {
+          "title": "Page Control",
+          "items": [
+            {
+              "key": "numberOfPages",
+              "title": "Pages",
+              "editor": "int"
+            },
+            {
+              "key": "currentPage",
+              "title": "Current Page",
+              "editor": "int"
+            },
+            {
+              "key": "hidesForSinglePage",
+              "title": "Behavior",
+              "editor": "bool",
+              "trueTitle": "Hides for Single Page",
+              "falseTitle": "Shows Always"
+            },
+            {
+              "key": "pageIndicatorTintColor",
+              "title": "Indicator",
+              "editor": "color"
+            },
+            {
+              "key": "currentPageIndicatorTintColor",
+              "title": "Current",
+              "editor": "color"
+            }
+          ]
+        }
+      ]
+    },
+    "UIStepper": {
+      "groups": [
+        {
+          "title": "Stepper",
+          "items": [
+            {
+              "key": "value",
+              "title": "Value",
+              "editor": "double"
+            },
+            {
+              "key": "minimumValue",
+              "title": "Minimum",
+              "editor": "double"
+            },
+            {
+              "key": "maximumValue",
+              "title": "Maximum",
+              "editor": "double"
+            },
+            {
+              "key": "stepValue",
+              "title": "Step",
+              "editor": "double"
+            },
+            {
+              "key": "autorepeat",
+              "title": "Behavior",
+              "editor": "bool",
+              "trueTitle": "Autorepeat",
+              "falseTitle": "Single Step"
+            },
+            {
+              "key": "isContinuous",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Continuous",
+              "falseTitle": "On Release"
+            },
+            {
+              "key": "wraps",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Wrap",
+              "falseTitle": "No Wrap"
+            }
+          ]
+        }
+      ]
+    },
+    "UIScrollView": {
+      "groups": [
+        {
+          "title": "Scroll View",
+          "items": [
+            {
+              "key": "indicatorStyle",
+              "title": "Style",
+              "editor": "enum",
+              "enumType": "scrollViewIndicatorStyle"
+            },
+            {
+              "key": "showsHorizontalScrollIndicator",
+              "title": "Indicators",
+              "editor": "bool",
+              "trueTitle": "Shows Horizontal Indicator",
+              "falseTitle": "No Horizontal Indicator"
+            },
+            {
+              "key": "showsVerticalScrollIndicator",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Shows Vertical Indicator",
+              "falseTitle": "No Vertical Indicator"
+            },
+            {
+              "key": "isScrollEnabled",
+              "title": "Scrolling",
+              "editor": "bool",
+              "trueTitle": "Enabled",
+              "falseTitle": "Disabled"
+            },
+            {
+              "key": "isPagingEnabled",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Paging",
+              "falseTitle": "No Paging"
+            },
+            {
+              "key": "isDirectionalLockEnabled",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Direction Lock",
+              "falseTitle": "Free Scroll"
+            },
+            {
+              "key": "bounces",
+              "title": "Bounce",
+              "editor": "bool",
+              "trueTitle": "Bounces",
+              "falseTitle": "No Bounce"
+            },
+            {
+              "key": "alwaysBounceHorizontal",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Bounce Horizontal",
+              "falseTitle": "No Horizontal Bounce"
+            },
+            {
+              "key": "alwaysBounceVertical",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Bounce Vertical",
+              "falseTitle": "No Vertical Bounce"
+            },
+            {
+              "key": "minimumZoomScale",
+              "title": "Zoom Min",
+              "editor": "double"
+            },
+            {
+              "key": "maximumZoomScale",
+              "title": "Max",
+              "editor": "double"
+            },
+            {
+              "key": "delaysContentTouches",
+              "title": "Touch",
+              "editor": "bool",
+              "trueTitle": "Delays Content Touches",
+              "falseTitle": "Immediate Touch"
+            },
+            {
+              "key": "canCancelContentTouches",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Cancellable Content Touches",
+              "falseTitle": "Fixed Content Touches"
+            },
+            {
+              "key": "keyboardDismissMode",
+              "title": "Keyboard",
+              "editor": "enum",
+              "enumType": "scrollViewKeyboardDismissMode"
+            }
+          ]
+        }
+      ]
+    },
+    "UITableView": {
+      "groups": [
+        {
+          "title": "Table View",
+          "items": [
+            {
+              "key": "numberOfSections",
+              "title": "Sections",
+              "editor": "readonly"
+            },
+            {
+              "key": "style",
+              "title": "Style",
+              "editor": "enum",
+              "enumType": "tableViewStyle"
+            },
+            {
+              "key": "separatorStyle",
+              "title": "Separator",
+              "editor": "enum",
+              "enumType": "tableViewCellSeparatorStyle"
+            },
+            {
+              "key": "separatorColor",
+              "title": null,
+              "editor": "color"
+            },
+            {
+              "key": "separatorInset",
+              "title": "Separator Inset",
+              "editor": "insets"
+            },
+            {
+              "key": "allowsSelection",
+              "title": "Selection",
+              "editor": "bool",
+              "trueTitle": "Allowed",
+              "falseTitle": "Disabled"
+            },
+            {
+              "key": "allowsMultipleSelection",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Multiple Selection",
+              "falseTitle": "Multiple Selection Disabled"
+            },
+            {
+              "key": "allowsSelectionDuringEditing",
+              "title": "Edit Selection",
+              "editor": "bool",
+              "trueTitle": "Allowed",
+              "falseTitle": "Disabled"
+            },
+            {
+              "key": "allowsMultipleSelectionDuringEditing",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Multiple Selection",
+              "falseTitle": "Multiple Selection Disabled"
+            },
+            {
+              "key": "sectionIndexMinimumDisplayRowCount",
+              "title": "Min Display",
+              "editor": "int"
+            },
+            {
+              "key": "rowHeight",
+              "title": "Row Height",
+              "editor": "double"
+            },
+            {
+              "key": "sectionHeaderHeight",
+              "title": "Section Header",
+              "editor": "double"
+            },
+            {
+              "key": "sectionFooterHeight",
+              "title": "Section Footer",
+              "editor": "double"
+            }
+          ]
+        }
+      ]
+    },
+    "UITableViewCell": {
+      "groups": [
+        {
+          "title": "Table View Cell",
+          "items": [
+            {
+              "key": "reuseIdentifier",
+              "title": "Identifier",
+              "editor": "readonly"
+            },
+            {
+              "key": "selectionStyle",
+              "title": "Selection",
+              "editor": "enum",
+              "enumType": "tableViewCellSelectionStyle"
+            },
+            {
+              "key": "accessoryType",
+              "title": "Accessory",
+              "editor": "enum",
+              "enumType": "tableViewCellAccessoryType"
+            },
+            {
+              "key": "editingAccessoryType",
+              "title": "Editing Acc.",
+              "editor": "enum",
+              "enumType": "tableViewCellAccessoryType"
+            },
+            {
+              "key": "indentationLevel",
+              "title": "Indentation",
+              "editor": "int"
+            },
+            {
+              "key": "indentationWidth",
+              "title": null,
+              "editor": "double"
+            },
+            {
+              "key": "shouldIndentWhileEditing",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Indent While Editing",
+              "falseTitle": "No Indent"
+            },
+            {
+              "key": "showsReorderControl",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Shows Re-order Controls",
+              "falseTitle": "No Re-order Controls"
+            },
+            {
+              "key": "separatorInset",
+              "title": "Separator Inset",
+              "editor": "insets"
+            }
+          ]
+        }
+      ]
+    },
+    "UICollectionView": {
+      "groups": [
+        {
+          "title": "Collection View",
+          "items": [
+            {
+              "key": "numberOfSections",
+              "title": "Sections",
+              "editor": "readonly"
+            },
+            {
+              "key": "collectionViewLayout",
+              "title": "Layout",
+              "editor": "readonly"
+            }
+          ]
+        }
+      ]
+    },
+    "UICollectionReusableView": {
+      "groups": [
+        {
+          "title": "Collection Reusable View",
+          "items": [
+            {
+              "key": "reuseIdentifier",
+              "title": "Identifier",
+              "editor": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "UITextView": {
+      "groups": [
+        {
+          "title": "Text View",
+          "items": [
+            {
+              "key": "text",
+              "title": "Plain Text",
+              "editor": "text"
+            },
+            {
+              "key": "attributedText",
+              "title": "Attributed Text",
+              "editor": "readonly"
+            },
+            {
+              "key": "allowsEditingTextAttributes",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Allows Editing Attributes",
+              "falseTitle": "No Attribute Editing"
+            },
+            {
+              "key": "textColor",
+              "title": "Color",
+              "editor": "color"
+            },
+            {
+              "key": "font",
+              "title": "Font",
+              "editor": "font"
+            },
+            {
+              "key": "textAlignment",
+              "title": "Alignment",
+              "editor": "enum",
+              "enumType": "textAlignment"
+            },
+            {
+              "key": "isEditable",
+              "title": "Behavior",
+              "editor": "bool",
+              "trueTitle": "Editable",
+              "falseTitle": "Read-Only"
+            },
+            {
+              "key": "isSelectable",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Selectable",
+              "falseTitle": "Not Selectable"
+            },
+            {
+              "key": "autocapitalizationType",
+              "title": "Capitalization",
+              "editor": "enum",
+              "enumType": "textAutocapitalizationType"
+            },
+            {
+              "key": "autocorrectionType",
+              "title": "Correction",
+              "editor": "enum",
+              "enumType": "textAutocorrectionType"
+            },
+            {
+              "key": "keyboardType",
+              "title": "Keyboard",
+              "editor": "enum",
+              "enumType": "keyboardType"
+            },
+            {
+              "key": "keyboardAppearance",
+              "title": "Appearance",
+              "editor": "enum",
+              "enumType": "keyboardAppearance"
+            },
+            {
+              "key": "returnKeyType",
+              "title": "Return Key",
+              "editor": "enum",
+              "enumType": "returnKeyType"
+            },
+            {
+              "key": "enablesReturnKeyAutomatically",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Auto-enable Return Key",
+              "falseTitle": "Manual Return Key"
+            },
+            {
+              "key": "isSecureTextEntry",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Secure Entry",
+              "falseTitle": "Plain Entry"
+            }
+          ]
+        }
+      ]
+    },
+    "UIDatePicker": {
+      "groups": [
+        {
+          "title": "Date Picker",
+          "items": [
+            {
+              "key": "datePickerMode",
+              "title": "Mode",
+              "editor": "enum",
+              "enumType": "datePickerMode"
+            },
+            {
+              "key": "minuteInterval",
+              "title": "Interval",
+              "editor": "int"
+            },
+            {
+              "key": "date",
+              "title": "Date",
+              "editor": "date"
+            },
+            {
+              "key": "minimumDate",
+              "title": "Min Date",
+              "editor": "date"
+            },
+            {
+              "key": "maximumDate",
+              "title": "Max Date",
+              "editor": "date"
+            },
+            {
+              "key": "countDownDuration",
+              "title": "Count Down",
+              "editor": "double"
+            }
+          ]
+        }
+      ]
+    },
+    "UIPickerView": {
+      "groups": [
+        {
+          "title": "Picker View",
+          "items": [
+            {
+              "key": "delegate",
+              "title": "Delegate",
+              "editor": "readonly"
+            }
+          ]
+        }
+      ]
+    },
+    "UINavigationBar": {
+      "groups": [
+        {
+          "title": "Navigation Bar",
+          "items": [
+            {
+              "key": "barStyle",
+              "title": "Style",
+              "editor": "enum",
+              "enumType": "barStyle"
+            },
+            {
+              "key": "isTranslucent",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Translucent",
+              "falseTitle": "Opaque"
+            },
+            {
+              "key": "prefersLargeTitles",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Prefers Large Titles",
+              "falseTitle": "Standard Titles"
+            },
+            {
+              "key": "barTintColor",
+              "title": "Bar Tint",
+              "editor": "color"
+            }
+          ]
+        }
+      ]
+    },
+    "UIToolbar": {
+      "groups": [
+        {
+          "title": "Tool Bar",
+          "items": [
+            {
+              "key": "barStyle",
+              "title": "Style",
+              "editor": "enum",
+              "enumType": "barStyle"
+            },
+            {
+              "key": "isTranslucent",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Translucent",
+              "falseTitle": "Opaque"
+            },
+            {
+              "key": "barTintColor",
+              "title": "Bar Tint",
+              "editor": "color"
+            }
+          ]
+        }
+      ]
+    },
+    "UITabBar": {
+      "groups": [
+        {
+          "title": "Tab Bar",
+          "items": [
+            {
+              "key": "barStyle",
+              "title": "Style",
+              "editor": "enum",
+              "enumType": "barStyle"
+            },
+            {
+              "key": "isTranslucent",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Translucent",
+              "falseTitle": "Opaque"
+            },
+            {
+              "key": "barTintColor",
+              "title": "Bar Tint",
+              "editor": "color"
+            },
+            {
+              "key": "itemPositioning",
+              "title": "Item Positioning",
+              "editor": "enum",
+              "enumType": "tabBarItemPositioning"
+            },
+            {
+              "key": "itemWidth",
+              "title": "Item Width",
+              "editor": "double"
+            },
+            {
+              "key": "itemSpacing",
+              "title": "Item Spacing",
+              "editor": "double"
+            }
+          ]
+        }
+      ]
+    },
+    "UISearchBar": {
+      "groups": [
+        {
+          "title": "Search Bar",
+          "items": [
+            {
+              "key": "text",
+              "title": "Text",
+              "editor": "text"
+            },
+            {
+              "key": "placeholder",
+              "title": "Placeholder",
+              "editor": "text"
+            },
+            {
+              "key": "prompt",
+              "title": "Prompt",
+              "editor": "text"
+            },
+            {
+              "key": "searchBarStyle",
+              "title": "Search Style",
+              "editor": "enum",
+              "enumType": "searchBarStyle"
+            },
+            {
+              "key": "barStyle",
+              "title": "Bar Style",
+              "editor": "enum",
+              "enumType": "barStyle"
+            },
+            {
+              "key": "isTranslucent",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Translucent",
+              "falseTitle": "Opaque"
+            },
+            {
+              "key": "barTintColor",
+              "title": null,
+              "editor": "color"
+            },
+            {
+              "key": "showsSearchResultsButton",
+              "title": "Options",
+              "editor": "bool",
+              "trueTitle": "Shows Search Results Button",
+              "falseTitle": "No Search Results"
+            },
+            {
+              "key": "showsBookmarkButton",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Shows Bookmarks Button",
+              "falseTitle": "No Bookmarks"
+            },
+            {
+              "key": "showsCancelButton",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Shows Cancel Button",
+              "falseTitle": "No Cancel"
+            },
+            {
+              "key": "showsScopeBar",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Shows Scope Bar",
+              "falseTitle": "No Scope Bar"
+            },
+            {
+              "key": "autocapitalizationType",
+              "title": "Capitalization",
+              "editor": "enum",
+              "enumType": "textAutocapitalizationType"
+            },
+            {
+              "key": "autocorrectionType",
+              "title": "Correction",
+              "editor": "enum",
+              "enumType": "textAutocorrectionType"
+            },
+            {
+              "key": "keyboardType",
+              "title": "Keyboard",
+              "editor": "enum",
+              "enumType": "keyboardType"
+            }
+          ]
+        }
+      ]
+    },
+    "UIWindow": {
+      "groups": [
+        {
+          "title": "Window",
+          "items": [
+            {
+              "key": "isKeyWindow",
+              "title": null,
+              "editor": "bool",
+              "trueTitle": "Key Window",
+              "falseTitle": "Not Key Window"
+            },
+            {
+              "key": "rootViewController",
+              "title": "Root Controller",
+              "editor": "readonly"
+            }
+          ]
+        }
+      ]
+    },
+    "UISegmentedControl": {
+      "groups": [
+        {
+          "title": "Segmented Control",
+          "items": [
+            {
+              "key": "isMomentary",
+              "title": "Behavior",
+              "editor": "bool",
+              "trueTitle": "Momentary",
+              "falseTitle": "Persistent Selection"
+            },
+            {
+              "key": "numberOfSegments",
+              "title": "Segments",
+              "editor": "readonly"
+            },
+            {
+              "key": "selectedSegmentIndex",
+              "title": "Selected Index",
+              "editor": "int"
+            },
+            {
+              "key": "apportionsSegmentWidthsByContent",
+              "title": "Size Mode",
+              "editor": "bool",
+              "trueTitle": "Proportional to Content",
+              "falseTitle": "Equal Widths"
+            }
+          ]
+        }
+      ]
+    },
+    "UIImage": {
+      "groups": []
+    }
+  },
+  "enums": {
+    "viewContentMode": [
+      {
+        "value": 0,
+        "name": "Scale To Fill"
+      },
+      {
+        "value": 1,
+        "name": "Scale Aspect Fit"
+      },
+      {
+        "value": 2,
+        "name": "Scale Aspect Fill"
+      },
+      {
+        "value": 3,
+        "name": "Redraw"
+      },
+      {
+        "value": 4,
+        "name": "Center"
+      },
+      {
+        "value": 5,
+        "name": "Top"
+      },
+      {
+        "value": 6,
+        "name": "Bottom"
+      },
+      {
+        "value": 7,
+        "name": "Left"
+      },
+      {
+        "value": 8,
+        "name": "Right"
+      },
+      {
+        "value": 9,
+        "name": "Top Left"
+      },
+      {
+        "value": 10,
+        "name": "Top Right"
+      },
+      {
+        "value": 11,
+        "name": "Bottom Left"
+      },
+      {
+        "value": 12,
+        "name": "Bottom Right"
+      }
+    ],
+    "textAlignment": [
+      {
+        "value": 0,
+        "name": "Left"
+      },
+      {
+        "value": 1,
+        "name": "Center"
+      },
+      {
+        "value": 2,
+        "name": "Right"
+      },
+      {
+        "value": 3,
+        "name": "Justified"
+      },
+      {
+        "value": 4,
+        "name": "Natural"
+      }
+    ],
+    "lineBreakMode": [
+      {
+        "value": 0,
+        "name": "By Word Wrapping"
+      },
+      {
+        "value": 1,
+        "name": "By Char Wrapping"
+      },
+      {
+        "value": 2,
+        "name": "By Clipping"
+      },
+      {
+        "value": 3,
+        "name": "By Truncating Head"
+      },
+      {
+        "value": 4,
+        "name": "By Truncating Tail"
+      },
+      {
+        "value": 5,
+        "name": "By Truncating Middle"
+      }
+    ],
+    "baselineAdjustment": [
+      {
+        "value": 0,
+        "name": "Align Baselines"
+      },
+      {
+        "value": 1,
+        "name": "Align Centers"
+      },
+      {
+        "value": 2,
+        "name": "None"
+      }
+    ],
+    "controlContentHorizontalAlignment": [
+      {
+        "value": 0,
+        "name": "Center"
+      },
+      {
+        "value": 1,
+        "name": "Left"
+      },
+      {
+        "value": 2,
+        "name": "Right"
+      },
+      {
+        "value": 3,
+        "name": "Fill"
+      },
+      {
+        "value": 4,
+        "name": "Leading"
+      },
+      {
+        "value": 5,
+        "name": "Trailing"
+      }
+    ],
+    "controlContentVerticalAlignment": [
+      {
+        "value": 0,
+        "name": "Center"
+      },
+      {
+        "value": 1,
+        "name": "Top"
+      },
+      {
+        "value": 2,
+        "name": "Bottom"
+      },
+      {
+        "value": 3,
+        "name": "Fill"
+      }
+    ],
+    "buttonType": [
+      {
+        "value": 0,
+        "name": "Custom"
+      },
+      {
+        "value": 1,
+        "name": "System"
+      },
+      {
+        "value": 2,
+        "name": "Detail Disclosure"
+      },
+      {
+        "value": 3,
+        "name": "Info Light"
+      },
+      {
+        "value": 4,
+        "name": "Info Dark"
+      },
+      {
+        "value": 5,
+        "name": "Contact Add"
+      },
+      {
+        "value": 6,
+        "name": "Close"
+      }
+    ],
+    "controlState": [
+      {
+        "value": 0,
+        "name": "Normal"
+      },
+      {
+        "value": 1,
+        "name": "Highlighted"
+      },
+      {
+        "value": 2,
+        "name": "Disabled"
+      },
+      {
+        "value": 3,
+        "name": "Selected"
+      },
+      {
+        "value": 4,
+        "name": "Focused"
+      },
+      {
+        "value": 5,
+        "name": "Application"
+      },
+      {
+        "value": 6,
+        "name": "Reserved"
+      }
+    ],
+    "textBorderStyle": [
+      {
+        "value": 0,
+        "name": "None"
+      },
+      {
+        "value": 1,
+        "name": "Line"
+      },
+      {
+        "value": 2,
+        "name": "Bezel"
+      },
+      {
+        "value": 3,
+        "name": "Rounded Rect"
+      }
+    ],
+    "textFieldViewMode": [
+      {
+        "value": 0,
+        "name": "Never"
+      },
+      {
+        "value": 1,
+        "name": "While Editing"
+      },
+      {
+        "value": 2,
+        "name": "Unless Editing"
+      },
+      {
+        "value": 3,
+        "name": "Always"
+      }
+    ],
+    "textAutocapitalizationType": [
+      {
+        "value": 0,
+        "name": "None"
+      },
+      {
+        "value": 1,
+        "name": "Words"
+      },
+      {
+        "value": 2,
+        "name": "Sentences"
+      },
+      {
+        "value": 3,
+        "name": "All Characters"
+      }
+    ],
+    "textAutocorrectionType": [
+      {
+        "value": 0,
+        "name": "Default"
+      },
+      {
+        "value": 1,
+        "name": "No"
+      },
+      {
+        "value": 2,
+        "name": "Yes"
+      }
+    ],
+    "keyboardType": [
+      {
+        "value": 0,
+        "name": "Default"
+      },
+      {
+        "value": 1,
+        "name": "ASCIICapable"
+      },
+      {
+        "value": 2,
+        "name": "Numbers and Punctuation"
+      },
+      {
+        "value": 3,
+        "name": "URL"
+      },
+      {
+        "value": 4,
+        "name": "Number Pad"
+      },
+      {
+        "value": 5,
+        "name": "Phone Pad"
+      },
+      {
+        "value": 6,
+        "name": "Name Phone Pad"
+      },
+      {
+        "value": 7,
+        "name": "Email Address"
+      },
+      {
+        "value": 8,
+        "name": "Decimal Pad"
+      },
+      {
+        "value": 9,
+        "name": "Twitter"
+      },
+      {
+        "value": 10,
+        "name": "Web Search"
+      },
+      {
+        "value": 11,
+        "name": "ASCIICapable Number Pad"
+      }
+    ],
+    "keyboardAppearance": [
+      {
+        "value": 0,
+        "name": "Default"
+      },
+      {
+        "value": 1,
+        "name": "Dark"
+      },
+      {
+        "value": 2,
+        "name": "Light"
+      }
+    ],
+    "returnKeyType": [
+      {
+        "value": 0,
+        "name": "Default"
+      },
+      {
+        "value": 1,
+        "name": "Go"
+      },
+      {
+        "value": 2,
+        "name": "Google"
+      },
+      {
+        "value": 3,
+        "name": "Join"
+      },
+      {
+        "value": 4,
+        "name": "Next"
+      },
+      {
+        "value": 5,
+        "name": "Route"
+      },
+      {
+        "value": 6,
+        "name": "Search"
+      },
+      {
+        "value": 7,
+        "name": "Send"
+      },
+      {
+        "value": 8,
+        "name": "Yahoo"
+      },
+      {
+        "value": 9,
+        "name": "Done"
+      },
+      {
+        "value": 10,
+        "name": "Emergency Call"
+      },
+      {
+        "value": 11,
+        "name": "Continue"
+      }
+    ],
+    "activityIndicatorViewStyle": [
+      {
+        "value": 0,
+        "name": "White Large"
+      },
+      {
+        "value": 1,
+        "name": "White"
+      },
+      {
+        "value": 100,
+        "name": "Medium (iOS 13+)"
+      },
+      {
+        "value": 101,
+        "name": "Large (iOS 13+)"
+      }
+    ],
+    "progressViewStyle": [
+      {
+        "value": 0,
+        "name": "Default"
+      },
+      {
+        "value": 1,
+        "name": "Bar"
+      }
+    ],
+    "scrollViewIndicatorStyle": [
+      {
+        "value": 0,
+        "name": "Default"
+      },
+      {
+        "value": 1,
+        "name": "Black"
+      },
+      {
+        "value": 2,
+        "name": "White"
+      }
+    ],
+    "scrollViewKeyboardDismissMode": [
+      {
+        "value": 0,
+        "name": "None"
+      },
+      {
+        "value": 1,
+        "name": "On Drag"
+      },
+      {
+        "value": 2,
+        "name": "Interactive"
+      }
+    ],
+    "tableViewStyle": [
+      {
+        "value": 0,
+        "name": "Plain"
+      },
+      {
+        "value": 1,
+        "name": "Grouped"
+      },
+      {
+        "value": 2,
+        "name": "Inset Grouped"
+      }
+    ],
+    "tableViewCellSeparatorStyle": [
+      {
+        "value": 0,
+        "name": "None"
+      },
+      {
+        "value": 1,
+        "name": "Single Line"
+      },
+      {
+        "value": 2,
+        "name": "Single Line Etched"
+      }
+    ],
+    "tableViewCellSelectionStyle": [
+      {
+        "value": 0,
+        "name": "None"
+      },
+      {
+        "value": 1,
+        "name": "Blue"
+      },
+      {
+        "value": 2,
+        "name": "Gray"
+      },
+      {
+        "value": 3,
+        "name": "Default"
+      }
+    ],
+    "tableViewCellAccessoryType": [
+      {
+        "value": 0,
+        "name": "None"
+      },
+      {
+        "value": 1,
+        "name": "Disclosure Indicator"
+      },
+      {
+        "value": 2,
+        "name": "Detail Disclosure Button"
+      },
+      {
+        "value": 3,
+        "name": "Checkmark"
+      },
+      {
+        "value": 4,
+        "name": "Detail Button"
+      }
+    ],
+    "datePickerMode": [
+      {
+        "value": 0,
+        "name": "Time"
+      },
+      {
+        "value": 1,
+        "name": "Date"
+      },
+      {
+        "value": 2,
+        "name": "Date and Time"
+      },
+      {
+        "value": 3,
+        "name": "Count Down Timer"
+      }
+    ],
+    "barStyle": [
+      {
+        "value": 0,
+        "name": "Default"
+      },
+      {
+        "value": 1,
+        "name": "Black"
+      }
+    ],
+    "searchBarStyle": [
+      {
+        "value": 0,
+        "name": "Default"
+      },
+      {
+        "value": 1,
+        "name": "Prominent"
+      },
+      {
+        "value": 2,
+        "name": "Minimal"
+      }
+    ],
+    "tabBarItemPositioning": [
+      {
+        "value": 0,
+        "name": "Automatic"
+      },
+      {
+        "value": 1,
+        "name": "Fill"
+      },
+      {
+        "value": 2,
+        "name": "Centered"
+      }
+    ],
+    "userInterfaceStyle": [
+      {
+        "value": 0,
+        "name": "Unspecified"
+      },
+      {
+        "value": 1,
+        "name": "Light"
+      },
+      {
+        "value": 2,
+        "name": "Dark"
+      }
+    ],
+    "userInterfaceSizeClass": [
+      {
+        "value": 0,
+        "name": "Unspecified"
+      },
+      {
+        "value": 1,
+        "name": "Compact"
+      },
+      {
+        "value": 2,
+        "name": "Regular"
+      }
+    ],
+    "traitEnvironmentLayoutDirection": [
+      {
+        "value": 0,
+        "name": "Unspecified"
+      },
+      {
+        "value": 1,
+        "name": "Left To Right"
+      },
+      {
+        "value": 2,
+        "name": "Right To Left"
+      }
+    ]
+  }
+}

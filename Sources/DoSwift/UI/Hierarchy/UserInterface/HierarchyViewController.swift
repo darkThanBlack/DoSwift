@@ -104,7 +104,7 @@ class HierarchyViewController: UIViewController {
     // MARK: - Coordinate
 
     private func frameInLocal(for view: UIView) -> CGRect {
-        guard let window = UIApplication.shared.keyWindow else { return .zero }
+        guard let window = HierarchyHelper.shared.businessWindow else { return .zero }
         var rect = view.convert(view.bounds, to: window)
         rect = self.view.convert(rect, from: window)
         return rect
@@ -200,9 +200,10 @@ extension HierarchyViewController: HierarchyInfoViewDelegate {
 
     private func showHierarchyInfo(_ selectView: UIView) {
         let vc = HierarchyDetailViewController()
-        vc.modalPresentationStyle = .fullScreen
         vc.selectView = selectView
-        present(vc, animated: true)
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
 
     private func showParentSheet(_ selectView: UIView) {

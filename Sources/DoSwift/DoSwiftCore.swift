@@ -16,7 +16,6 @@ public class DoSwiftCore {
 
     // MARK: - Properties
 
-    weak var appWindow: UIWindow?
     public var window: DoSwiftWindow?
     weak var mainController: DoSwiftMainViewController?
 
@@ -25,9 +24,9 @@ public class DoSwiftCore {
 
     // MARK: - Public Interface
 
-    /// 设置主应用窗口引用
+    /// 设置主应用窗口引用（转发到全局 DoSwiftContext）
     public func setup(_ window: UIWindow?) {
-        self.appWindow = window
+        DoSwiftContext.shared.setup(window)
     }
 
     /// 初始化 DoSwift
@@ -197,6 +196,6 @@ public class DoSwiftCore {
         }
 
         // 优先使用主应用窗口，其次使用悬浮窗
-        return recursion(appWindow?.rootViewController) ?? recursion(window?.rootViewController)
+        return recursion(DoSwiftContext.shared.appWindow?.rootViewController) ?? recursion(window?.rootViewController)
     }
 }

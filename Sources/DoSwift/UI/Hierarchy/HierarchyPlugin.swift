@@ -15,7 +15,6 @@ public class HierarchyPlugin {
         let window = HierarchyWindow(frame: UIScreen.main.bounds)
         HierarchyHelper.shared.window = window
         window.showWindow()
-        window.backgroundColor = .red.withAlphaComponent(0.2)
         // TODO: Hide DoSwift home window: DoraemonHomeWindow.shareInstance().hide()
     }
 }

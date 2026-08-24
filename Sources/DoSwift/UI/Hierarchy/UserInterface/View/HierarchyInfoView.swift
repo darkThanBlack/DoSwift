@@ -236,7 +236,7 @@ class HierarchyInfoView: MoveView {
         delegate?.hierarchyInfoViewDidSelectClose(self)
     }
 
-    // TODO: Translate from NSObject+DoraemonHierarchy alert methods
+    // TODO: Property write-back (editing) is deferred to a later pass.
     @objc private func frameTapped() {}
     @objc private func backgroundColorTapped() {}
     @objc private func textColorTapped() {}
