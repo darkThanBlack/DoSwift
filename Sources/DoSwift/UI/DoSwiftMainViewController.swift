@@ -13,8 +13,12 @@ class DoSwiftMainViewController: UIViewController {
 
     // MARK: - Properties
 
-    /// 菜单项配置
-    var menuItems: [DoSwiftMenuItem] = []
+    /// 工具目录，按分组
+    var toolGroups: [DoSwiftToolGroup] = [] {
+        didSet {
+            railView.setToolGroups(toolGroups)
+        }
+    }
 
     /// 悬浮按钮视图
     lazy var driftView: DriftView = {
@@ -22,6 +26,24 @@ class DoSwiftMainViewController: UIViewController {
         view.delegate = self
         return view
     }()
+
+    /// 贴边工具轨
+    private lazy var railView: DoSwiftToolRailView = {
+        let view = DoSwiftToolRailView()
+        view.onSelectItem = { [weak self] tool in
+            // 先收起再执行：工具的页面/弹窗是从业务 window 呈现的，
+            // 轨道留在屏幕上会盖住它的一侧。
+            self?.railView.hide(animated: true)
+            tool.performAction()
+        }
+        return view
+    }()
+
+    /// 拖拽起点，用于把「轻点」和「拖拽」区分开
+    private var dragStartOrigin: CGPoint = .zero
+
+    /// 上一次布局的尺寸，只在尺寸真的变了时才重新吸附
+    private var lastLayoutSize: CGSize = .zero
 
     // MARK: - Lifecycle
 
@@ -32,13 +54,30 @@ class DoSwiftMainViewController: UIViewController {
         view.backgroundColor = .clear
 
         setupDriftView()
+        setupRailView()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        // 尺寸变化（旋转、换设备）后重新吸附。手柄的位置是轨道停靠边的依据，
+        // 而 setupDriftView() 只在 viewDidLoad 里摆过一次，旋转后手柄可能已经在屏幕外。
+        let size = view.bounds.size
+        if size != lastLayoutSize {
+            lastLayoutSize = size
+            driftView.fireAbsorb()
+        }
+
+        if railView.isOpen {
+            relayoutRail()
+        }
     }
 
     // MARK: - Public Methods
 
-    /// 更新菜单项
-    func updateMenuItems(_ items: [DoSwiftMenuItem]) {
-        menuItems = items
+    /// 更新工具目录
+    func updateToolGroups(_ groups: [DoSwiftToolGroup]) {
+        toolGroups = groups
     }
 
     // MARK: - Private Methods
@@ -64,66 +103,67 @@ class DoSwiftMainViewController: UIViewController {
         // 初始化时执行吸附
         driftView.fireAbsorb()
     }
+
+    private func setupRailView() {
+        // 必须是 view 的直接子视图，且 frame 不能等于 view.bounds：
+        // DoSwiftWindow 的事件穿透依赖「命中视图恰好 === root.view」这一判断。
+        // 一旦外面套一层全屏容器，容器会变成命中视图且未注册，整个 App 就点不动了。
+        view.addSubview(railView)
+        railView.setToolGroups(toolGroups)
+    }
+
+    private func toggleToolRail() {
+        if railView.isOpen {
+            railView.hide(animated: true)
+        } else {
+            relayoutRail()
+            // 手柄可能被面板盖住，提到最前保证始终可点
+            view.bringSubviewToFront(driftView)
+            railView.show(animated: true)
+        }
+    }
+
+    private func relayoutRail() {
+        railView.relayout(
+            edge: currentDockEdge(),
+            handleFrame: driftView.frame,
+            containerBounds: view.bounds,
+            safeAreaInsets: view.safeAreaInsets
+        )
+    }
+
+    /// 手柄在哪半边就贴哪条边，与 DriftView.absorbHorizontal 的判定一致
+    private func currentDockEdge() -> DoSwiftToolRailView.Edge {
+        return driftView.frame.midX > view.bounds.midX ? .right : .left
+    }
 }
 
 // MARK: - DriftViewDelegate
 
 extension DoSwiftMainViewController: DriftViewDelegate {
-    func driftViewDidBeginDrag(_ driftView: DriftView) {
 
+    func driftViewDidBeginDrag(_ driftView: DriftView) {
+        dragStartOrigin = driftView.frame.origin
     }
 
     func driftViewDidDrag(_ driftView: DriftView, location: CGPoint) {
+        // 注意：touchesBegan 也会触发 didBeginDrag，所以不能拿它当拖拽信号，
+        // 只能看位置是不是真的动了。
+        guard railView.isOpen else { return }
 
+        // 阈值与 DriftView 内部判定轻点/拖拽用的是同一个常量，避免两边错位产生灰区
+        let moved = abs(driftView.frame.origin.x - dragStartOrigin.x)
+            + abs(driftView.frame.origin.y - dragStartOrigin.y)
+        if moved > DriftView.dragThreshold {
+            railView.hide(animated: true)
+        }
     }
 
     func driftViewDidEndDrag(_ driftView: DriftView, location: CGPoint) {
 
     }
 
-
     func driftViewDidTap(_ driftView: DriftView) {
-        // 显示菜单
-        showMenu()
-    }
-
-    private func showMenu() {
-        guard !menuItems.isEmpty else { return }
-
-        // 创建菜单控制器
-        let menuController = DoSwiftMenuViewController()
-        menuController.menuItems = menuItems
-        menuController.delegate = self
-
-        // 推送菜单
-        navigationController?.pushViewController(menuController, animated: true)
-    }
-}
-
-// MARK: - DoSwiftMenuViewControllerDelegate
-
-extension DoSwiftMainViewController: DoSwiftMenuViewControllerDelegate {
-
-    func menuViewController(_ controller: DoSwiftMenuViewController, didSelectMenuItem menuItem: DoSwiftMenuItem) {
-        // 如果有子菜单，推送子菜单
-        if menuItem.hasSubMenu {
-            let subMenuController = DoSwiftMenuViewController()
-            subMenuController.menuItems = menuItem.subMenuItems
-            subMenuController.title = menuItem.title
-            subMenuController.delegate = self
-            navigationController?.pushViewController(subMenuController, animated: true)
-        } else {
-            // 执行菜单项动作
-            menuItem.performAction()
-
-            // 只有关闭动作才返回主界面，其他动作（如打开新页面）保持在当前状态
-            if menuItem.identifier == "close" {
-                navigationController?.popToRootViewController(animated: true)
-            }
-        }
-    }
-
-    func menuViewControllerDidRequestClose(_ controller: DoSwiftMenuViewController) {
-        navigationController?.popToRootViewController(animated: true)
+        toggleToolRail()
     }
 }

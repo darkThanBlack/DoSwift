@@ -1,0 +1,530 @@
+<title>DoSwift 工具轨方案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#F4F5F8; --surface:#FFFFFF; --panel:#EDEFF4;
+  --ink:#15171C; --ink2:#5C6371; --ink3:#8A909D;
+  --line:#DFE3EA; --line2:#EAEDF2;
+  --accent:#007AFF; --accent-ink:#0062CC;
+  --ok:#248A3D; --warn:#A85B00;
+  /* 数据可视化色板：validate_palette.js 两种模式全部 PASS */
+  --series-1:#2a78d6; --series-2:#eb6834;
+  --viz-surface:#FFFFFF;
+  --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1116; --surface:#171A20; --panel:#1E222B;
+    --ink:#E8EAEF; --ink2:#A3AAB7; --ink3:#767E8C;
+    --line:#2A2F39; --line2:#22262E;
+    --accent:#0A84FF; --accent-ink:#4DA3FF;
+    --ok:#30D158; --warn:#FF9F0A;
+    --series-1:#3987e5; --series-2:#d95926;
+    --viz-surface:#171A20;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1116; --surface:#171A20; --panel:#1E222B;
+  --ink:#E8EAEF; --ink2:#A3AAB7; --ink3:#767E8C;
+  --line:#2A2F39; --line2:#22262E;
+  --accent:#0A84FF; --accent-ink:#4DA3FF;
+  --ok:#30D158; --warn:#FF9F0A;
+  --series-1:#3987e5; --series-2:#d95926;
+  --viz-surface:#171A20;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1020px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:64px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.25;letter-spacing:-.015em}
+h1{font-size:clamp(30px,4.4vw,44px);font-weight:600}
+h2{font-size:24px;font-weight:600}
+h3{font-size:17px;font-weight:600}
+p{margin:0}
+a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent-ink) 35%,transparent)}
+a:hover{border-bottom-color:var(--accent-ink)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+code{font-family:var(--mono);font-size:.86em;background:var(--panel);padding:1px 5px;border-radius:4px;box-decoration-break:clone}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.lede{font-size:18px;color:var(--ink2);max-width:64ch}
+.hd{display:flex;flex-direction:column;gap:18px}
+.verdict{display:block;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px 20px;max-width:74ch;font-size:15.5px;color:var(--ink2)}
+.verdict b{color:var(--ink);font-weight:600}
+section{display:flex;flex-direction:column;gap:22px}
+.sec-hd{display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.sec-hd p{color:var(--ink2);font-size:15.5px}
+
+/* ---------- 两类东西 ---------- */
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+@media (max-width:700px){.kinds{grid-template-columns:1fr}}
+.kind{background:var(--surface);padding:22px 24px;display:flex;flex-direction:column;gap:12px}
+.kind h3{font-size:16px;display:flex;align-items:baseline;gap:10px}
+.kind h3 em{font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.kind p{font-size:14.5px;color:var(--ink2)}
+.kind .where{display:flex;flex-direction:column;gap:6px;font-size:14px;margin-top:2px}
+.kind .where div{display:flex;gap:9px;align-items:baseline}
+.kind .where span:first-child{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;width:34px;flex:none;color:var(--ink3)}
+.kind .now{color:var(--ink2)}
+.kind .now b{color:var(--series-2);font-weight:500}
+.kind .shd b{color:var(--series-1);font-weight:500}
+.examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.examples i{font-style:normal;font-size:12.5px;font-family:var(--mono);background:var(--panel);color:var(--ink2);padding:2px 9px;border-radius:20px}
+
+/* ---------- 设备 ---------- */
+.devices{display:grid;grid-template-columns:repeat(2,1fr);gap:40px 32px;justify-items:center}
+@media (max-width:720px){.devices{grid-template-columns:1fr}}
+.dev{display:flex;flex-direction:column;gap:16px;align-items:center;width:100%}
+.ph{--s:.62;position:relative;width:calc(390px * var(--s));height:calc(844px * var(--s));border-radius:34px;overflow:hidden;box-shadow:0 0 0 1px var(--line),0 18px 40px -18px rgba(12,18,32,.45)}
+:root[data-theme="dark"] .ph{box-shadow:0 0 0 1px var(--line),0 18px 40px -18px rgba(0,0,0,.7)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ph{box-shadow:0 0 0 1px var(--line),0 18px 40px -18px rgba(0,0,0,.7)}}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform:scale(var(--s));transform-origin:top left;background:#F2F2F7;overflow:hidden;font-family:-apple-system,'SF Pro Text','PingFang SC',sans-serif}
+.sb{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:14px 30px 0;font-size:15px;font-weight:600;color:#16181D}
+.sb .bars{display:flex;gap:5px;align-items:flex-end}
+.sb .bars i{display:block;width:3px;background:#16181D;border-radius:1px}
+.sb .bars i:nth-child(1){height:5px}.sb .bars i:nth-child(2){height:8px}
+.sb .bars i:nth-child(3){height:11px}.sb .bars i:nth-child(4){height:14px}
+.nav{position:absolute;top:54px;left:0;right:0;height:52px;display:flex;align-items:center;padding:0 18px;font-size:17px;font-weight:600;color:#16181D;border-bottom:.5px solid #D4D6DB}
+.seg{position:absolute;top:122px;left:16px;right:16px;height:32px;background:#E4E6EA;border-radius:8px;display:flex;padding:2px;gap:2px}
+.seg span{flex:1;display:grid;place-items:center;font-size:13px;font-weight:500;color:#5B6270;border-radius:6px}
+.seg .on{background:#fff;color:#16181D;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.cards{position:absolute;top:170px;left:16px;right:16px;display:flex;flex-direction:column;gap:10px}
+.card{height:76px;background:#fff;border-radius:12px;display:flex;align-items:center;gap:12px;padding:0 14px}
+.thumb{width:48px;height:48px;border-radius:9px;flex:none}
+.lines{flex:1;display:flex;flex-direction:column;gap:7px}
+.lines i{display:block;height:9px;border-radius:4px;background:#D9DCE2}
+.lines i.a{width:64%}.lines i.b{width:38%}
+.amt{width:44px;height:12px;border-radius:4px;background:#D9DCE2;flex:none}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:84px;background:rgba(249,249,251,.94);backdrop-filter:blur(20px);border-top:.5px solid #D4D6DB;display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px}
+.tabbar i{display:block;width:24px;height:24px;border-radius:6px;background:#C9CDD5}
+.tabbar i.on{background:#0A6CFF}
+
+/* 旧：居中菜单 */
+.menu-old{position:absolute;z-index:7;left:85px;top:314px;width:220px;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.menu-old .mi{height:54px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:.5px solid #C8CACF;color:#16181D;font-size:16px;font-weight:500}
+.menu-old .mi:last-child{border-bottom:0}
+.menu-old .mic{width:24px;height:24px;flex:none;display:grid;place-items:center;color:#007AFF}
+.menu-old svg{width:100%;height:100%;display:block}
+.menu-old .mch{margin-left:auto;opacity:.35;font-size:15px}
+
+/* 新手柄 */
+.handle{position:absolute;z-index:7;right:12px;top:390px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(238,241,246,.8));backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 3px 12px rgba(12,18,32,.22),0 0 0 .5px rgba(255,255,255,.85) inset;color:#1B1D22}
+.handle svg{width:22px;height:22px;display:block}
+.handle .dot{position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:#9AA1AE;box-shadow:0 0 0 1.5px rgba(255,255,255,.9)}
+.handle--idle{opacity:.35}
+.handle--live{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(232,240,252,.88));color:#0062CC}
+.handle--live .dot{background:#248A3D}
+.handle--live svg{width:21px;height:21px}
+
+/* 工具轨 */
+.rail{position:absolute;z-index:8;right:0;top:260px;width:64px;height:304px;display:flex;flex-direction:column;gap:6px;padding:10px 0;
+  border-radius:16px 0 0 16px;background:linear-gradient(180deg,rgba(252,253,255,.84),rgba(236,240,246,.78));
+  backdrop-filter:blur(34px) saturate(190%);box-shadow:-6px 12px 40px rgba(12,18,32,.2),0 0 0 .5px rgba(255,255,255,.6) inset}
+.rail .ti{height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#4A505C}
+.rail .ti svg{width:26px;height:26px;display:block}
+.rail .ti span{font-size:10px;font-weight:500;letter-spacing:.02em;line-height:1}
+.rail .ti.on{color:#0062CC;position:relative}
+.rail .ti.on::after{content:"";position:absolute;right:0;top:13px;bottom:13px;width:3px;border-radius:2px 0 0 2px;background:var(--accent)}
+
+/* HUD 药丸 */
+.hud{position:absolute;z-index:8;right:12px;top:444px;height:34px;display:flex;align-items:center;gap:8px;padding:0 12px 0 11px;border-radius:17px;
+  background:rgba(28,30,36,.86);backdrop-filter:blur(24px);color:#F2F3F6;box-shadow:0 4px 16px rgba(0,0,0,.3),0 0 0 .5px rgba(255,255,255,.12) inset}
+.hud .vd{width:7px;height:7px;border-radius:50%;background:#30D158;flex:none}
+.hud .vv{font-family:var(--mono);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.hud .vu{font-family:var(--mono);font-size:10px;color:#8A909D;margin-left:-4px}
+.hud svg{width:34px;height:16px;display:block;flex:none}
+
+/* 手柄三态 */
+.states{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+@media (max-width:620px){.states{grid-template-columns:1fr}}
+.st{background:var(--surface);padding:26px 22px 22px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.st .box{height:74px;display:grid;place-items:center}
+.st b{font-size:15px;font-weight:600}
+.st p{font-size:14px;color:var(--ink2);line-height:1.55}
+.st em{font-family:var(--mono);font-style:normal;font-size:11.5px;color:var(--ink3)}
+.h-demo{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(238,241,246,.8));box-shadow:0 3px 12px rgba(12,18,32,.22),0 0 0 .5px rgba(214,220,230,.9) inset;color:#1B1D22}
+.h-demo svg{width:28px;height:28px}
+.h-demo .dot{position:absolute;top:2px;right:2px;width:11px;height:11px;border-radius:50%;background:#9AA1AE;box-shadow:0 0 0 2px #fff}
+.h-demo.dim{opacity:.35}
+.h-demo.live{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(232,240,252,.88));color:#0062CC;box-shadow:0 4px 16px rgba(0,98,204,.28),0 0 0 .5px rgba(255,255,255,.9) inset}
+.h-demo.live .dot{background:#248A3D}
+
+/* ---------- 遮挡 ---------- */
+.occ{display:grid;grid-template-columns:auto 1fr;gap:40px;align-items:start}
+@media (max-width:860px){.occ{grid-template-columns:1fr;justify-items:center}}
+.occ-phone{position:relative}
+.hit{position:absolute;z-index:6;border-radius:4px}
+.hit--old{left:85px;top:314px;width:220px;height:216px;border:1px solid var(--series-2);
+  background-image:repeating-linear-gradient(45deg,color-mix(in srgb,var(--series-2) 26%,transparent) 0 1.5px,transparent 1.5px 7px),linear-gradient(color-mix(in srgb,var(--series-2) 8%,transparent),color-mix(in srgb,var(--series-2) 8%,transparent))}
+.hit--new{right:0;top:260px;width:64px;height:304px;border:1px solid var(--series-1);border-right:0;border-radius:4px 0 0 4px;
+  background-image:repeating-linear-gradient(135deg,color-mix(in srgb,var(--series-1) 30%,transparent) 0 1.5px,transparent 1.5px 7px),linear-gradient(color-mix(in srgb,var(--series-1) 8%,transparent),color-mix(in srgb,var(--series-1) 8%,transparent))}
+.occ-phone{display:flex;flex-direction:column;align-items:center}
+.occ-legend{display:flex;flex-direction:column;gap:9px;margin-top:18px;min-width:216px}
+.occ-legend span{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink2)}
+.occ-legend i{width:24px;height:15px;border-radius:3px;flex:none}
+.occ-legend em{font-style:normal;font-family:var(--mono);font-size:12.5px;color:var(--ink);font-variant-numeric:tabular-nums;margin-left:auto}
+.hatch-o{border:1px solid var(--series-2);background-image:repeating-linear-gradient(45deg,color-mix(in srgb,var(--series-2) 26%,transparent) 0 1.5px,transparent 1.5px 7px),linear-gradient(color-mix(in srgb,var(--series-2) 8%,transparent),color-mix(in srgb,var(--series-2) 8%,transparent))}
+.hatch-n{border:1px solid var(--series-1);background-image:repeating-linear-gradient(135deg,color-mix(in srgb,var(--series-1) 30%,transparent) 0 1.5px,transparent 1.5px 7px),linear-gradient(color-mix(in srgb,var(--series-1) 8%,transparent),color-mix(in srgb,var(--series-1) 8%,transparent))}
+@media (forced-colors:active){.hatch-o,.hatch-n{background-image:none;background-color:Canvas;border:2px dashed CanvasText}}
+
+/* ---------- 图表 ---------- */
+.viz{background:var(--viz-surface);border:1px solid var(--line);border-radius:14px;padding:24px 26px;display:flex;flex-direction:column;gap:18px;position:relative}
+.viz h3{font-size:16px}
+.viz .sub{font-size:13.5px;color:var(--ink3);font-family:var(--mono);letter-spacing:.02em}
+.legend{display:flex;gap:18px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink2)}
+.legend i{width:11px;height:11px;border-radius:3px;flex:none}
+.sw1{background:var(--series-1)}.sw2{background:var(--series-2)}
+.bars{display:flex;flex-direction:column;gap:14px;position:relative}
+.brow{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center}
+@media (max-width:620px){.brow{grid-template-columns:88px 1fr;gap:10px}}
+.blab{font-size:13.5px;color:var(--ink2);text-align:right;line-height:1.3}
+.blab em{display:block;font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.btrack{position:relative;height:14px;display:flex;align-items:center}
+.bfill{height:14px;border-radius:0 4px 4px 0;min-width:2px}
+.bval{font-family:var(--mono);font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink);margin-left:9px;white-space:nowrap}
+.brow:hover .blab,.brow:hover .bval{color:var(--ink)}
+.brow:hover .btrack{background:color-mix(in srgb,var(--ink3) 7%,transparent)}
+.axis{display:grid;grid-template-columns:112px 1fr;gap:14px}
+@media (max-width:620px){.axis{grid-template-columns:88px 1fr;gap:10px}}
+.axline{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--ink3);border-top:1px solid var(--line);padding-top:5px;font-variant-numeric:tabular-nums}
+.axline span{transform:translateX(-50%)}
+.axline span:first-child{transform:none}
+.axline span:last-child{transform:translateX(-50%)}
+.tip{position:absolute;z-index:20;pointer-events:none;opacity:0;transition:opacity .12s ease;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:9px 12px;box-shadow:0 8px 26px rgba(12,18,32,.18);font-size:12.5px;white-space:nowrap}
+.tip.on{opacity:1}
+.tip b{display:block;font-size:13px;margin-bottom:4px}
+.tip em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink2);display:block;font-variant-numeric:tabular-nums}
+.vtbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:440px}
+.vtbl th{text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:500;padding:0 14px 8px 0;border-bottom:1px solid var(--line)}
+.vtbl td{padding:9px 14px 9px 0;border-bottom:1px solid var(--line2);font-variant-numeric:tabular-nums}
+.vtbl td:first-child{font-weight:500}
+.vtbl td+td{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+.vtbl tr:last-child td{border-bottom:0}
+@media (forced-colors:active){
+  .hit--old,.hit--new{background-image:none;background-color:Canvas;border:2px dashed CanvasText}
+  .bfill{background:Highlight!important}
+}
+
+/* ---------- 表格 / 列表 ---------- */
+.tblwrap{overflow-x:auto}
+table.api{width:100%;border-collapse:collapse;font-size:14px;min-width:600px}
+table.api th{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:500;padding:0 14px 10px 0;border-bottom:1px solid var(--line)}
+table.api td{padding:11px 14px 11px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+table.api tr:last-child td{border-bottom:0}
+table.api td:first-child{font-weight:500;width:22%}
+.rej{color:var(--ink2)}
+.pill{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.pill--ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.pill--warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.cost{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cost>div{background:var(--surface);padding:20px 22px}
+.cost h3{font-size:15.5px;margin-bottom:8px}
+.cost p{font-size:14.5px;color:var(--ink2)}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:flex;flex-direction:column}
+ol.steps li{counter-increment:s;display:flex;gap:18px;padding:18px 0;border-bottom:1px solid var(--line2)}
+ol.steps li:last-child{border-bottom:0}
+ol.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:color-mix(in srgb,var(--accent) 12%,transparent);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px;font-variant-numeric:tabular-nums}
+ol.steps b{display:block;font-size:15.5px;font-weight:600;margin-bottom:4px}
+ol.steps p{font-size:14.5px;color:var(--ink2)}
+@media (prefers-reduced-motion:no-preference){a{transition:border-color .15s ease}}
+</style>
+
+<div class="wrap">
+
+<header class="hd">
+  <p class="eyebrow">DoSwift · 悬浮工具入口</p>
+  <h1>工具轨与状态手柄</h1>
+  <p class="lede">抛开现有菜单形式，重新问一遍：这个工具入口应该长什么样。结论是它不该是一个菜单——菜单是阅读型 UI，而调试工具需要的是识别型 UI，而且它要同时容纳两类根本不同的东西。</p>
+  <div class="verdict"><b>三句话概括。</b>把「计量型」工具（FPS、内存、网络活动）从菜单里拆出去做成常驻读数；把「任务型」工具（层级检查、沙盒、抓包）从居中的列表换成<span style="white-space:nowrap">贴边的竖向工具轨</span>；浮窗手柄从「蓝圆套白圆」升级成承载状态的入口——图标表示当前工具，颜色表示是否在跑。全程不碰屏幕中心，也不再有模态遮罩。</div>
+</header>
+
+<section>
+  <div class="sec-hd">
+    <h2>先拆开：这是两类东西</h2>
+    <p>现有菜单把它们塞进同一个列表，这是分类错误，也是它总让人觉得「少了点什么」的根源。</p>
+  </div>
+  <div class="kinds">
+    <div class="kind">
+      <h3>计量型 <em>gauge</em></h3>
+      <p>你要的是<b>持续看着它</b>。没有「打开」和「关闭」这两个动作——关掉就没意义了。它应该一直待在角落，数字在跳。</p>
+      <div class="examples"><i>FPS</i><i>内存</i><i>CPU</i><i>网络活动</i><i>视图层数</i></div>
+      <div class="where">
+        <div><span>现在</span><span class="now">藏在菜单里 — <b>无法理解</b>，你没法「打开 FPS 看一眼再关掉」</span></div>
+        <div><span>应该</span><span class="shd">常驻的窄读数 — <b>HUD 药丸</b>，可拖拽、记住位置、默认关闭</span></div>
+      </div>
+    </div>
+    <div class="kind">
+      <h3>任务型 <em>task</em></h3>
+      <p>你要的是<b>进入 → 用完 → 退出</b>。一次一个，占满屏幕，专注做完。层级检查器就是这一类。</p>
+      <div class="examples"><i>层级检查</i><i>沙盒</i><i>抓包</i><i>日志</i></div>
+      <div class="where">
+        <div><span>现在</span><span class="now">菜单二级项 — <b>形态勉强可用</b>，但加上去就变成点三次</span></div>
+        <div><span>应该</span><span class="shd">全屏 / sheet，入口是<b>工具轨</b>，一层扁平，不需要二级</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>四种状态并排</h2>
+    <p>同一份工具集，四种时刻。注意手柄在四张图里始终是同一个人格——空闲时淡，有事时亮，不突然换个性格。</p>
+  </div>
+  <div class="devices">
+
+    <!-- 1 现状 -->
+    <div class="dev">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="handle handle--idle" style="z-index:5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/></svg></div>
+        <div class="menu-old">
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.1"/></svg></span>应用信息</div>
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>网络工具<span class="mch">›</span></div>
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.8-6 10-6 10 6 10 6-3.8 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.4"/></svg></span>UI 调试<span class="mch">›</span></div>
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 6l12 12M18 6L6 18"/></svg></span>关闭</div>
+        </div>
+      </div></div>
+      <div class="dev-cap" style="text-align:center;display:flex;flex-direction:column;gap:5px;max-width:290px"><b style="font-size:15px">现状 · 居中菜单</b><span style="font-size:13.5px;color:var(--ink2);line-height:1.5">面板压在屏幕正中，遮挡 14.4%；手柄只是蓝圆套白圆，不带任何信息</span><em style="font-family:var(--mono);font-style:normal;font-size:11.5px;color:var(--ink3)">220 × 216 · 中心</em></div>
+    </div>
+
+    <!-- 2 收起 -->
+    <div class="dev">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="handle handle--idle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/></svg><span class="dot"></span></div>
+      </div></div>
+      <div class="dev-cap" style="text-align:center;display:flex;flex-direction:column;gap:5px;max-width:290px"><b style="font-size:15px">新形态 · 收起</b><span style="font-size:13.5px;color:var(--ink2);line-height:1.5">只剩 44pt 手柄，淡到 35%。图标是当前工具（默认层级检查），右上小点是状态</span><em style="font-family:var(--mono);font-style:normal;font-size:11.5px;color:var(--ink3)">44 × 44 · 0.6% 占屏</em></div>
+    </div>
+
+    <!-- 3 展开 -->
+    <div class="dev">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="rail">
+          <div class="ti on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/></svg><span>层级</span></div>
+          <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span>网络</span></div>
+          <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M12 15l4-4"/></svg><span>性能</span></div>
+          <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7l3 2 3-2 3 2 3-2 3 2 3-2v9H3z"/><path d="M3 16h18"/></svg><span>沙盒</span></div>
+          <div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>日志</span></div>
+        </div>
+      </div></div>
+      <div class="dev-cap" style="text-align:center;display:flex;flex-direction:column;gap:5px;max-width:290px"><b style="font-size:15px">新形态 · 展开</b><span style="font-size:13.5px;color:var(--ink2);line-height:1.5">长按手柄，它就地展开成工具轨。贴右缘、无遮罩、不碰中心，一层扁平</span><em style="font-family:var(--mono);font-style:normal;font-size:11.5px;color:var(--ink3)">64 × 304 · 5.9% 占屏</em></div>
+    </div>
+
+    <!-- 4 运行中 -->
+    <div class="dev">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="handle handle--live"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M12 15l4-4"/></svg><span class="dot"></span></div>
+        <div class="hud">
+          <span class="vd"></span>
+          <span class="vv">58</span><span class="vu">FPS</span>
+          <svg viewBox="0 0 34 16" fill="none" preserveAspectRatio="none"><path d="M0 11.4L3.4 10.1L6.8 12.3L10.2 5.6L13.6 7.9L17 3.2L20.4 9.4L23.8 6.1L27.2 8.8L30.6 4.4L34 6.2" stroke="#30D158" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div></div>
+      <div class="dev-cap" style="text-align:center;display:flex;flex-direction:column;gap:5px;max-width:290px"><b style="font-size:15px">新形态 · 工具运行中</b><span style="font-size:13.5px;color:var(--ink2);line-height:1.5">手柄亮起、换成运行中的工具图标，绿点表示正常；读数在旁边独立成 HUD，可拖拽</span><em style="font-family:var(--mono);font-style:normal;font-size:11.5px;color:var(--ink3)">HUD 116 × 34 · 1.2%</em></div>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>手柄的三副面孔</h2>
+    <p>这是这个方案里人格是否统一的关键。现有实现平时淡到 30%、按下时却居中弹出带阴影的模态面板——同一个控件前后两副性格，这才是「感觉不对」最深的来源。</p>
+  </div>
+  <div class="states">
+    <div class="st">
+      <div class="box"><div class="h-demo dim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/></svg><span class="dot"></span></div></div>
+      <div><b>空闲</b><p>淡到 35%，3 秒后开始。和现在的淡化行为一致，手柄继续当「我不打扰你」的那个角色。</p></div>
+      <em>alpha .35 · 灰点</em>
+    </div>
+    <div class="st">
+      <div class="box"><div class="h-demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/></svg><span class="dot"></span></div></div>
+      <div><b>按到 / 展开中</b><p>回到全不透明，轻微放大到 1.06。反馈是「我醒了」，不是「看我看我」——不弹模态、不压暗背景。</p></div>
+      <em>alpha 1.0 · 1.06×</em>
+    </div>
+    <div class="st">
+      <div class="box"><div class="h-demo live"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M12 15l4-4"/></svg><span class="dot"></span></div></div>
+      <div><b>工具有事在跑</b><p>图标换成正在跑的那个工具，描边转成强调色，状态点变绿。手柄自己就是那块唯一的仪表。</p></div>
+      <em>强调色 · 绿点</em>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>遮挡面积</h2>
+    <p>左边是空间事实——两个形态在屏幕上的实际落点；右边是精确数字。占比基数是 390 × 844 = 329,160 pt²。</p>
+  </div>
+  <div class="occ">
+    <div class="occ-phone">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="hit hit--old"></div>
+        <div class="hit hit--new"></div>
+      </div></div>
+      <div class="occ-legend">
+        <span><i class="hatch-o"></i>现状 · 居中菜单<em>14.4%</em></span>
+        <span><i class="hatch-n"></i>新形态 · 工具轨<em>5.9%</em></span>
+      </div>
+    </div>
+
+    <div class="viz" id="viz">
+      <div>
+        <h3>屏幕占用面积</h3>
+        <p class="sub">390 × 844 pt · 单位 %</p>
+      </div>
+      <div class="legend">
+        <span><i class="sw2"></i>现状 · 居中菜单</span>
+        <span><i class="sw1"></i>新形态 · 工具轨</span>
+      </div>
+      <div class="bars">
+        <div class="brow" data-name="现状 · 居中菜单" data-val="14.44%" data-area="220 × 216 = 47,520 pt²" data-pos="屏幕正中心">
+          <div class="blab">现状菜单 <em>居中</em></div>
+          <div class="btrack"><div class="bfill" style="width:96.3%;background:var(--series-2)"></div><span class="bval">14.4%</span></div>
+        </div>
+        <div class="brow" data-name="新形态 · 展开" data-val="5.91%" data-area="64 × 304 = 19,456 pt²" data-pos="贴右边缘">
+          <div class="blab">工具轨 <em>展开</em></div>
+          <div class="btrack"><div class="bfill" style="width:39.4%;background:var(--series-1)"></div><span class="bval">5.9%</span></div>
+        </div>
+        <div class="brow" data-name="新形态 · 收起" data-val="0.59%" data-area="44 × 44 = 1,936 pt²" data-pos="贴右边缘">
+          <div class="blab">手柄 <em>收起</em></div>
+          <div class="btrack"><div class="bfill" style="width:3.9%;background:var(--series-1)"></div><span class="bval">0.6%</span></div>
+        </div>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="axis">
+        <div></div>
+        <div class="axline"><span>0</span><span>5</span><span>10</span><span>15</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tblwrap">
+    <table class="vtbl">
+      <thead><tr><th>形态</th><th>尺寸 (pt)</th><th>面积 (pt²)</th><th>占屏</th><th>位置</th></tr></thead>
+      <tbody>
+        <tr><td>现状 · 居中菜单</td><td>220 × 216</td><td>47,520</td><td>14.4%</td><td>屏幕正中心</td></tr>
+        <tr><td>新形态 · 工具轨展开</td><td>64 × 304</td><td>19,456</td><td>5.9%</td><td>贴右边缘</td></tr>
+        <tr><td>新形态 · 手柄收起</td><td>44 × 44</td><td>1,936</td><td>0.6%</td><td>贴右边缘</td></tr>
+        <tr><td>新形态 · HUD 读数</td><td>116 × 34</td><td>3,944</td><td>1.2%</td><td>可拖拽</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:14px;color:var(--ink3);max-width:74ch">要诚实说的是：菜单是瞬时的，收起时占屏为 0；工具轨在交互期间常驻。所以这不是「谁更小」的简单账，而是——菜单每次操作都遮 14.4% 且压在正中，一天开几十次；新形态最坏情况遮 5.9%、全程贴边，中心区一次都没碰。</p>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>考虑过但排除的</h2>
+    <p>这几个都是认真想过的替代方案，排除理由都是具体的。</p>
+  </div>
+  <div class="tblwrap">
+    <table class="api">
+      <thead><tr><th>方案</th><th>为什么不用</th></tr></thead>
+      <tbody>
+        <tr><td>摇一摇唤起</td><td class="rej">不可发现——没人猜得到；和其他库的摇一摇处理器冲突；调试时手已经在屏幕上，摇手机是纯额外动作。</td></tr>
+        <tr><td>边缘滑出抽屉</td><td class="rej">和 iOS 系统返回手势正面冲突，屏幕左右各 20pt 是系统保留区，抢不过来。</td></tr>
+        <tr><td>底部 sheet</td><td class="rej">模态。你会没法一边开着工具一边操作被调试的 app——而这恰恰是调试的常态。</td></tr>
+        <tr><td>径向 / 环形菜单</td><td class="rej">中文标签在弧线上放不下，iOS 上也没有先例。圆环好看，但读不了。</td></tr>
+        <tr><td>干脆去掉浮窗</td><td class="rej">需要它可拖拽（避开内容）且永远可达，这两点只有浮窗能同时满足。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>这个方案的弱点</h2>
+    <p>不藏。下面四条是真的代价，不是可以说过去的。</p>
+  </div>
+  <div class="cost">
+    <div><h3>图标识别度有上限</h3><p>无文字图标永远有歧义。所以保留 10pt 小标签，不做纯图标轨——但小标签在中文下可读性本身就一般。</p></div>
+    <div><h3>给别人演示时不可预测</h3><p>「单击进上次的工具」对不熟悉的人会意外。靠手柄图标自解释来缓解，但这是真实代价。</p></div>
+    <div><h3>要给每个工具做图标</h3><p>顺带说，这件事本来就要做：现在 <code>DoSwiftMenuItem</code> 里全是 <code>UIImage(systemName:)</code> 占位，<code>HierarchyInfoView</code> 里还挂着 5 个 <code>TODO: Use actual asset</code>。</p></div>
+    <div><h3>改动量比改菜单大</h3><p>要动 <code>DriftView</code> 的拖拽语义、新增工具轨视图、把计量型工具从菜单里拆出去。不是一天的活。</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>落地顺序</h2>
+    <p>每一步都能单独编译验证，符合这个仓库现有的「每批完成后由你手动编译」节奏。</p>
+  </div>
+  <ol class="steps">
+    <li><div><b>先做手柄，砍掉菜单</b><p><code>DriftView</code> 的图标从「蓝圆套白圆」换成真实工具图标（准星 + 状态点），同时把 <code>DoSwiftMenuViewController</code> 从 <code>DoSwiftCore</code> 的菜单里摘掉。这一步先验证：去掉菜单之后，手柄单独存在是否成立。</p></div></li>
+    <li><div><b>再做工具轨</b><p>新增贴边竖轨视图，长按手柄就地展开。这一版让它只承载「任务型」四项，不碰计量型。</p></div></li>
+    <li><div><b>把计量型拆出去</b><p>新增 HUD 药丸组件（可拖拽、吸附、记住位置、默认关闭），把 FPS / 内存这类读数从列表里搬过来。</p></div></li>
+    <li><div><b>回填 <code>hasSubMenu</code> 那条线</b><p>工具轨是扁平结构，<code>DoSwiftMenuItem</code> 的子菜单能力、chevron 渲染、<code>maxVisibleItems</code> 都应该整套删掉——它们是为旧形态存在的。</p></div></li>
+  </ol>
+</section>
+
+</div>
+<script>
+(function(){
+  var viz=document.getElementById('viz'), tip=document.getElementById('tip');
+  if(!viz||!tip) return;
+  viz.querySelectorAll('.brow').forEach(function(row){
+    row.addEventListener('mouseenter',function(){
+      tip.innerHTML='<b>'+row.dataset.name+'</b><em>'+row.dataset.area+'</em><em>占屏 '+row.dataset.val+' · '+row.dataset.pos+'</em>';
+      var r=row.getBoundingClientRect(), v=viz.getBoundingClientRect();
+      tip.style.left=(r.left-v.left+Math.min(r.width*0.45,240))+'px';
+      tip.style.top=(r.top-v.top-8)+'px';
+      tip.style.transform='translateY(-100%)';
+      tip.classList.add('on');
+    });
+    row.addEventListener('mouseleave',function(){tip.classList.remove('on');});
+  });
+})();
+</script>

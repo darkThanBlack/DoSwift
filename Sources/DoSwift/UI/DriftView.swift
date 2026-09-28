@@ -41,6 +41,19 @@ class DriftView: UIView {
     /// 触摸起始点
     private var originalPoint: CGPoint = .zero
 
+    /// 判定「这是拖拽而不是轻点」的位移阈值（pt）。
+    ///
+    /// 必须小于 `UITapGestureRecognizer` 自身的容差（约 10pt），否则两者之间会留出
+    /// 一条灰区：同一次触摸先被当成拖拽收起了菜单，抬手时又被当成轻点把菜单打开。
+    static let dragThreshold: CGFloat = 6
+
+    /// 本次触摸的累计位移是否已达到拖拽阈值
+    private var hasMoved = false
+
+    /// 触摸开始时的 frame.origin。`originalPoint` 是逐次增量，只能用来算每帧位移，
+    /// 判「总位移」必须用这个。
+    private var frameOriginAtTouchBegin: CGPoint = .zero
+
     // MARK: - Fade Properties
 
     /// 淡化定时器
@@ -177,6 +190,8 @@ class DriftView: UIView {
     }()
 
     @objc private func handleTap() {
+        // 拖拽后抬手，手势仍可能识别成 tap——这里必须挡掉
+        guard !hasMoved else { return }
         delegate?.driftViewDidTap(self)
     }
 
@@ -214,9 +229,13 @@ class DriftView: UIView {
     // MARK: - Touch Events
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // 放在 guard 之前：拖拽被关掉时（如属性检查器）也必须保证轻点可用
+        hasMoved = false
+
         guard isDragEnabled, let point = touches.first?.location(in: self) else { return }
 
         originalPoint = point
+        frameOriginAtTouchBegin = frame.origin
         isMoving = true
 
         fireFade(false)
@@ -260,6 +279,16 @@ class DriftView: UIView {
         }
 
         frame = newFrame
+
+        // 累计位移达到阈值就锁定为拖拽，抬手时不再当作轻点。
+        // 阈值与 DoSwiftMainViewController 用的是同一个常量，两边不会错位。
+        if !hasMoved {
+            let moved = abs(frame.origin.x - frameOriginAtTouchBegin.x)
+                + abs(frame.origin.y - frameOriginAtTouchBegin.y)
+            if moved > DriftView.dragThreshold {
+                hasMoved = true
+            }
+        }
 
         // 通知代理拖拽位置变化
         let center = CGPoint(x: newFrame.midX, y: newFrame.midY)

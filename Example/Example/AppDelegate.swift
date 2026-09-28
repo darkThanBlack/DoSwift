@@ -27,7 +27,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window?.makeKeyAndVisible()
 
         // Initialize DoSwift with custom menu items
-//        setupDoSwift()
+        setupDoSwift()
 
         return true
     }
@@ -49,7 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     private func addCustomMenuItems() {
-        // 示例：添加自定义菜单项
+        // 示例：追加一个自定义工具分组
         let customItem = DoSwiftMenuItem(
             identifier: "custom_example",
             title: "示例功能",
@@ -58,7 +58,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             self.showCustomFeature()
         }
 
-        DoSwiftCore.shared.addMenuItem(customItem)
+        DoSwiftCore.shared.addToolGroup(DoSwiftToolGroup(title: "自定义", items: [customItem]))
     }
 
     private func showCustomFeature() {

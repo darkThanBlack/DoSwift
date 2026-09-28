@@ -19,8 +19,8 @@ public class DoSwiftCore {
     public var window: DoSwiftWindow?
     weak var mainController: DoSwiftMainViewController?
 
-    /// 菜单项配置
-    public var menuItems: [DoSwiftMenuItem] = []
+    /// 工具目录，按分组存放（一个分组即 DoKit 的一个模块）
+    public var toolGroups: [DoSwiftToolGroup] = []
 
     // MARK: - Public Interface
 
@@ -30,8 +30,9 @@ public class DoSwiftCore {
     }
 
     /// 初始化 DoSwift
-    public func initialize(with menuItems: [DoSwiftMenuItem]? = nil) {
-        self.menuItems = menuItems ?? createDefaultMenuItems()
+    public func initialize(with toolGroups: [DoSwiftToolGroup]? = nil) {
+        self.toolGroups = toolGroups ?? DoSwiftToolCatalog.defaultToolGroups()
+        attachDefaultActions(to: self.toolGroups)
         prepare()
     }
 
@@ -50,16 +51,33 @@ public class DoSwiftCore {
     public func show() { start() }
     public func hide() { stop() }
 
-    /// 添加菜单项
-    public func addMenuItem(_ menuItem: DoSwiftMenuItem) {
-        menuItems.append(menuItem)
-        mainController?.updateMenuItems(menuItems)
+    /// 追加一个工具分组
+    public func addToolGroup(_ group: DoSwiftToolGroup) {
+        toolGroups.append(group)
+        attachDefaultActions(to: [group])
+        mainController?.updateToolGroups(toolGroups)
     }
 
-    /// 移除菜单项
-    public func removeMenuItem(withIdentifier identifier: String) {
-        menuItems.removeAll { $0.identifier == identifier }
-        mainController?.updateMenuItems(menuItems)
+    /// 移除指定标题的工具分组
+    public func removeToolGroup(titled title: String) {
+        toolGroups.removeAll { $0.title == title }
+        mainController?.updateToolGroups(toolGroups)
+    }
+
+    /// 往指定分组里追加一个工具
+    public func addTool(_ tool: DoSwiftMenuItem, toGroupTitled title: String) {
+        guard let index = toolGroups.firstIndex(where: { $0.title == title }) else { return }
+        toolGroups[index].items.append(tool)
+        attachDefaultActions(to: [toolGroups[index]])
+        mainController?.updateToolGroups(toolGroups)
+    }
+
+    /// 按标识移除工具
+    public func removeTool(withIdentifier identifier: String) {
+        for index in toolGroups.indices {
+            toolGroups[index].items.removeAll { $0.identifier == identifier }
+        }
+        mainController?.updateToolGroups(toolGroups)
     }
 
     /// 推送视图控制器
@@ -79,6 +97,14 @@ public class DoSwiftCore {
     private func prepare() {
         guard window == nil else { return }
 
+        // 兜底：裸调 start() 也必须拿到默认目录。
+        // 之前 Example 从没调用过 initialize()，menuItems 一直是空的，
+        // 于是 showMenu() 的 guard 直接返回——点手柄毫无反应。那类问题不该重演。
+        if toolGroups.isEmpty {
+            toolGroups = DoSwiftToolCatalog.defaultToolGroups()
+        }
+        attachDefaultActions(to: toolGroups)
+
         // 创建窗口
         let doSwiftWindow = DoSwiftWindow(frame: UIScreen.main.bounds)
         doSwiftWindow.isHidden = true
@@ -94,7 +120,7 @@ public class DoSwiftCore {
 
         // 创建根控制器
         let root = DoSwiftMainViewController()
-        root.menuItems = menuItems
+        root.toolGroups = toolGroups
 
         let nav = UINavigationController(rootViewController: root)
         nav.isNavigationBarHidden = true
@@ -109,52 +135,24 @@ public class DoSwiftCore {
         doSwiftWindow.addNoResponseView(root.view)
     }
 
-    private func createDefaultMenuItems() -> [DoSwiftMenuItem] {
-        let appInfoItem = DoSwiftMenuItem(
-            identifier: "app_info",
-            title: "应用信息",
-            icon: UIImage(systemName: "info.circle")
-        ) { _ in
-            self.showAppInfo()
+    /// 把行为挂到目录里对应的工具上。
+    ///
+    /// 目录本身**只有数据**（每个 `actionHandler` 都是 nil），行为集中在这里，
+    /// 于是工具轨只需认识 `DoSwiftToolGroup`，完全不必知道任何工具的存在。
+    /// 已经有 handler 的不覆盖，宿主可以先挂自己的实现。
+    private func attachDefaultActions(to groups: [DoSwiftToolGroup]) {
+        for group in groups {
+            for tool in group.items where tool.actionHandler == nil {
+                switch tool.identifier {
+                case "app_info":
+                    tool.actionHandler = { [weak self] _ in self?.showAppInfo() }
+                case "ui_hierarchy":
+                    tool.actionHandler = { [weak self] _ in self?.showUIHierarchy() }
+                default:
+                    break
+                }
+            }
         }
-
-        let networkItem = DoSwiftMenuItem(
-            identifier: "network",
-            title: "网络工具",
-            icon: UIImage(systemName: "network")
-        )
-
-        let networkMonitorItem = DoSwiftMenuItem(
-            identifier: "network_monitor",
-            title: "网络监控"
-        ) { _ in
-            print("启动网络监控")
-        }
-
-        networkItem.addSubMenuItem(networkMonitorItem)
-
-        // UI 调试工具
-        let uiDebugItem = DoSwiftMenuItem(
-            identifier: "ui_debug",
-            title: "UI 调试",
-            icon: UIImage(systemName: "eye")
-        )
-
-        let hierarchyItem = DoSwiftMenuItem(
-            identifier: "ui_hierarchy",
-            title: "UI 结构查看器",
-            icon: UIImage(systemName: "list.dash.header.rectangle")
-        ) { _ in
-            self.showUIHierarchy()
-        }
-
-        uiDebugItem.addSubMenuItem(hierarchyItem)
-
-        let closeItem = DoSwiftMenuItem.closeItem { _ in
-            self.hide()
-        }
-
-        return [appInfoItem, networkItem, uiDebugItem, closeItem]
     }
 
     private func showAppInfo() {

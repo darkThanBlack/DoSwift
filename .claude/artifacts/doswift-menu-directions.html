@@ -1,0 +1,565 @@
+<title>DoSwift 悬浮菜单方案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#F4F5F8; --surface:#FFFFFF; --panel:#EDEFF4;
+  --ink:#15171C; --ink2:#5C6371; --ink3:#8A909D;
+  --line:#DFE3EA; --line2:#EAEDF2;
+  --accent:#007AFF; --accent-ink:#0062CC;
+  --ok:#248A3D; --warn:#A85B00; --bad:#C7362B;
+  --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1116; --surface:#171A20; --panel:#1E222B;
+    --ink:#E8EAEF; --ink2:#A3AAB7; --ink3:#767E8C;
+    --line:#2A2F39; --line2:#22262E;
+    --accent:#0A84FF; --accent-ink:#4DA3FF;
+    --ok:#30D158; --warn:#FF9F0A; --bad:#FF6961;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1116; --surface:#171A20; --panel:#1E222B;
+  --ink:#E8EAEF; --ink2:#A3AAB7; --ink3:#767E8C;
+  --line:#2A2F39; --line2:#22262E;
+  --accent:#0A84FF; --accent-ink:#4DA3FF;
+  --ok:#30D158; --warn:#FF9F0A; --bad:#FF6961;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1020px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:64px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.25;letter-spacing:-.015em}
+h1{font-size:clamp(30px,4.4vw,44px);font-weight:600}
+h2{font-size:24px;font-weight:600}
+h3{font-size:17px;font-weight:600}
+p{margin:0}
+a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent-ink) 35%,transparent)}
+a:hover{border-bottom-color:var(--accent-ink)}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.lede{font-size:18px;color:var(--ink2);max-width:64ch}
+
+.hd{display:flex;flex-direction:column;gap:18px;padding-bottom:8px}
+.verdict{
+  display:block;
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:0 10px 10px 0;padding:16px 20px;max-width:72ch;font-size:15.5px;color:var(--ink2)
+}
+.verdict b{color:var(--ink);font-weight:600}
+
+section{display:flex;flex-direction:column;gap:22px}
+.sec-hd{display:flex;flex-direction:column;gap:8px;max-width:70ch}
+.sec-hd p{color:var(--ink2);font-size:15.5px}
+
+/* ---------- diagnosis ---------- */
+.diag{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.d-item{background:var(--surface);padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+.d-item h3{font-size:15.5px}
+.d-item p{font-size:14.5px;color:var(--ink2)}
+.d-item code{font-family:var(--mono);font-size:12.5px;background:var(--panel);padding:1px 5px;border-radius:4px;color:var(--ink);white-space:nowrap;box-decoration-break:clone}
+.d-fix{font-size:14px;color:var(--ok);display:block}
+.d-fix::before{content:"→ ";font-family:var(--mono)}
+.d-fix span{color:var(--ink2)}
+
+/* ---------- device mockups ---------- */
+.devices{display:grid;grid-template-columns:repeat(2,1fr);gap:40px 32px;justify-items:center}
+@media (max-width:720px){.devices{grid-template-columns:1fr}}
+.dev{display:flex;flex-direction:column;gap:16px;align-items:center;width:100%}
+.ph{--s:.62;position:relative;width:calc(390px * var(--s));height:calc(844px * var(--s));border-radius:34px;overflow:hidden;box-shadow:0 0 0 1px var(--line),0 18px 40px -18px rgba(12,18,32,.45)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ph{box-shadow:0 0 0 1px var(--line),0 18px 40px -18px rgba(0,0,0,.7)}}
+:root[data-theme="dark"] .ph{box-shadow:0 0 0 1px var(--line),0 18px 40px -18px rgba(0,0,0,.7)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform:scale(var(--s));transform-origin:top left;background:#F2F2F7;overflow:hidden;font-family:-apple-system,'SF Pro Text','PingFang SC',sans-serif}
+.sb{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:14px 30px 0;font-size:15px;font-weight:600;color:#16181D;letter-spacing:.2px}
+.sb .bars{display:flex;gap:5px;align-items:flex-end}
+.sb .bars i{display:block;width:3px;background:#16181D;border-radius:1px}
+.sb .bars i:nth-child(1){height:5px}.sb .bars i:nth-child(2){height:8px}
+.sb .bars i:nth-child(3){height:11px}.sb .bars i:nth-child(4){height:14px}
+.nav{position:absolute;top:54px;left:0;right:0;height:52px;display:flex;align-items:center;padding:0 18px;font-size:17px;font-weight:600;color:#16181D;border-bottom:.5px solid #D4D6DB}
+.seg{position:absolute;top:122px;left:16px;right:16px;height:32px;background:#E4E6EA;border-radius:8px;display:flex;padding:2px;gap:2px}
+.seg span{flex:1;display:grid;place-items:center;font-size:13px;font-weight:500;color:#5B6270;border-radius:6px}
+.seg .on{background:#fff;color:#16181D;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.cards{position:absolute;top:170px;left:16px;right:16px;display:flex;flex-direction:column;gap:10px}
+.card{height:76px;background:#fff;border-radius:12px;display:flex;align-items:center;gap:12px;padding:0 14px}
+.thumb{width:48px;height:48px;border-radius:9px;flex:none}
+.lines{flex:1;display:flex;flex-direction:column;gap:7px}
+.lines i{display:block;height:9px;border-radius:4px;background:#D9DCE2}
+.lines i.a{width:64%}.lines i.b{width:38%}
+.amt{width:44px;height:12px;border-radius:4px;background:#D9DCE2;flex:none}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:84px;background:rgba(249,249,251,.94);backdrop-filter:blur(20px);border-top:.5px solid #D4D6DB;display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px}
+.tabbar i{display:block;width:24px;height:24px;border-radius:6px;background:#C9CDD5}
+.tabbar i.on{background:#0A6CFF}
+
+/* floating button */
+.fab{position:absolute;top:340px;right:12px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;z-index:5}
+.fab svg{width:22px;height:22px}
+.fab--now{background:#007AFF;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.fab--now::after{content:"";width:20px;height:20px;border-radius:50%;background:#fff}
+.fab--sys{background:rgba(255,255,255,.86);backdrop-filter:blur(24px) saturate(180%);box-shadow:0 2px 10px rgba(0,0,0,.2);color:#1B1D22;border:.5px solid rgba(255,255,255,.9)}
+.fab--glass{background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(240,242,246,.78));backdrop-filter:blur(24px) saturate(180%);box-shadow:0 3px 12px rgba(12,18,32,.22);color:#1B1D22;border:.5px solid rgba(255,255,255,.85)}
+.fab--dense{background:rgba(30,32,38,.9);backdrop-filter:blur(24px);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#F2F3F6;border:.5px solid rgba(255,255,255,.14)}
+
+/* dim layer for modal-style menu */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.2);z-index:6}
+
+/* ---------- menu: shared ---------- */
+.menu{position:absolute;z-index:7;display:flex;flex-direction:column;overflow:hidden}
+.mi{display:flex;align-items:center;gap:12px;flex:none}
+.mtx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mch{flex:none;font-size:15px;opacity:.4}
+.mic{flex:none;display:grid;place-items:center}
+.mic svg{width:100%;height:100%;display:block}
+.sub{padding-left:0}
+
+/* ---------- 现状 ---------- */
+.menu--now{width:220px;left:85px;top:314px;height:216px;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.menu--now .mi{height:54px;padding:0 16px;border-bottom:.5px solid #C8CACF;color:#16181D;font-size:16px;font-weight:500}
+.menu--now .mi:last-child{border-bottom:0}
+.menu--now .mic{width:24px;height:24px;color:#007AFF}
+
+/* ---------- A 系统菜单 ---------- */
+.menu--sys{width:250px;right:56px;top:396px;background:rgba(250,250,252,.82);backdrop-filter:blur(30px) saturate(180%);border-radius:13px;box-shadow:0 8px 32px rgba(0,0,0,.24);padding:4px 0}
+.menu--sys .mi{height:44px;padding:0 16px;color:#16181D;font-size:17px}
+.menu--sys .mic{width:18px;height:18px;color:#3C4048}
+.menu--sys .mi.dest .mtx{color:#C7362B}
+.menu--sys .hair{height:.5px;background:rgba(60,64,72,.22);margin:4px 0 4px 16px}
+
+/* ---------- B 锚定毛玻璃 ---------- */
+.menu--glass{width:256px;right:56px;top:396px;background:linear-gradient(180deg,rgba(252,253,255,.78),rgba(238,241,246,.72));backdrop-filter:blur(34px) saturate(190%);border-radius:16px;box-shadow:0 12px 40px rgba(12,18,32,.22),0 0 0 .5px rgba(255,255,255,.6) inset;padding:8px}
+.menu--glass .gt{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#797F8C;padding:8px 10px 6px}
+.menu--glass .mi{height:48px;padding:0 10px;border-radius:11px;color:#16181D;font-size:16px;font-weight:500}
+.menu--glass .mi.press{background:rgba(120,127,140,.16)}
+.menu--glass .mic{width:28px;height:28px;border-radius:9px;background:rgba(120,127,140,.16);color:#3C4048}
+.menu--glass .mic svg{width:16px;height:16px}
+.menu--glass .mi.sub{height:44px;padding-left:38px;font-size:15px;font-weight:400;color:#4A505C}
+.menu--glass .spacer{height:8px}
+.menu--glass .mi.dest{color:#C7362B}
+.menu--glass .mi.dest .mic{background:rgba(199,54,43,.12);color:#C7362B}
+.c-blue{background:rgba(0,122,255,.14)!important;color:#0062CC!important}
+.c-green{background:rgba(36,138,61,.15)!important;color:#1E7A34!important}
+.c-purple{background:rgba(120,70,220,.14)!important;color:#5E36B8!important}
+
+/* ---------- C 高密度 ---------- */
+.menu--dense{width:268px;right:56px;top:396px;background:rgba(28,30,36,.88);backdrop-filter:blur(30px) saturate(160%);border-radius:12px;box-shadow:0 14px 44px rgba(0,0,0,.42),0 0 0 .5px rgba(255,255,255,.1) inset;padding:6px;color:#EDEEF2;font-family:var(--mono)}
+.menu--dense .gt{display:block;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#787F8D;padding:7px 10px 5px}
+.menu--dense .mi{height:40px;padding:0 10px;border-radius:7px;font-size:14px;color:#E4E6EC;font-family:var(--sans)}
+.menu--dense .mi.press{background:rgba(255,255,255,.1)}
+.menu--dense .mic{width:16px;height:16px;color:#8A909D}
+.menu--dense .mi.sub{height:36px;padding-left:36px;font-size:13px;color:#A3AAB7}
+.menu--dense .kv{font-family:var(--mono);font-size:11px;color:#787F8D;font-variant-numeric:tabular-nums}
+.menu--dense .hair{height:1px;background:rgba(255,255,255,.08);margin:5px 10px}
+.menu--dense .mi.dest{color:#FF6961}
+.menu--dense .mi.dest .mic{color:#FF6961}
+
+.dev-cap{text-align:center;display:flex;flex-direction:column;gap:5px;max-width:280px}
+.dev-cap b{font-size:15px;font-weight:600}
+.dev-cap span{font-size:13.5px;color:var(--ink2);line-height:1.5}
+.dev-cap em{font-family:var(--mono);font-style:normal;font-size:11.5px;color:var(--ink3);letter-spacing:.05em}
+
+/* ---------- direction cards ---------- */
+.dir{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px 28px;display:flex;flex-direction:column;gap:20px}
+.dir--pick{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 9%,transparent)}
+.dir-hd{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline}
+.dir-hd h3{font-size:20px}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px;background:var(--panel);color:var(--ink2)}
+.tag--pick{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent-ink)}
+.cols{display:grid;grid-template-columns:1.05fr 1fr;gap:28px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+ul.points{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+ul.points li{position:relative;padding-left:17px;font-size:14.5px;color:var(--ink2);line-height:1.55}
+ul.points li::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--ink3)}
+ul.points li b{color:var(--ink);font-weight:600}
+table.spec{width:100%;border-collapse:collapse;font-size:13.5px}
+table.spec tr{border-bottom:1px solid var(--line2)}
+table.spec tr:last-child{border-bottom:0}
+table.spec th{text-align:left;font-weight:400;color:var(--ink3);padding:8px 12px 8px 0;width:38%;vertical-align:top;font-size:13px}
+table.spec td{padding:8px 0;font-family:var(--mono);font-size:12.5px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.5}
+.tblwrap{overflow-x:auto}
+table.api{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+table.api th{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:500;padding:0 14px 10px 0;border-bottom:1px solid var(--line)}
+table.api td{padding:11px 14px 11px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+table.api td:first-child{font-family:var(--mono);font-size:12.5px}
+table.api td:nth-child(2){font-family:var(--mono);font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.pill{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.pill--ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.pill--warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.pill--bad{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+
+.links{display:flex;flex-direction:column;gap:8px}
+.links a{font-size:14px;display:flex;gap:9px;align-items:baseline;border-bottom:0;color:var(--accent-ink)}
+.links a:hover{text-decoration:underline}
+.links a span{color:var(--ink3);font-size:13px}
+.links a::before{content:"↗";font-family:var(--mono);font-size:12px;opacity:.6;flex:none}
+
+ol.steps{margin:0;padding-left:0;list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:0}
+ol.steps li{counter-increment:s;display:flex;gap:18px;padding:18px 0;border-bottom:1px solid var(--line2)}
+ol.steps li:last-child{border-bottom:0}
+ol.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:color-mix(in srgb,var(--accent) 12%,transparent);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px;font-variant-numeric:tabular-nums}
+ol.steps b{display:block;font-size:15.5px;font-weight:600;margin-bottom:4px}
+ol.steps p{font-size:14.5px;color:var(--ink2)}
+h2 .h-note{font-family:var(--mono);font-size:12px;color:var(--ink3);font-weight:400;letter-spacing:.04em;margin-left:12px}
+@media (prefers-reduced-motion:no-preference){a{transition:border-color .15s ease}}
+</style>
+
+<div class="wrap">
+
+<header class="hd">
+  <p class="eyebrow">DoSwift · 悬浮窗菜单</p>
+  <h1>主菜单的三个设计方向</h1>
+  <p class="lede">现在这套菜单的问题不在配色，在形状——它长成了一个居中弹出的模态面板，而它本该是一个锚在浮窗旁边、能看见底下的调试浮层。下面是三条路线，都在 iOS 13 部署目标上能落地。</p>
+  <div class="verdict"><b>推荐方向 B。</b>锚定 + 毛玻璃 + 图标片分组，改动量中等（一个视图控制器 + 一个自绘面板），拿到的是原生质感又不被系统菜单的固定结构框死。如果只想改一天就见效，直接上 A，把菜单交给 UIKit。</div>
+</header>
+
+<section>
+  <div class="sec-hd">
+    <h2>现在丑在哪</h2>
+    <p>六条都能在代码里定位到。前三条是形状问题，后三条是细节问题——先修形状，细节才有意义。</p>
+  </div>
+  <div class="diag">
+    <div class="d-item">
+      <h3>菜单跑到屏幕正中央</h3>
+      <p>触发它的浮窗贴在屏幕边缘，菜单却弹在正中，两者失去空间关系。看起来像一个弹错位置的 alert，而不是「从这个按钮长出来的」。</p>
+      <p class="d-fix">从浮窗旁展开，贴不进就翻转方向 <span>— <code>centerXAnchor</code> / <code>centerYAnchor</code></span></p>
+    </div>
+    <div class="d-item">
+      <h3>遮罩是透明的，点它却会关闭菜单</h3>
+      <p>视觉上不是模态，交互上却是模态。用户看到的是「背景能用」，点下去才发现被当成点击外部关闭了。</p>
+      <p class="d-fix">要么压暗成真模态，要么不压暗但只关菜单 <span>— <code>backgroundColor = .clear</code></span></p>
+    </div>
+    <div class="d-item">
+      <h3>面板不透明，正好挡住要调试的东西</h3>
+      <p>调试浮层的全部意义是叠在真实界面上，纯色 <code>systemBackground</code> 把它变成了一张报纸。</p>
+      <p class="d-fix">换成 <code>.systemThickMaterial</code> 模糊材质 <span>— <code>systemBackground</code></span></p>
+    </div>
+    <div class="d-item">
+      <h3>满宽分隔线穿过圆角</h3>
+      <p>四条线从面板最左拉到最右，直接穿过 12pt 圆角。这是全页最明显的粗糙点，也是最好修的。</p>
+      <p class="d-fix">去掉线，改用间距分组 <span>— <code>separatorStyle = .singleLine</code></span></p>
+    </div>
+    <div class="d-item">
+      <h3>整屏只有一种蓝</h3>
+      <p>每个图标都 <code>tintColor = .systemBlue</code>，浮窗按钮也是同一个 <code>systemBlue</code>。图标不承载任何语义，只是在重复强调色。</p>
+      <p class="d-fix">图标片按分组配色，或退成次要灰 <span>— <code>iconImageView.tintColor</code></span></p>
+    </div>
+    <div class="d-item">
+      <h3>子菜单是假的</h3>
+      <p>「网络工具」显示了 <code>›</code> 箭头，点下去却直接触发 action——没有任何二级面板。箭头在骗人。</p>
+      <p class="d-fix">二级项就地缩进展开，或去掉箭头 <span>— <code>arrowImageView.isHidden</code></span></p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>四个形态并排</h2>
+    <p>同一份菜单数据（应用信息 / 网络工具 / UI 调试 / 关闭），四种做法。菜单项文字取自 <code>DoSwiftCore.swift</code> 现有内容，浮窗位置固定在同一处，方便对比落点差异。</p>
+  </div>
+
+  <div class="devices">
+
+    <!-- 现状 -->
+    <div class="dev">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+
+        <div class="fab fab--now"></div>
+
+        <div class="menu menu--now">
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.1"/></svg></span><span class="mtx">应用信息</span></div>
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><span class="mtx">网络工具</span><span class="mch">›</span></div>
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.8-6 10-6 10 6 10 6-3.8 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.4"/></svg></span><span class="mtx">UI 调试</span><span class="mch">›</span></div>
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="mtx">关闭</span></div>
+        </div>
+      </div></div>
+      <div class="dev-cap"><b>现状</b><span>居中 · 不透明 · 满宽分隔线 · 四个同色图标</span><em>220 × 216 · radius 12</em></div>
+    </div>
+
+    <!-- A -->
+    <div class="dev">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+
+        <div class="dim"></div>
+        <div class="fab fab--sys"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div>
+
+        <div class="menu menu--sys">
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.1"/></svg></span><span class="mtx">应用信息</span></div>
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><span class="mtx">网络工具</span><span class="mch">›</span></div>
+          <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.8-6 10-6 10 6 10 6-3.8 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.4"/></svg></span><span class="mtx">UI 调试</span><span class="mch">›</span></div>
+          <div class="hair"></div>
+          <div class="mi dest"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="mtx">关闭</span></div>
+        </div>
+      </div></div>
+      <div class="dev-cap"><b>A · 交给系统菜单</b><span>从触发点长出来 · 系统材质 · 系统动画 · 结构不可改</span><em>UIContextMenuInteraction</em></div>
+    </div>
+
+    <!-- B -->
+    <div class="dev">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+
+        <div class="fab fab--glass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div>
+
+        <div class="menu menu--glass">
+          <div class="grp">
+            <span class="gt">应用</span>
+            <div class="mi"><span class="mic c-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.1"/></svg></span><span class="mtx">应用信息</span></div>
+          </div>
+          <div class="grp">
+            <span class="gt">调试</span>
+            <div class="mi press"><span class="mic c-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><span class="mtx">网络工具</span></div>
+            <div class="mi sub"><span class="mtx">网络监控</span></div>
+            <div class="mi"><span class="mic c-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s3.8-6 10-6 10 6 10 6-3.8 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.4"/></svg></span><span class="mtx">UI 调试</span></div>
+            <div class="mi sub"><span class="mtx">UI 结构查看器</span></div>
+          </div>
+          <div class="mi dest"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="mtx">关闭</span></div>
+        </div>
+      </div></div>
+      <div class="dev-cap"><b>B · 锚定毛玻璃面板</b><span>浮窗旁展开 · 分组小标题 · 图标片 · 二级项就地展开</span><em>256 宽 · radius 16 continuous</em></div>
+    </div>
+
+    <!-- C -->
+    <div class="dev">
+      <div class="ph"><div class="stage">
+        <div class="sb"><span>9:41</span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <div class="nav">订单</div>
+        <div class="seg"><span class="on">全部</span><span>待付款</span><span>已完成</span></div>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background:#CFE0F5"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#E6D6F0"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#D6EDDD"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+          <div class="card"><div class="thumb" style="background:#F4E3CE"></div><div class="lines"><i class="a"></i><i class="b"></i></div><div class="amt"></div></div>
+        </div>
+        <div class="tabbar"><i class="on"></i><i></i><i></i><i></i></div>
+
+        <div class="fab fab--dense"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div>
+
+        <div class="menu menu--dense">
+          <div class="grp">
+            <span class="gt">应用</span>
+            <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.1"/></svg></span><span class="mtx">应用信息</span><span class="kv">v0.1.0</span></div>
+          </div>
+          <div class="grp">
+            <span class="gt">调试</span>
+            <div class="mi press"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><span class="mtx">网络工具</span></div>
+            <div class="mi sub"><span class="mtx">网络监控</span><span class="kv">0 req/s</span></div>
+            <div class="mi"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.8-6 10-6 10 6 10 6-3.8 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.4"/></svg></span><span class="mtx">UI 调试</span></div>
+            <div class="mi sub"><span class="mtx">UI 结构查看器</span><span class="kv">312 层</span></div>
+          </div>
+          <div class="hair"></div>
+          <div class="mi dest"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span class="mtx">关闭</span></div>
+        </div>
+      </div></div>
+      <div class="dev-cap"><b>C · 高密度工具风</b><span>固定深色 · 40pt 行高 · 等宽数字挂实时状态 · 像 Xcode 面板</span><em>268 宽 · radius 12 · 不跟随系统</em></div>
+    </div>
+
+  </div>
+</section>
+
+<section style="gap:20px">
+  <div class="dir">
+    <div class="dir-hd">
+      <h3>A · 交给系统菜单</h3>
+      <span class="tag">最省力</span>
+    </div>
+    <div class="cols">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <ul class="points">
+          <li><b>一次不用自己画。</b>圆角、材质、行高、图标规则、分隔线内缩、进出动画全部由 UIKit 决定，也自动跟随 iOS 版本演进——升级到 iOS 26 时它会自己变成 Liquid Glass。</li>
+          <li>锚定和翻转由系统处理，浮窗贴近屏幕底部或右缘时会自动朝内展开，这个逻辑自己写通常要写错两遍。</li>
+          <li><b>代价是结构被锁死。</b>每行只能是一个符号 + 一行文字，不能塞开关、状态数值、自定义行高；面板宽度和分组留白也不是你说了算。</li>
+          <li>iOS 14 才有 <code>UIButton.menu</code>；部署目标 13.0 要退回 <code>UIContextMenuInteraction</code>，触发方式是长按而非轻点，需要额外接管手势。</li>
+        </ul>
+      </div>
+      <div class="tblwrap">
+        <table class="spec">
+          <tr><th>面板宽度</th><td>系统决定（约 250）</td></tr>
+          <tr><th>圆角</th><td>13pt continuous（系统）</td></tr>
+          <tr><th>材质</th><td>系统 context menu 材质</td></tr>
+          <tr><th>行高</th><td>44pt</td></tr>
+          <tr><th>图标</th><td>18pt，系统统一规则</td></tr>
+          <tr><th>分组分隔</th><td>hairline，自动内缩</td></tr>
+          <tr><th>背景</th><td>压暗，模态</td></tr>
+          <tr><th>二级菜单</th><td>系统子菜单，从右侧展开</td></tr>
+          <tr><th>自定义空间</th><td>低</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="dir dir--pick">
+    <div class="dir-hd">
+      <h3>B · 锚定毛玻璃面板</h3>
+      <span class="tag tag--pick">推荐</span>
+    </div>
+    <div class="cols">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <ul class="points">
+          <li><b>形状对了，其余都好办。</b>菜单从浮窗旁边长出来，浮窗贴左缘就从左边展开，贴底就往上传——空间关系一眼可见。</li>
+          <li>材质用 <code>.systemThickMaterial</code>，不压暗背景。这是调试浮层该有的姿态：叠在上面，但仍然看得见底下的界面在动。</li>
+          <li>分组小标题 + 图标片替代满宽分隔线。四个图标片用不同色相区分分组，颜色终于开始承载语义，而不是重复强调色。</li>
+          <li>二级项就地缩进展开，顺手把「显示箭头但没有二级面板」这个现有缺口补上。</li>
+          <li>42pt 以下的行高对调试工具仍然偏松，可以降到 44/40 再收紧一档。</li>
+        </ul>
+      </div>
+      <div class="tblwrap">
+        <table class="spec">
+          <tr><th>面板宽度</th><td>256pt（屏宽 − 32 上限）</td></tr>
+          <tr><th>圆角</th><td>16pt，cornerCurve = .continuous</td></tr>
+          <tr><th>材质</th><td>UIBlurEffect(.systemThickMaterial)</td></tr>
+          <tr><th>行高</th><td>48pt / 二级 44pt</td></tr>
+          <tr><th>图标片</th><td>28×28，radius 9，secondarySystemFill</td></tr>
+          <tr><th>分组标签</th><td>11pt 大写，字距 0.6</td></tr>
+          <tr><th>阴影</th><td>y12 blur40 α.22 双层</td></tr>
+          <tr><th>背景</th><td>不压暗，点外部关闭</td></tr>
+          <tr><th>动画</th><td>锚点 scale .85→1，200ms</td></tr>
+          <tr><th>自定义空间</th><td>高</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="dir">
+    <div class="dir-hd">
+      <h3>C · 高密度工具风</h3>
+      <span class="tag">另一条审美</span>
+    </div>
+    <div class="cols">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <ul class="points">
+          <li><b>不假装自己是消费品。</b>固定深色、40pt 行高、等宽数字——气质更接近 Xcode 面板或 Lookin，而不是 iOS 设置页。</li>
+          <li>行尾可以挂实时数值（请求数、视图层数、内存），调试信息从「点进去才看得到」变成「扫一眼就知道」。</li>
+          <li>固定深色意味着不用维护两套配色，但会和浅色业务界面形成强对比，截图分享时也更醒目。</li>
+          <li>代价是密度上去了、可读性下来了：中文在 13–14pt 深色底上偏细，需要把字重提到 500 才站得住。</li>
+        </ul>
+      </div>
+      <div class="tblwrap">
+        <table class="spec">
+          <tr><th>面板宽度</th><td>268pt</td></tr>
+          <tr><th>圆角</th><td>12pt</td></tr>
+          <tr><th>材质</th><td>chromMaterialDark（固定深色）</td></tr>
+          <tr><th>行高</th><td>40pt / 二级 36pt</td></tr>
+          <tr><th>字号</th><td>14 正文 / 10 分组标签</td></tr>
+          <tr><th>图标</th><td>16pt 单色，仅按下时提亮</td></tr>
+          <tr><th>分隔</th><td>白色 8% 透明，两侧内缩 10</td></tr>
+          <tr><th>数字</th><td>IBM Plex Mono / tabular-nums</td></tr>
+          <tr><th>背景</th><td>不压暗，点外部关闭</td></tr>
+          <tr><th>自定义空间</th><td>高</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>参考<span class="h-note">外部链接</span></h2>
+    <p>按「先看规范，再看成品」的顺序排。前两条是菜单该长什么样的权威依据，中间两条是真实产品里的模式库，最后几条用于校准材质的分寸。</p>
+  </div>
+  <div class="links">
+    <a href="https://developer.apple.com/design/human-interface-guidelines/context-menus" target="_blank" rel="noopener">Apple HIG · Context menus <span>— 菜单项排序、图标该不该有、什么时候别用菜单</span></a>
+    <a href="https://developer.apple.com/design/human-interface-guidelines/menus" target="_blank" rel="noopener">Apple HIG · Menus <span>— iOS 上 small/medium/large 三种菜单布局与子菜单规则</span></a>
+    <a href="https://mobbin.com/glossary/context-menu" target="_blank" rel="noopener">Mobbin · Context Menu 模式库 <span>— 真实 App 的菜单截图与「什么时候不该用」的判断标准</span></a>
+    <a href="https://mobbin.com/explore/mobile/ui-elements/floating-action-button" target="_blank" rel="noopener">Mobbin · Floating Action Button 实例集 <span>— 浮窗按钮与它展开内容的位置关系</span></a>
+    <a href="https://dribbble.com/search/floating-menus" target="_blank" rel="noopener">Dribbble · floating menus <span>— 视觉灵感，注意大多是概念稿，别照搬密度</span></a>
+    <a href="https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass" target="_blank" rel="noopener">Apple · Adopting Liquid Glass <span>— iOS 26 材质迁移，明确说了别到处用玻璃效果</span></a>
+    <a href="https://www.nngroup.com/articles/liquid-glass" target="_blank" rel="noopener">NN/g · Liquid Glass Is Cracked <span>— 玻璃拟态的可读性代价，做 C 方向前值得先读</span></a>
+    <a href="https://github.com/hughkli/Lookin" target="_blank" rel="noopener">Lookin <span>— 同类 iOS 视图调试工具，C 方向的现实参照</span></a>
+  </div>
+</section>
+<section>
+  <div class="sec-hd">
+    <h2>iOS 13 上的可用性</h2>
+    <p>部署目标锁在 13.0（<code>DoSwift.podspec</code> 与 <code>Package.swift</code> 都是），下面这些是选型时的硬约束。</p>
+  </div>
+  <div class="tblwrap">
+    <table class="api">
+      <thead><tr><th>API</th><th>最低版本</th><th>13.0 可用</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>UIVisualEffectView + .systemThickMaterial</td>
+          <td>iOS 13.0</td>
+          <td><span class="pill pill--ok">可用</span></td>
+        </tr>
+        <tr>
+          <td>layer.cornerCurve = .continuous</td>
+          <td>iOS 13.0</td>
+          <td><span class="pill pill--ok">可用</span></td>
+        </tr>
+        <tr>
+          <td>UIContextMenuInteraction</td>
+          <td>iOS 13.0</td>
+          <td><span class="pill pill--ok">可用</span></td>
+        </tr>
+        <tr>
+          <td>UIMenu / UIAction</td>
+          <td>iOS 13.0</td>
+          <td><span class="pill pill--ok">可用</span></td>
+        </tr>
+        <tr>
+          <td>UIButton.menu / showsMenuAsPrimaryAction</td>
+          <td>iOS 14.0</td>
+          <td><span class="pill pill--warn">需 #available</span></td>
+        </tr>
+        <tr>
+          <td>UIPopoverPresentationController 自定义尺寸</td>
+          <td>iOS 13.0</td>
+          <td><span class="pill pill--ok">可用</span></td>
+        </tr>
+        <tr>
+          <td>glassEffect(_:in:)（Liquid Glass）</td>
+          <td>iOS 26.0</td>
+          <td><span class="pill pill--bad">只能作可选分支</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-hd">
+    <h2>如果选 B，落地顺序</h2>
+    <p>按改动从外到内排，每一步都能单独编译验证——符合这个仓库「每批完成后由你手动编译」的现有节奏。</p>
+  </div>
+  <ol class="steps">
+    <li><div><b>先改浮窗按钮</b><p>把 <code>DriftView</code> 里的蓝圆套白圆换成真实图标，按钮改成毛玻璃圆。这一步独立于菜单，改完就能看出区别。</p></div></li>
+    <li><div><b>再改定位</b><p><code>DoSwiftMenuViewController</code> 去掉 centerX/centerY，改为读浮窗 frame 计算锚点，并处理贴边翻转。同时把那个透明遮罩去掉。</p></div></li>
+    <li><div><b>然后换材质和圆角</b><p>面板换成 <code>UIVisualEffectView</code>，圆角提到 16 并开 continuous，去掉 <code>separatorStyle</code>。</p></div></li>
+    <li><div><b>最后补结构和按压缩放</b><p>加分组小标题、图标片配色、二级项缩进展开，退出前跑一遍深浅色和 SE/iPad 两种尺寸。</p></div></li>
+  </ol>
+</section>
+
+</div>
