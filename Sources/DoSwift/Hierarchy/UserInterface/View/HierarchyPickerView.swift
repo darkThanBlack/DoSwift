@@ -48,7 +48,7 @@ class HierarchyPickerView: PickerView {
 
     /// 找到指定坐标处可选择的视图数组
     func viewsForSelection(at pointInWindow: CGPoint) -> [UIView] {
-        // 业务 window 已由 DoSwiftContext 注入，无需再遍历所有 window 猜目标。
+        // 业务 window 已由 DoSwiftCore.start(appWindow:) 注入，无需再遍历所有 window 猜目标。
         //
         // 原版（DoKit-iOS）无业务 window 注入，故遍历所有 window 逐个 hitTest 定位目标：
         //   var windowForSelection: UIWindow? = keyWindow

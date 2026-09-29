@@ -33,22 +33,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     private func setupDoSwift() {
-        // 设置主应用窗口引用
-        DoSwiftCore.shared.setup(window)
-
-        // 使用默认菜单初始化（也可以传入自定义菜单）
-        DoSwiftCore.shared.initialize()
-
-        // 可选：添加自定义菜单项到默认菜单
-        addCustomMenuItems()
-
-        // 显示 DoSwift 悬浮窗（仅在 Debug 构建中）
-        #if DEBUG
-        DoSwiftCore.shared.start()
-        #endif
-    }
-
-    private func addCustomMenuItems() {
         // 示例：追加一个自定义工具分组
         let customItem = DoSwiftMenuItem(
             identifier: "custom_example",
@@ -57,8 +41,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         ) { _ in
             self.showCustomFeature()
         }
-
-        DoSwiftCore.shared.addToolGroup(DoSwiftToolGroup(title: "自定义", items: [customItem]))
+        #if DEBUG
+        // 唯一入口：业务 window + 自定义菜单项，一次给全
+        DoSwiftCore.shared.start(appWindow: window, items: [customItem])
+        #endif
     }
 
     private func showCustomFeature() {

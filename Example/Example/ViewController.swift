@@ -41,15 +41,15 @@ class ViewController: UIViewController {
 
     @objc private func toggleDoSwift() {
         if DoSwiftCore.shared.window?.isHidden != false {
-            DoSwiftCore.shared.start()
+            DoSwiftCore.shared.show()
         } else {
-            DoSwiftCore.shared.stop()
+            DoSwiftCore.shared.hide()
         }
     }
 
     @objc private func launchHierarchy() {
-        // 注入业务主 window 到全局上下文（Hierarchy 拾取以此为基准）
-        DoSwiftContext.shared.setup(view.window)
+        // 业务 window 已由 AppDelegate 在 start(appWindow:) 时交给 DoSwiftCore，
+        // Hierarchy 的拾取直接读它，这里不再单独注入。
         HierarchyPlugin().pluginDidLoad()
     }
 }

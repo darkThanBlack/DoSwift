@@ -1,5 +1,5 @@
 //
-//  DriftView.swift
+//  DoSwiftMenuHandle.swift
 //  DoSwift
 //
 //  Created by Claude Code on 2025/09/26.
@@ -10,21 +10,20 @@ import UIKit
 
 // MARK: - Delegate Protocol
 
-protocol DriftViewDelegate: AnyObject {
-    func driftViewDidTap(_ driftView: DriftView)
-    func driftViewDidBeginDrag(_ driftView: DriftView)
-    func driftViewDidDrag(_ driftView: DriftView, location: CGPoint)
-    func driftViewDidEndDrag(_ driftView: DriftView, location: CGPoint)
+protocol DoSwiftMenuHandleDelegate: AnyObject {
+    func menuHandleDidTap(_ handleView: DoSwiftMenuHandle)
+    func menuHandleDidBeginDrag(_ handleView: DoSwiftMenuHandle)
+    func menuHandleDidDrag(_ handleView: DoSwiftMenuHandle, location: CGPoint)
 }
 
-// MARK: - DriftView
+// MARK: - DoSwiftMenuHandle
 
 /// 纯拖拽组件，不持有业务逻辑
-class DriftView: UIView {
+class DoSwiftMenuHandle: UIView {
 
     // MARK: - Properties
 
-    weak var delegate: DriftViewDelegate?
+    weak var delegate: DoSwiftMenuHandleDelegate?
 
     /// 是否启用边缘吸附
     var isEdgeAbsorbEnabled: Bool = true
@@ -104,7 +103,7 @@ class DriftView: UIView {
             completion: { _ in
                 // 保存位置到 UserDefaults
                 let frameDict = ["x": newFrame.origin.x, "y": newFrame.origin.y]
-                UserDefaults.standard.set(frameDict, forKey: UserDefaults.driftFrameKey)
+                UserDefaults.standard.set(frameDict, forKey: UserDefaults.handleFrameKey)
                 UserDefaults.standard.synchronize()
             }
         )
@@ -192,7 +191,7 @@ class DriftView: UIView {
     @objc private func handleTap() {
         // 拖拽后抬手，手势仍可能识别成 tap——这里必须挡掉
         guard !hasMoved else { return }
-        delegate?.driftViewDidTap(self)
+        delegate?.menuHandleDidTap(self)
     }
 
     // MARK: - Fade Timer
@@ -239,7 +238,7 @@ class DriftView: UIView {
         isMoving = true
 
         fireFade(false)
-        delegate?.driftViewDidBeginDrag(self)
+        delegate?.menuHandleDidBeginDrag(self)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -285,7 +284,7 @@ class DriftView: UIView {
         if !hasMoved {
             let moved = abs(frame.origin.x - frameOriginAtTouchBegin.x)
                 + abs(frame.origin.y - frameOriginAtTouchBegin.y)
-            if moved > DriftView.dragThreshold {
+            if moved > DoSwiftMenuHandle.dragThreshold {
                 hasMoved = true
             }
         }
@@ -293,18 +292,13 @@ class DriftView: UIView {
         // 通知代理拖拽位置变化
         let center = CGPoint(x: newFrame.midX, y: newFrame.midY)
         let locationInSuperview = superview?.convert(center, to: nil) ?? center
-        delegate?.driftViewDidDrag(self, location: locationInSuperview)
+        delegate?.menuHandleDidDrag(self, location: locationInSuperview)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard isDragEnabled else { return }
 
         isMoving = false
-
-        let center = CGPoint(x: frame.midX, y: frame.midY)
-        let locationInSuperview = superview?.convert(center, to: nil) ?? center
-        delegate?.driftViewDidEndDrag(self, location: locationInSuperview)
-
         fireAbsorb()
     }
 
@@ -312,11 +306,6 @@ class DriftView: UIView {
         guard isDragEnabled else { return }
 
         isMoving = false
-
-        let center = CGPoint(x: frame.midX, y: frame.midY)
-        let locationInSuperview = superview?.convert(center, to: nil) ?? center
-        delegate?.driftViewDidEndDrag(self, location: locationInSuperview)
-
         fireAbsorb()
     }
 
@@ -364,5 +353,5 @@ class DriftView: UIView {
 // MARK: - UserDefaults Keys
 
 extension UserDefaults {
-    static let driftFrameKey = "kDriftFrameKey"
+    static let handleFrameKey = "kMenuHandleFrameKey"
 }

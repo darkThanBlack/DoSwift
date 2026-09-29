@@ -1,5 +1,5 @@
 //
-//  DoSwiftToolRailView.swift
+//  DoSwiftMenuPanel.swift
 //  DoSwift
 //
 //  Created by Claude Code on 2026/09/28.
@@ -8,22 +8,22 @@
 
 import UIKit
 
-/// 贴边工具轨，替代原先居中弹出的 `DoSwiftMenuViewController`。
+/// 贴边主菜单面板，替代原先居中弹出的 `DoSwiftMenuViewController`。
 ///
 /// 三条设计约束，改动前务必先读：
 ///
 /// 1. **非模态**。不设遮罩，轨以外的触摸照常穿透到业务 App。这不是额外实现出来的——
-///    `DoSwiftWindow.hitTest` 只对「恰好等于注册视图」的命中返回 nil，而轨道是
+///    `DoSwiftWindow.hitTest` 只对「恰好等于注册视图」的命中返回 nil，而面板是
 ///    `root.view` 的直接子视图，于是轨外的触摸会一路冒泡到 `root.view` 被判定穿透。
 ///    **因此这个视图不能套任何全屏容器**：容器会成为命中视图且未注册，
 ///    结果是整个 App 点不动。
-/// 2. **无状态**。只认 `DoSwiftToolGroup`，不知道任何工具的存在，也不显示任何工具的
+/// 2. **无状态**。只认 `DoSwiftMenuGroup`，不知道任何工具的存在，也不显示任何工具的
 ///    运行状态——每个插件各自持有并管理自己的 window。
 /// 3. **扁平**。分组即 DoKit 的模块，没有二级菜单。
 ///
 /// 实现上是 `UIScrollView` + 一次性摆好所有方块。37 项全部是静态数据，建好之后
 /// 内容不再变化，所以既不需要 table view 的复用机制，也不需要数据源/代理那一套。
-final class DoSwiftToolRailView: UIView {
+final class DoSwiftMenuPanel: UIView {
 
     // MARK: - Metrics
 
@@ -32,10 +32,10 @@ final class DoSwiftToolRailView: UIView {
         static let columns: Int = 3
         /// 面板左右内边距。方块列、分组标签、导航栏标题**共用**这一个值，
         /// 三者左边缘必须对齐——之前方块用 8、文字用 12，差 4pt，看着就是没对齐。
-        static let railHorizontalPadding: CGFloat = 12
+        static let horizontalPadding: CGFloat = 12
         /// 面板上下内边距。必须留：面板只有朝外一侧圆角 16pt，
         /// 内容贴到顶/底会被圆角切掉一块。
-        static let railVerticalPadding: CGFloat = 10
+        static let verticalPadding: CGFloat = 10
         /// 方块之间的横向间距
         static let tileSpacing: CGFloat = 6
         static let tileWidth: CGFloat = 64
@@ -46,7 +46,7 @@ final class DoSwiftToolRailView: UIView {
         static let tileBottomPadding: CGFloat = 6
 
         /// 方块高度由内容推出来，不写死：改字号或图标尺寸会自动跟着变，
-        /// 也保证 `DoSwiftToolRailTile.sizeThatFits` 与实际排版一致。
+        /// 也保证 `DoSwiftMenuTile.sizeThatFits` 与实际排版一致。
         static let tileHeight: CGFloat = ceil(
             tileTopPadding
                 + tileIconSize
@@ -57,7 +57,7 @@ final class DoSwiftToolRailView: UIView {
 
         /// 面板宽度由列数和方块宽推出来，改 `columns` 会自动跟着变。
         /// 66 是让「沙盒浏览器」这类 5 字标题排得下的值。
-        static let panelWidth: CGFloat = railHorizontalPadding * 2
+        static let panelWidth: CGFloat = horizontalPadding * 2
             + tileWidth * CGFloat(columns)
             + tileSpacing * CGFloat(columns - 1)
 
@@ -88,16 +88,16 @@ final class DoSwiftToolRailView: UIView {
 
     // MARK: - Public State
 
-    /// 选中某一项后的回调。轨道自身不执行任何行为。
+    /// 选中某一项后的回调。面板自身不执行任何行为。
     var onSelectItem: ((DoSwiftMenuItem) -> Void)?
 
     private(set) var isOpen: Bool = false
 
     // MARK: - Private State
 
-    private var toolGroups: [DoSwiftToolGroup] = []
-    private var headerViews: [DoSwiftToolRailGroupHeaderView] = []
-    private var tilesByGroup: [[DoSwiftToolRailTile]] = []
+    private var menuGroups: [DoSwiftMenuGroup] = []
+    private var headerViews: [DoSwiftMenuGroupHeaderView] = []
+    private var tilesByGroup: [[DoSwiftMenuTile]] = []
     private var edge: Edge = .right
 
     // MARK: - Subviews
@@ -112,8 +112,8 @@ final class DoSwiftToolRailView: UIView {
     private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemThickMaterial))
 
     /// 顶部固定栏：一个标题 + 一个关闭按钮。不随内容滚动。
-    private lazy var navigationBar: DoSwiftToolRailNavigationBar = {
-        let bar = DoSwiftToolRailNavigationBar()
+    private lazy var navigationBar: DoSwiftMenuNavigationBar = {
+        let bar = DoSwiftMenuNavigationBar()
         bar.onClose = { [weak self] in
             self?.hide(animated: true)
         }
@@ -184,9 +184,9 @@ final class DoSwiftToolRailView: UIView {
     /// 全部是 frame 计算——内容静态，一次性摆完就不再动。
     private func layoutItems() {
         let width = bounds.width
-        var y: CGFloat = Metrics.railVerticalPadding
+        var y: CGFloat = Metrics.verticalPadding
 
-        for (groupIndex, _) in toolGroups.enumerated() {
+        for (groupIndex, _) in menuGroups.enumerated() {
             guard groupIndex < headerViews.count, groupIndex < tilesByGroup.count else { break }
 
             headerViews[groupIndex].frame = CGRect(
@@ -197,7 +197,7 @@ final class DoSwiftToolRailView: UIView {
             var column = 0
             for tile in tilesByGroup[groupIndex] {
                 tile.frame = CGRect(
-                    x: Metrics.railHorizontalPadding
+                    x: Metrics.horizontalPadding
                         + CGFloat(column) * (Metrics.tileWidth + Metrics.tileSpacing),
                     y: y,
                     width: Metrics.tileWidth,
@@ -217,7 +217,7 @@ final class DoSwiftToolRailView: UIView {
 
         scrollView.contentSize = CGSize(
             width: width,
-            height: y + Metrics.railVerticalPadding
+            height: y + Metrics.verticalPadding
         )
     }
 
@@ -248,8 +248,8 @@ final class DoSwiftToolRailView: UIView {
 
     // MARK: - Public Interface
 
-    func setToolGroups(_ groups: [DoSwiftToolGroup]) {
-        toolGroups = groups
+    func setMenuGroups(_ groups: [DoSwiftMenuGroup]) {
+        menuGroups = groups
         rebuildItems()
         setNeedsLayout()
     }
@@ -299,7 +299,7 @@ final class DoSwiftToolRailView: UIView {
         // 触发条件写错的话整个 App 会点不动，这里主动拦一道
         assert(
             superview != nil && frame != superview!.bounds,
-            "[ToolRail] 轨道必须是容器的直接子视图，且 frame 不能等于容器 bounds，否则事件穿透会被破坏"
+            "[MenuPanel] 面板必须是容器的直接子视图，且 frame 不能等于容器 bounds，否则事件穿透会被破坏"
         )
         #endif
 
@@ -336,7 +336,7 @@ final class DoSwiftToolRailView: UIView {
         let finish = {
             self.transform = .identity
             self.alpha = 0
-            // 关键：隐藏后 hitTest 会跳过这个视图，轨道原来的区域才能真正穿透回 App
+            // 关键：隐藏后 hitTest 会跳过这个视图，面板原来的区域才能真正穿透回 App
             self.isHidden = true
             completion?()
         }
@@ -367,18 +367,18 @@ final class DoSwiftToolRailView: UIView {
         headerViews = []
         tilesByGroup = []
 
-        for group in toolGroups {
-            let header = DoSwiftToolRailGroupHeaderView(
+        for group in menuGroups {
+            let header = DoSwiftMenuGroupHeaderView(
                 title: group.title,
                 showsTopHairline: !headerViews.isEmpty
             )
             scrollView.addSubview(header)
             headerViews.append(header)
 
-            var tiles: [DoSwiftToolRailTile] = []
-            for tool in group.items {
-                let tile = DoSwiftToolRailTile()
-                tile.configure(with: tool)
+            var tiles: [DoSwiftMenuTile] = []
+            for item in group.items {
+                let tile = DoSwiftMenuTile()
+                tile.configure(with: item)
                 tile.onTap = { [weak self] item in self?.onSelectItem?(item) }
                 scrollView.addSubview(tile)
                 tiles.append(tile)
@@ -388,11 +388,11 @@ final class DoSwiftToolRailView: UIView {
     }
 
     private var contentHeight: CGFloat {
-        let rows = toolGroups.reduce(0) { partial, group in
+        let rows = menuGroups.reduce(0) { partial, group in
             partial + (group.items.count + Metrics.columns - 1) / Metrics.columns
         }
-        return Metrics.railVerticalPadding * 2
-            + CGFloat(toolGroups.count) * Metrics.groupHeaderHeight
+        return Metrics.verticalPadding * 2
+            + CGFloat(menuGroups.count) * Metrics.groupHeaderHeight
             + CGFloat(rows) * Metrics.tileHeight
     }
 
@@ -408,7 +408,7 @@ final class DoSwiftToolRailView: UIView {
 
 /// 分组头。刻意不用 `UITableViewHeaderFooterView`——本仓库的既有写法就是把普通
 /// `UIView` 交给代理（见 `DoSwiftPropertyHeaderView`）。
-final class DoSwiftToolRailGroupHeaderView: UIView {
+final class DoSwiftMenuGroupHeaderView: UIView {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -439,7 +439,7 @@ final class DoSwiftToolRailGroupHeaderView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let inset = DoSwiftToolRailView.Metrics.railHorizontalPadding
+        let inset = DoSwiftMenuPanel.Metrics.horizontalPadding
         hairline.frame = CGRect(x: 0, y: 0, width: bounds.width, height: 0.5)
         titleLabel.frame = CGRect(
             x: inset,
@@ -452,11 +452,11 @@ final class DoSwiftToolRailGroupHeaderView: UIView {
 
 // MARK: - Navigation Bar
 
-/// 工具轨顶部的固定栏：标题 + 关闭按钮。
+/// 主菜单面板顶部的固定栏：标题 + 关闭按钮。
 ///
-/// 关闭按钮存在的意义是给轨道一个**明确的出口**。轨道是非模态的、没有遮罩，
+/// 关闭按钮存在的意义是给面板一个**明确的出口**。面板是非模态的、没有遮罩，
 /// 所以没有「点外部关闭」；之前唯一的出口是再点一次手柄，不够显而易见。
-final class DoSwiftToolRailNavigationBar: UIView {
+final class DoSwiftMenuNavigationBar: UIView {
 
     /// 关闭按钮回调
     var onClose: (() -> Void)?
@@ -473,7 +473,7 @@ final class DoSwiftToolRailNavigationBar: UIView {
         let button = UIButton(type: .system)
         // 不指定配置的话，符号会按按钮默认字号（约 17pt）渲染，在这个窄面板里太重
         let symbol = UIImage.SymbolConfiguration(
-            pointSize: DoSwiftToolRailView.Metrics.closeButtonSymbolSize,
+            pointSize: DoSwiftMenuPanel.Metrics.closeButtonSymbolSize,
             weight: .medium
         )
         button.setImage(UIImage(systemName: "xmark", withConfiguration: symbol), for: .normal)
@@ -503,10 +503,10 @@ final class DoSwiftToolRailNavigationBar: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let inset = DoSwiftToolRailView.Metrics.railHorizontalPadding
+        let inset = DoSwiftMenuPanel.Metrics.horizontalPadding
         hairline.frame = CGRect(x: 0, y: bounds.height - 0.5, width: bounds.width, height: 0.5)
 
-        let buttonSize = DoSwiftToolRailView.Metrics.closeButtonSize
+        let buttonSize = DoSwiftMenuPanel.Metrics.closeButtonSize
         closeButton.frame = CGRect(
             x: bounds.width - inset - buttonSize,
             y: (bounds.height - buttonSize) / 2,

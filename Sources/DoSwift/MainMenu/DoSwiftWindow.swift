@@ -8,7 +8,7 @@
 
 import UIKit
 
-/// DoSwift 悬浮窗口，参考 DriftWindow 设计
+/// DoSwift 悬浮窗口，承载手柄与主菜单面板。
 public class DoSwiftWindow: UIWindow {
 
     // MARK: - Weaker Wrapper
