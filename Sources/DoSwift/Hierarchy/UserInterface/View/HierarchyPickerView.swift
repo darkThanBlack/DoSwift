@@ -16,7 +16,7 @@ class HierarchyPickerView: PickerView {
 
     weak var delegate: HierarchyPickerViewDelegate?
 
-    override func viewDidUpdateOffset(_ sender: UIPanGestureRecognizer, offset: CGPoint) {
+    override func dragDidUpdate(offset: CGPoint) {
         let views = viewsForSelection(at: center)
         delegate?.hierarchyPickerView(self, didMoveTo: views)
     }

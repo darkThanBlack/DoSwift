@@ -39,9 +39,6 @@ class DoSwiftMainViewController: UIViewController {
         return view
     }()
 
-    /// 拖拽起点，用于把「轻点」和「拖拽」区分开
-    private var dragStartOrigin: CGPoint = .zero
-
     /// 上一次布局的尺寸，只在尺寸真的变了时才重新吸附
     private var lastLayoutSize: CGSize = .zero
 
@@ -64,7 +61,7 @@ class DoSwiftMainViewController: UIViewController {
         let size = view.bounds.size
         if size != lastLayoutSize {
             lastLayoutSize = size
-            handleView.fireAbsorb()
+            handleView.settle()
         }
 
         if panelView.isOpen {
@@ -93,12 +90,12 @@ class DoSwiftMainViewController: UIViewController {
         )
 
         // 初始化时执行吸附
-        handleView.fireAbsorb()
+        handleView.settle()
     }
 
     private func setupPanel() {
         // 必须是 view 的直接子视图，且 frame 不能等于 view.bounds：
-        // DoSwiftWindow 的事件穿透依赖「命中视图恰好 === root.view」这一判断。
+        // OverlayWindow 的事件穿透依赖「命中视图恰好 === root.view」这一判断。
         // 一旦外面套一层全屏容器，容器会变成命中视图且未注册，整个 App 就点不动了。
         view.addSubview(panelView)
         panelView.setMenuGroups(menuGroups)
@@ -135,20 +132,8 @@ class DoSwiftMainViewController: UIViewController {
 extension DoSwiftMainViewController: DoSwiftMenuHandleDelegate {
 
     func menuHandleDidBeginDrag(_ handleView: DoSwiftMenuHandle) {
-        dragStartOrigin = handleView.frame.origin
-    }
-
-    func menuHandleDidDrag(_ handleView: DoSwiftMenuHandle, location: CGPoint) {
-        // 注意：touchesBegan 也会触发 didBeginDrag，所以不能拿它当拖拽信号，
-        // 只能看位置是不是真的动了。
-        guard panelView.isOpen else { return }
-
-        // 阈值与 DoSwiftMenuHandle 内部判定轻点/拖拽用的是同一个常量，避免两边错位产生灰区
-        let moved = abs(handleView.frame.origin.x - dragStartOrigin.x)
-            + abs(handleView.frame.origin.y - dragStartOrigin.y)
-        if moved > DoSwiftMenuHandle.dragThreshold {
-            panelView.hide(animated: true)
-        }
+        // pan 成立即代表用户在真的拖手柄，面板在它旁边会碍事，直接收起
+        panelView.hide(animated: true)
     }
 
     func menuHandleDidTap(_ handleView: DoSwiftMenuHandle) {

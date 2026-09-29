@@ -192,7 +192,7 @@ extension HierarchyViewController: HierarchyInfoViewDelegate {
     }
 
     func hierarchyInfoViewDidSelectClose(_ view: HierarchyInfoView) {
-        HierarchyHelper.shared.window?.hideWindow()
+        HierarchyHelper.shared.window?.hide()
         HierarchyHelper.shared.window = nil
     }
 

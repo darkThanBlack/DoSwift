@@ -25,7 +25,7 @@ public class DoSwiftCore {
     public private(set) weak var appWindow: UIWindow?
 
     /// DoSwift 自己的悬浮窗，承载手柄与主菜单面板。
-    public private(set) var window: DoSwiftWindow?
+    public private(set) var window: OverlayWindow?
 
     // MARK: - Public Interface
 
@@ -75,27 +75,20 @@ public class DoSwiftCore {
         }
         attachActions()
 
-        let doSwiftWindow = DoSwiftWindow(frame: UIScreen.main.bounds)
-        doSwiftWindow.isHidden = true
-        doSwiftWindow.backgroundColor = .clear
-        doSwiftWindow.windowLevel = .normal
-
-        // 兼容 iOS 13+ Scene
-        if #available(iOS 13.0, *) {
-            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                doSwiftWindow.windowScene = scene
-            }
-        }
+        // Scene 绑定由 OverlayWindow 自己处理（按前台活跃状态过滤）
+        let overlayWindow = OverlayWindow(frame: UIScreen.main.bounds, level: .normal)
+        overlayWindow.isHidden = true
+        overlayWindow.backgroundColor = .clear
 
         let root = DoSwiftMainViewController()
         root.menuGroups = menuGroups
-        doSwiftWindow.rootViewController = root
+        overlayWindow.rootViewController = root
 
-        window = doSwiftWindow
+        window = overlayWindow
 
         // 重要：必须最后调用。它把 root.view 登记为「不响应事件」的视图，
         // 于是面板之外的触摸会穿透到底下的业务 App——非模态就是靠这个实现的。
-        doSwiftWindow.addNoResponseView(root.view)
+        overlayWindow.addNoResponseView(root.view)
     }
 
     /// 把行为挂到对应的菜单项上。

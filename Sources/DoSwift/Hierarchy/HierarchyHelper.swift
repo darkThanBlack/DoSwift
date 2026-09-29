@@ -10,7 +10,7 @@ import UIKit
 class HierarchyHelper {
     static let shared = HierarchyHelper()
 
-    var window: HierarchyWindow?
+    var window: OverlayWindow?
 
     /// 业务 app 的主窗口（由 `DoSwiftCore.start(appWindow:)` 注入，weak 持有）。
     /// Hierarchy 的拾取与坐标换算以此为基准，区别于本模块的遮罩 `window`。

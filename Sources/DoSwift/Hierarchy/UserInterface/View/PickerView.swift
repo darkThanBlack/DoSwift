@@ -8,7 +8,7 @@
 import UIKit
 
 /// 圆形拾取器基类
-class PickerView: MoveView {
+class PickerView: DraggableView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -21,7 +21,8 @@ class PickerView: MoveView {
     }
 
     private func pickerViewInit() {
-        isOverflow = true
+        // 拾取器要能贴到屏幕边缘工作，越界只在松手时收回
+        releasePolicy = .bounceBack
         backgroundColor = .clear
         layer.cornerRadius = min(bounds.width, bounds.height) / 2
 

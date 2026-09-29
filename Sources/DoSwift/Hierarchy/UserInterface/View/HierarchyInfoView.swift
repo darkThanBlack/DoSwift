@@ -19,7 +19,7 @@ enum HierarchyInfoViewAction: Int {
 }
 
 /// 属性信息浮窗
-class HierarchyInfoView: MoveView {
+class HierarchyInfoView: DraggableView {
 
     weak var delegate: HierarchyInfoViewDelegate?
 
@@ -215,7 +215,7 @@ class HierarchyInfoView: MoveView {
             f.size.height = newHeight
             frame = f
 
-            if !isMoved {
+            if !hasDragged {
                 let screenH = UIScreen.main.bounds.height
                 if f.maxY != screenH - 20 {
                     f.origin.y = screenH - 20 - newHeight
