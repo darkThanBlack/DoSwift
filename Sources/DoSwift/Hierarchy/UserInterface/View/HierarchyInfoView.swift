@@ -22,14 +22,12 @@ enum HierarchyInfoViewAction {
     case showMoreInfo
 }
 
-/// 选中视图的属性浮窗。
+/// 选中视图的属性浮窗——**纯内容视图**。
 ///
-/// 内部**全部是 Auto Layout + UIStackView**：行随内容增减、高度由内容算出来，
-/// 不再靠手工累加 `sizeToFit()` 的高度。`DraggableView` 只管位置，横竖排版归这里。
-///
-/// 尺寸由本类负责（`DraggableView` 的约定）：内容变化后调用 `updateLayoutMetrics()`
-/// 重算自身高度；在用户没有拖过它之前，顺手贴到父视图底部。
-final class HierarchyInfoView: DraggableView {
+/// 内部全部是 Auto Layout + UIStackView：行随内容增减，高度由约束算出来。
+/// 它不认识拖拽、也不管自己在屏幕上的位置和大小——那些由宿主容器
+/// `DraggableLayoutView` 负责。
+final class HierarchyInfoView: UIView {
 
     // MARK: - Metrics
 
@@ -40,10 +38,6 @@ final class HierarchyInfoView: DraggableView {
         static let closeButtonSize: CGFloat = 28
         static let actionButtonHeight: CGFloat = 34
         static let cornerRadius: CGFloat = 10
-        /// 未被拖动时，浮窗底边距父视图底边的距离
-        static let bottomMargin: CGFloat = 20
-        /// 浮窗与父视图左右边缘的距离
-        static let horizontalMargin: CGFloat = 10
     }
 
     // MARK: - Public
@@ -97,9 +91,6 @@ final class HierarchyInfoView: DraggableView {
     }
 
     private func hierarchyInfoViewInit() {
-        // 拖到页面中间也允许，只有越界时才回弹
-        releasePolicy = .bounceBack
-
         backgroundColor = .systemBackground
         layer.cornerRadius = Metrics.cornerRadius
         layer.masksToBounds = true
@@ -168,56 +159,6 @@ final class HierarchyInfoView: DraggableView {
         parentButton.isEnabled = view.superview != nil
         subviewsButton.isEnabled = !view.subviews.isEmpty
         moreButton.isEnabled = true
-
-        updateLayoutMetrics()
-    }
-
-    // MARK: - Sizing
-
-    /// 上一次据以算高度时用的宽度。父视图宽度变了（旋转、多任务）需要重算。
-    private var sizedWidth: CGFloat = 0
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        // 自己从父视图推宽度，而不是依赖调用方一次性给对
-        let containerWidth = superview?.bounds.width ?? bounds.width
-        let targetWidth = containerWidth - Metrics.horizontalMargin * 2
-        guard targetWidth > 0, abs(targetWidth - sizedWidth) > 0.5 else { return }
-        updateLayoutMetrics(containerWidth: containerWidth)
-    }
-
-    /// 按当前内容重算尺寸。`DraggableView` 要求子类自己能确定大小，这里就是答案：
-    /// 让 Auto Layout 按给定宽度压出一个高度，再写回 frame。
-    private func updateLayoutMetrics(containerWidth: CGFloat? = nil) {
-        let width: CGFloat
-        if let containerWidth = containerWidth {
-            width = containerWidth - Metrics.horizontalMargin * 2
-        } else {
-            width = bounds.width
-        }
-        guard width > 0 else { return }
-
-        sizedWidth = width
-        layoutIfNeeded()
-
-        let fitted = systemLayoutSizeFitting(
-            CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
-            withHorizontalFittingPriority: .required,
-            verticalFittingPriority: .fittingSizeLevel
-        )
-
-        var newFrame = frame
-        newFrame.size = CGSize(width: width, height: fitted.height)
-
-        // 用户还没拖过它时，才由我们摆位置——拖过之后位置归用户，
-        // 这里只改尺寸不动 origin，否则会把拖到一半的浮窗拽回去。
-        if !hasDragged, let container = superview {
-            newFrame.origin.x = Metrics.horizontalMargin
-            newFrame.origin.y = container.bounds.maxY - Metrics.bottomMargin - fitted.height
-        }
-
-        frame = newFrame
     }
 
     // MARK: - Actions

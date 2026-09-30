@@ -28,14 +28,15 @@ class HierarchyViewController: UIViewController {
         return v
     }()
 
+    /// 纯内容视图：排版归它自己，位置和大小都不归它
     private lazy var infoView: HierarchyInfoView = {
-        // 只给宽度：高度由内容算（HierarchyInfoView 自己负责尺寸），
-        // 未拖动前它会自己贴到父视图底部。
-        let width = view.bounds.width - 20
-        let v = HierarchyInfoView(frame: CGRect(x: 10, y: 0, width: width, height: 0))
+        let v = HierarchyInfoView(frame: .zero)
         v.delegate = self
         return v
     }()
+
+    /// 承载 `infoView` 的可拖拽容器。位置由拖动决定，高度由内容决定。
+    private lazy var infoContainer = DraggableLayoutView(contentView: infoView)
 
     // MARK: - State
 
@@ -48,9 +49,36 @@ class HierarchyViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = UIColor.green.withAlphaComponent(0.5)
 
-        view.addSubview(infoView)
+        view.addSubview(infoContainer)
         view.addSubview(borderView)
         view.addSubview(pickerView)
+        
+        // 给一个大致的 origin, 让 settle() 来确保完全展示
+        infoContainer.frame = CGRect(x: 12.0, y: view.bounds.height, width: 0,height: 0)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        /// 宽度固定
+        let width = view.bounds.width - (12.0 * 2.0)
+        
+        /// 计算高度
+        let height = infoContainer.sizeThatFits(CGSize(width: width, height: 0)).height
+        
+        // 拖动时也会触发, 所以只在 1>页面进入后 2>数据变化时 放过
+        guard infoContainer.frame.size.height != height else { return }
+        
+        // 只处理 height
+        infoContainer.frame = CGRect(
+            x: infoContainer.frame.origin.x,
+            y: infoContainer.frame.origin.y,
+            width: width,
+            height: height
+        )
+        
+        // 处理 x, y
+        infoContainer.settle()
     }
 
     deinit {
