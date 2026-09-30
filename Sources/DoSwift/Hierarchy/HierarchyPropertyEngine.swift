@@ -77,14 +77,18 @@ class HierarchyPropertyEngine {
     /// CocoaPods `resource_bundles` (a nested `<name>.bundle`).
     private func resolveURL() -> URL? {
         let frameworkBundle = Bundle(for: HierarchyPropertyEngine.self)
-
         if let url = Bundle.main.url(forResource: "HierarchyProperties", withExtension: "json") {
             return url
         }
         if let url = frameworkBundle.url(forResource: "HierarchyProperties", withExtension: "json") {
             return url
         }
-        if let bundleURL = frameworkBundle.url(forResource: "DoSwift", withExtension: "bundle"),
+        if let bundleURL = Bundle.main.url(forResource: "DoSwiftResources", withExtension: "bundle"),
+           let bundle = Bundle(url: bundleURL),
+           let url = bundle.url(forResource: "HierarchyProperties", withExtension: "json") {
+            return url
+        }
+        if let bundleURL = frameworkBundle.url(forResource: "DoSwiftResources", withExtension: "bundle"),
            let bundle = Bundle(url: bundleURL),
            let url = bundle.url(forResource: "HierarchyProperties", withExtension: "json") {
             return url

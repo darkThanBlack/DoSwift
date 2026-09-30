@@ -26,21 +26,21 @@ for debugging tools.
   s.ios.deployment_target = '13.0'
   s.swift_versions = '5.9'
 
-  # All source files in one library
-  s.source_files = 'Sources/DoSwift/**/*.{swift,m,h}'
-
-  # JSON property config for the Hierarchy inspector
-  s.resource_bundles = {
-    'DoSwift' => ['Sources/DoSwift/UI/Hierarchy/HierarchyProperties.json']
-  }
-
-  # Framework settings
-  s.frameworks = 'UIKit', 'Foundation'
-  s.requires_arc = true
-
+  s.subspec 'Core' do |ss|
+    ss.source_files = 'Sources/DoSwift/**/*.{swift,m,h}'
+  end
+  
+  s.subspec 'Resources' do |ss|
+    ss.source_files = ''
+    ss.resource_bundles = {
+      'DoSwiftResources' => ['Sources/DoSwift/Hierarchy/HierarchyProperties.json']
+    }
+  end
+  
   # Build settings
-  s.pod_target_xcconfig = {
-    'SWIFT_VERSION' => '5.9',
-    'IPHONEOS_DEPLOYMENT_TARGET' => '13.0'
-  }
+#  s.pod_target_xcconfig = {
+#    'SWIFT_VERSION' => '5.9',
+#    'IPHONEOS_DEPLOYMENT_TARGET' => '13.0'
+#  }
+  
 end

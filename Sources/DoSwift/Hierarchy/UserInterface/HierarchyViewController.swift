@@ -206,17 +206,19 @@ extension HierarchyViewController: HierarchyPickerViewDelegate {
 
 extension HierarchyViewController: HierarchyInfoViewDelegate {
 
-    func hierarchyInfoView(_ view: HierarchyInfoView, didSelect action: HierarchyInfoViewAction) {
+    func hierarchyInfoViewDidSelectParent(_ view: HierarchyInfoView) {
         guard let selectedView = infoView.selectedView else { return }
+        showParentSheet(selectedView)
+    }
 
-        switch action {
-        case .showMoreInfo:
-            showHierarchyInfo(selectedView)
-        case .showParent:
-            showParentSheet(selectedView)
-        case .showSubview:
-            showSubviewSheet(selectedView)
-        }
+    func hierarchyInfoViewDidSelectSubview(_ view: HierarchyInfoView) {
+        guard let selectedView = infoView.selectedView else { return }
+        showSubviewSheet(selectedView)
+    }
+
+    func hierarchyInfoViewDidSelectMoreInfo(_ view: HierarchyInfoView) {
+        guard let selectedView = infoView.selectedView else { return }
+        showHierarchyInfo(selectedView)
     }
 
     func hierarchyInfoViewDidSelectClose(_ view: HierarchyInfoView) {

@@ -1,5 +1,9 @@
 PODS:
-  - DoSwift (0.1.0)
+  - DoSwift (0.1.0):
+    - DoSwift/Core (= 0.1.0)
+    - DoSwift/Resources (= 0.1.0)
+  - DoSwift/Core (0.1.0)
+  - DoSwift/Resources (0.1.0)
 
 DEPENDENCIES:
   - DoSwift (from `../`)
@@ -9,7 +13,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  DoSwift: 8b14227ba6718d9ac6cd05c1f0d9e94d44b2ddee
+  DoSwift: 11fb00ef57566fcd7a96c14991dd6b4a376c49a0
 
 PODFILE CHECKSUM: 9df9283a51a85d4f7eb5245b91277de78ca72a24
 
