@@ -24,7 +24,7 @@ for debugging tools.
   s.source           = { :git => 'https://github.com/darkThanBlack/DoSwift.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '13.0'
-  s.swift_versions = '5.9'
+  s.swift_versions = '5.0'
 
   s.subspec 'Core' do |ss|
     ss.source_files = 'Sources/DoSwift/**/*.{swift,m,h}'

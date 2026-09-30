@@ -140,13 +140,24 @@ class HierarchyViewController: UIViewController {
 
     // MARK: - View Hierarchy
 
-    private func findSelectedView(in selectedViews: [UIView]) -> UIView? {
+    private func findSelectedView(in chain: [UIView]) -> UIView? {
         if HierarchyHelper.shared.isIgnorePrivateClass {
-            return selectedViews.last { view in
+            return chain.first { view in
                 !String(describing: type(of: view)).hasPrefix("_")
             }
         }
-        return selectedViews.last
+        return chain.first
+    }
+
+    /// 选中项的祖先链（含自身，不含 window 本身），由内向外
+    private func ancestorChain(of view: UIView) -> [UIView] {
+        var chain: [UIView] = []
+        var current: UIView? = view
+        while let v = current, !(v is UIWindow) {
+            chain.append(v)
+            current = v.superview
+        }
+        return chain
     }
 
     private func findParentViews(of selectedView: UIView) -> [UIView] {
@@ -179,9 +190,7 @@ class HierarchyViewController: UIViewController {
 
 extension HierarchyViewController: HierarchyPickerViewDelegate {
 
-    func hierarchyPickerView(_ view: HierarchyPickerView, didMoveTo selectedViews: [UIView]?) {
-        guard let views = selectedViews else { return }
-
+    func hierarchyPickerView(_ pickerView: HierarchyPickerView, didMoveTo selectedView: UIView?) {
         objc_sync_enter(self)
         defer { objc_sync_exit(self) }
 
@@ -192,13 +201,18 @@ extension HierarchyViewController: HierarchyPickerViewDelegate {
         }
         observeViews.removeAllObjects()
 
-        for (i, view) in views.enumerated().reversed() {
-            let bw: CGFloat = (i == views.count - 1) ? 2 : 1
-            beginObserving(view, borderWidth: bw)
+        guard let selectedView = selectedView else {
+            infoView.updateSelectedView(nil)
+            return
         }
-        observeViews.addObjects(from: views)
 
-        infoView.updateSelectedView(findSelectedView(in: views))
+        // 由外向内铺：选中项 2pt，其余 1pt
+        let chain = ancestorChain(of: selectedView)
+        for view in chain.reversed() {
+            beginObserving(view, borderWidth: view === selectedView ? 2 : 1)
+        }
+
+        infoView.updateSelectedView(findSelectedView(in: chain))
     }
 }
 
@@ -253,6 +267,6 @@ extension HierarchyViewController: HierarchyInfoViewDelegate {
     }
 
     private func setNewSelectView(_ view: UIView) {
-        hierarchyPickerView(pickerView, didMoveTo: [view])
+        hierarchyPickerView(pickerView, didMoveTo: view)
     }
 }

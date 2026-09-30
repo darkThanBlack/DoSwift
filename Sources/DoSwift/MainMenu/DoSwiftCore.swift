@@ -102,6 +102,9 @@ public class DoSwiftCore {
                 if item.identifier == "app_info" {
                     item.actionHandler = { [weak self] _ in self?.showAppInfo() }
                 }
+                if item.identifier == "ui_hierarchy" {
+                    item.actionHandler = { [weak self] _ in self?.showUIHierarchy() }
+                }
             }
         }
     }
@@ -176,7 +179,11 @@ public class DoSwiftCore {
 
         return [common, performance, visual, weex, platform]
     }
-
+    
+    private func showUIHierarchy() {
+        HierarchyPlugin().pluginDidLoad()
+    }
+    
     private func showAppInfo() {
         let alertController = UIAlertController(
             title: "应用信息",
