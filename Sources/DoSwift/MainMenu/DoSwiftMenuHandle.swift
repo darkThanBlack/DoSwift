@@ -23,6 +23,9 @@ protocol DoSwiftMenuHandleDelegate: AnyObject {
 ///
 /// 拖动与松手归位全部来自 `DraggableView`；这里只加手柄自己的东西——
 /// 外观、空闲淡化、位置记忆、轻点回调。基类不含任何视觉效果。
+///
+/// **保持无状态**：不知道任何工具的存在，也不显示任何工具的运行状态。
+/// 每个插件各自持有并管理自己的 window，手柄只负责「打开主菜单」这一件事。
 final class DoSwiftMenuHandle: DraggableView {
 
     // MARK: - Properties
@@ -40,19 +43,24 @@ final class DoSwiftMenuHandle: DraggableView {
 
     // MARK: - Subviews
 
-    private let contentView: UIView = {
+    /// 裁切与圆角放在这一层，阴影放在 `self.layer`——
+    /// 同一个图层上设了 `masksToBounds` 会把阴影一起裁掉。
+    private let glassView: UIView = {
         let view = UIView()
-        view.backgroundColor = .systemBlue
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOffset = CGSize(width: 0, height: 2)
-        view.layer.shadowRadius = 8
-        view.layer.shadowOpacity = 0.25
+        view.clipsToBounds = true
+        view.layer.borderWidth = 0.5
+        view.layer.borderColor = UIColor.separator.cgColor
         return view
     }()
 
-    private let iconView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
+    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemThickMaterial))
+
+    private let iconView: UIImageView = {
+        let view = UIImageView()
+        view.contentMode = .scaleAspectFit
+        view.tintColor = .label
+        // wrench：iOS 13 符号集内，且 37 个菜单方块没有一个用它，不会和工具图标混淆
+        view.image = UIImage(systemName: "wrench")
         return view
     }()
 
@@ -82,8 +90,15 @@ final class DoSwiftMenuHandle: DraggableView {
         releasePolicy = .absorbEdge
 
         backgroundColor = .clear
-        addSubview(contentView)
-        contentView.addSubview(iconView)
+        layer.masksToBounds = false
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowRadius = 8
+        layer.shadowOpacity = 0.25
+
+        addSubview(glassView)
+        glassView.addSubview(blurView)
+        glassView.addSubview(iconView)
 
         addGestureRecognizer(tapGesture)
         // 显式声明互斥：pan 一旦成立就让 tap 失败。
@@ -107,8 +122,9 @@ final class DoSwiftMenuHandle: DraggableView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        contentView.frame = bounds
-        contentView.layer.cornerRadius = bounds.height / 2
+        glassView.frame = bounds
+        glassView.layer.cornerRadius = bounds.height / 2
+        blurView.frame = glassView.bounds
 
         let iconSize: CGFloat = 20
         iconView.frame = CGRect(
@@ -117,7 +133,9 @@ final class DoSwiftMenuHandle: DraggableView {
             width: iconSize,
             height: iconSize
         )
-        iconView.layer.cornerRadius = iconSize / 2
+
+        // 圆形阴影路径：不给的话系统要按图层内容推导，代价更高
+        layer.shadowPath = UIBezierPath(ovalIn: bounds).cgPath
     }
 
     // MARK: - DraggableView 钩子

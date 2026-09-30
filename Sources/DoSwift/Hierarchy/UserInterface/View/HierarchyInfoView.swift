@@ -7,66 +7,82 @@
 
 import UIKit
 
+// MARK: - Delegate
+
 protocol HierarchyInfoViewDelegate: AnyObject {
     func hierarchyInfoView(_ view: HierarchyInfoView, didSelect action: HierarchyInfoViewAction)
     func hierarchyInfoViewDidSelectClose(_ view: HierarchyInfoView)
 }
 
-enum HierarchyInfoViewAction: Int {
-    case showParent = 0
-    case showSubview = 1
-    case showMoreInfo = 2
+/// 浮窗上的三个动作。不再需要 `Int` rawValue——按钮自己持有动作（见 `ActionButton`），
+/// 不必再用 `UIButton.tag` 做映射。
+enum HierarchyInfoViewAction {
+    case showParent
+    case showSubview
+    case showMoreInfo
 }
 
-/// 属性信息浮窗
-class HierarchyInfoView: DraggableView {
+/// 选中视图的属性浮窗。
+///
+/// 内部**全部是 Auto Layout + UIStackView**：行随内容增减、高度由内容算出来，
+/// 不再靠手工累加 `sizeToFit()` 的高度。`DraggableView` 只管位置，横竖排版归这里。
+///
+/// 尺寸由本类负责（`DraggableView` 的约定）：内容变化后调用 `updateLayoutMetrics()`
+/// 重算自身高度；在用户没有拖过它之前，顺手贴到父视图底部。
+final class HierarchyInfoView: DraggableView {
+
+    // MARK: - Metrics
+
+    private enum Metrics {
+        static let inset: CGFloat = 12
+        static let rowSpacing: CGFloat = 6
+        static let sectionSpacing: CGFloat = 10
+        static let closeButtonSize: CGFloat = 28
+        static let actionButtonHeight: CGFloat = 34
+        static let cornerRadius: CGFloat = 10
+        /// 未被拖动时，浮窗底边距父视图底边的距离
+        static let bottomMargin: CGFloat = 20
+        /// 浮窗与父视图左右边缘的距离
+        static let horizontalMargin: CGFloat = 10
+    }
+
+    // MARK: - Public
 
     weak var delegate: HierarchyInfoViewDelegate?
 
     private(set) var selectedView: UIView?
 
-    // MARK: - Subviews
-
     private(set) lazy var closeButton: UIButton = {
-        let btn = UIButton(type: .custom)
-        btn.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
-        // TODO: Use actual close asset - doraemon_close
-        btn.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
-        btn.tintColor = .darkGray
-        return btn
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        button.tintColor = .secondaryLabel
+        button.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        return button
     }()
 
-    private lazy var contentLabel: UILabel = makeLabel()
-    private lazy var frameLabel: UILabel = makeLabel(tappable: #selector(frameTapped))
-    private lazy var backgroundColorLabel: UILabel = makeLabel(tappable: #selector(backgroundColorTapped))
-    private lazy var textColorLabel: UILabel = makeLabel(tappable: #selector(textColorTapped))
-    private lazy var fontLabel: UILabel = makeLabel(tappable: #selector(fontTapped))
-    private lazy var tagLabel: UILabel = makeLabel(tappable: #selector(tagTapped))
+    // MARK: - Subviews
 
-    private lazy var actionContentView: UIView = UIView()
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .boldSystemFont(ofSize: 15)
+        label.textColor = .label
+        label.numberOfLines = 1
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.7
+        return label
+    }()
 
-    private lazy var parentViewsButton: UIButton = makeActionButton(
-        title: "Parent Views",
-        // TODO: Use actual asset - doraemon_hierarchy_parent
-        icon: UIImage(systemName: "arrow.up"),
-        tag: .showParent
-    )
+    private let frameRow = InfoRowView(key: "Frame:")
+    private let backgroundColorRow = InfoRowView(key: "Background:")
+    private let textColorRow = InfoRowView(key: "Text Color:")
+    private let fontRow = InfoRowView(key: "Font:")
+    private let tagRow = InfoRowView(key: "Tag:")
 
-    private lazy var subviewsButton: UIButton = makeActionButton(
-        title: "Subviews",
-        // TODO: Use actual asset - doraemon_hierarchy_subview
-        icon: UIImage(systemName: "arrow.down"),
-        tag: .showSubview
-    )
+    private let actionButtonsStack = UIStackView()
 
-    private lazy var moreButton: UIButton = makeActionButton(
-        title: "More Info",
-        // TODO: Use actual asset - doraemon_hierarchy_info
-        icon: UIImage(systemName: "info.circle"),
-        tag: .showMoreInfo
-    )
-
-    private var actionContentHeight: CGFloat = 80
+    private lazy var parentButton = makeActionButton(.showParent, "Parent Views", "arrow.up")
+    private lazy var subviewsButton = makeActionButton(.showSubview, "Subviews", "arrow.down")
+    private lazy var moreButton = makeActionButton(.showMoreInfo, "More Info", "info.circle")
 
     // MARK: - Init
 
@@ -81,199 +97,217 @@ class HierarchyInfoView: DraggableView {
     }
 
     private func hierarchyInfoViewInit() {
-        layer.borderColor = UIColor.black.withAlphaComponent(0.8).cgColor
-        layer.borderWidth = 2
-        layer.cornerRadius = 5
+        // 拖到页面中间也允许，只有越界时才回弹
+        releasePolicy = .bounceBack
+
+        backgroundColor = .systemBackground
+        layer.cornerRadius = Metrics.cornerRadius
         layer.masksToBounds = true
-        backgroundColor = .white
+        layer.borderWidth = 1
+        layer.borderColor = UIColor.separator.cgColor
 
-        addSubview(closeButton)
-        addSubview(contentLabel)
-        addSubview(frameLabel)
-        addSubview(backgroundColorLabel)
-        addSubview(textColorLabel)
-        addSubview(fontLabel)
-        addSubview(tagLabel)
-        addSubview(actionContentView)
+        // 头部：类名 + 关闭
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            closeButton.widthAnchor.constraint(equalToConstant: Metrics.closeButtonSize),
+            closeButton.heightAnchor.constraint(equalToConstant: Metrics.closeButtonSize),
+        ])
+        let header = UIStackView(arrangedSubviews: [titleLabel, closeButton])
+        header.axis = .horizontal
+        header.alignment = .center
+        header.spacing = 8
 
-        actionContentView.addSubview(parentViewsButton)
-        actionContentView.addSubview(subviewsButton)
-        actionContentView.addSubview(moreButton)
+        // 信息行。值为 nil 的行自己把自己隐藏掉，stack 会自动重排——
+        // 这正是换成 stack 之后不再需要手工算高度的原因。
+        let infoStack = UIStackView(arrangedSubviews: [
+            frameRow, backgroundColorRow, textColorRow, fontRow, tagRow,
+        ])
+        infoStack.axis = .vertical
+        infoStack.spacing = Metrics.rowSpacing
 
-        updateHeightIfNeeded()
+        // 动作按钮：一行三个等宽
+        actionButtonsStack.axis = .horizontal
+        actionButtonsStack.distribution = .fillEqually
+        actionButtonsStack.spacing = 8
+        actionButtonsStack.heightAnchor.constraint(equalToConstant: Metrics.actionButtonHeight).isActive = true
+        [parentButton, subviewsButton, moreButton].forEach(actionButtonsStack.addArrangedSubview)
+
+        let root = UIStackView(arrangedSubviews: [header, infoStack, actionButtonsStack])
+        root.axis = .vertical
+        root.spacing = Metrics.sectionSpacing
+        root.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(root)
+
+        NSLayoutConstraint.activate([
+            root.topAnchor.constraint(equalTo: topAnchor, constant: Metrics.inset),
+            root.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Metrics.inset),
+            root.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Metrics.inset),
+            root.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Metrics.inset),
+        ])
     }
 
     // MARK: - Update
 
     func updateSelectedView(_ view: UIView?) {
         guard let view = view, view !== selectedView else { return }
-
-        moreButton.isEnabled = true
-        parentViewsButton.isEnabled = view.superview != nil
-        subviewsButton.isEnabled = !view.subviews.isEmpty
-
         selectedView = view
 
-        let bold: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 17)]
-        let normal: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 14)]
+        titleLabel.text = String(describing: type(of: view))
+        frameRow.value = HierarchyFormatterTool.string(from: view.frame)
+        backgroundColorRow.value = view.backgroundColor?.hierarchy_description
+        tagRow.value = view.tag == 0 ? nil : "\(view.tag)"
 
-        // Name
-        let name = NSMutableAttributedString(string: "Name: ", attributes: bold)
-        name.append(NSAttributedString(string: String(describing: type(of: view)), attributes: normal))
-        contentLabel.attributedText = name
-
-        // Frame
-        let frame = NSMutableAttributedString(string: "Frame: ", attributes: bold)
-        frame.append(NSAttributedString(string: HierarchyFormatterTool.string(from: view.frame), attributes: normal))
-        frameLabel.attributedText = frame
-
-        // Background
-        if let bg = view.backgroundColor {
-            let color = NSMutableAttributedString(string: "Background: ", attributes: bold)
-            color.append(NSAttributedString(string: bg.hierarchy_description, attributes: normal))
-            backgroundColorLabel.attributedText = color
-        } else {
-            backgroundColorLabel.attributedText = nil
-        }
-
-        // Text Color / Font (UILabel specific)
         if let label = view as? UILabel {
-            let tc = NSMutableAttributedString(string: "Text Color: ", attributes: bold)
-            tc.append(NSAttributedString(string: label.textColor.hierarchy_description, attributes: normal))
-            textColorLabel.attributedText = tc
-
-            let font = NSMutableAttributedString(string: "Font: ", attributes: bold)
-            font.append(NSAttributedString(string: String(format: "%0.2f", label.font.pointSize), attributes: normal))
-            fontLabel.attributedText = font
+            textColorRow.value = label.textColor.hierarchy_description
+            fontRow.value = String(format: "%0.2f", label.font.pointSize)
         } else {
-            textColorLabel.attributedText = nil
-            fontLabel.attributedText = nil
+            textColorRow.value = nil
+            fontRow.value = nil
         }
 
-        // Tag
-        if view.tag != 0 {
-            let tag = NSMutableAttributedString(string: "Tag: ", attributes: bold)
-            tag.append(NSAttributedString(string: "\(view.tag)", attributes: normal))
-            tagLabel.attributedText = tag
-        } else {
-            tagLabel.attributedText = nil
-        }
+        parentButton.isEnabled = view.superview != nil
+        subviewsButton.isEnabled = !view.subviews.isEmpty
+        moreButton.isEnabled = true
 
-        [contentLabel, frameLabel, backgroundColorLabel, textColorLabel, fontLabel, tagLabel].forEach { $0.sizeToFit() }
-        updateHeightIfNeeded()
+        updateLayoutMetrics()
     }
 
-    // MARK: - Layout
+    // MARK: - Sizing
+
+    /// 上一次据以算高度时用的宽度。父视图宽度变了（旋转、多任务）需要重算。
+    private var sizedWidth: CGFloat = 0
 
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let w = bounds.width, h = bounds.height
-
-        closeButton.frame = CGRect(x: w - 40, y: 10, width: 30, height: 30)
-
-        actionContentView.frame = CGRect(x: 0, y: h - actionContentHeight - 10, width: w, height: actionContentHeight)
-
-        let acw = actionContentView.bounds.width
-        let ach = actionContentView.bounds.height
-        let btnW = acw / 2 - 15
-        let btnH = (ach - 10) / 2
-
-        parentViewsButton.frame = CGRect(x: 10, y: 0, width: btnW, height: btnH)
-        subviewsButton.frame = CGRect(x: acw / 2 + 5, y: 0, width: btnW, height: btnH)
-        moreButton.frame = CGRect(x: 10, y: btnH + 10, width: acw - 20, height: btnH)
-
-        let labelWidth = closeButton.frame.minX - 20
-        var y: CGFloat = 10
-
-        contentLabel.frame = CGRect(x: 10, y: y, width: labelWidth, height: contentLabel.bounds.height)
-        y = contentLabel.frame.maxY
-
-        frameLabel.frame = CGRect(x: 10, y: y, width: labelWidth, height: frameLabel.bounds.height)
-        y = frameLabel.frame.maxY
-
-        backgroundColorLabel.frame = CGRect(x: 10, y: y, width: labelWidth, height: backgroundColorLabel.bounds.height)
-        y = backgroundColorLabel.frame.maxY
-
-        textColorLabel.frame = CGRect(x: 10, y: y, width: labelWidth, height: textColorLabel.bounds.height)
-        y = textColorLabel.frame.maxY
-
-        fontLabel.frame = CGRect(x: 10, y: y, width: labelWidth, height: fontLabel.bounds.height)
-        y = fontLabel.frame.maxY
-
-        tagLabel.frame = CGRect(x: 10, y: y, width: labelWidth, height: tagLabel.bounds.height)
+        // 自己从父视图推宽度，而不是依赖调用方一次性给对
+        let containerWidth = superview?.bounds.width ?? bounds.width
+        let targetWidth = containerWidth - Metrics.horizontalMargin * 2
+        guard targetWidth > 0, abs(targetWidth - sizedWidth) > 0.5 else { return }
+        updateLayoutMetrics(containerWidth: containerWidth)
     }
 
-    private func updateHeightIfNeeded() {
-        let contentH = contentLabel.bounds.height + frameLabel.bounds.height
-            + backgroundColorLabel.bounds.height + textColorLabel.bounds.height
-            + fontLabel.bounds.height + tagLabel.bounds.height
-        let newHeight: CGFloat = 10 + max(contentH, 40) + 10 + actionContentHeight + 10
-
-        if newHeight != bounds.height {
-            var f = frame
-            f.size.height = newHeight
-            frame = f
-
-            if !hasDragged {
-                let screenH = UIScreen.main.bounds.height
-                if f.maxY != screenH - 20 {
-                    f.origin.y = screenH - 20 - newHeight
-                    frame = f
-                }
-            }
+    /// 按当前内容重算尺寸。`DraggableView` 要求子类自己能确定大小，这里就是答案：
+    /// 让 Auto Layout 按给定宽度压出一个高度，再写回 frame。
+    private func updateLayoutMetrics(containerWidth: CGFloat? = nil) {
+        let width: CGFloat
+        if let containerWidth = containerWidth {
+            width = containerWidth - Metrics.horizontalMargin * 2
+        } else {
+            width = bounds.width
         }
+        guard width > 0 else { return }
+
+        sizedWidth = width
+        layoutIfNeeded()
+
+        let fitted = systemLayoutSizeFitting(
+            CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        )
+
+        var newFrame = frame
+        newFrame.size = CGSize(width: width, height: fitted.height)
+
+        // 用户还没拖过它时，才由我们摆位置——拖过之后位置归用户，
+        // 这里只改尺寸不动 origin，否则会把拖到一半的浮窗拽回去。
+        if !hasDragged, let container = superview {
+            newFrame.origin.x = Metrics.horizontalMargin
+            newFrame.origin.y = container.bounds.maxY - Metrics.bottomMargin - fitted.height
+        }
+
+        frame = newFrame
     }
 
     // MARK: - Actions
 
-    @objc private func buttonTapped(_ sender: UIButton) {
-        guard let action = HierarchyInfoViewAction(rawValue: sender.tag) else { return }
-        delegate?.hierarchyInfoView(self, didSelect: action)
+    @objc private func actionTapped(_ sender: ActionButton) {
+        delegate?.hierarchyInfoView(self, didSelect: sender.action)
     }
 
     @objc private func closeTapped() {
         delegate?.hierarchyInfoViewDidSelectClose(self)
     }
 
-    // TODO: Property write-back (editing) is deferred to a later pass.
-    @objc private func frameTapped() {}
-    @objc private func backgroundColorTapped() {}
-    @objc private func textColorTapped() {}
-    @objc private func fontTapped() {}
-    @objc private func tagTapped() {}
-
     // MARK: - Helpers
 
-    private func makeLabel(tappable selector: Selector? = nil) -> UILabel {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
-        label.textColor = UIColor.black.withAlphaComponent(0.8)
-        label.numberOfLines = 0
-        label.lineBreakMode = .byCharWrapping
-        if let sel = selector {
-            label.isUserInteractionEnabled = true
-            label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: sel))
-        }
-        return label
+    private func makeActionButton(_ action: HierarchyInfoViewAction, _ title: String, _ symbol: String) -> UIButton {
+        let button = ActionButton(action)
+        button.setTitle(title, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
+        button.setTitleColor(.label, for: .normal)
+        button.setTitleColor(.tertiaryLabel, for: .disabled)
+        button.setImage(UIImage(systemName: symbol), for: .normal)
+        button.tintColor = .secondaryLabel
+        button.backgroundColor = .secondarySystemBackground
+        button.layer.cornerRadius = 8
+        button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(actionTapped(_:)), for: .touchUpInside)
+        button.isEnabled = false
+        return button
     }
 
-    private func makeActionButton(title: String, icon: UIImage?, tag: HierarchyInfoViewAction) -> UIButton {
-        let btn = UIButton(type: .custom)
-        btn.setTitle(title, for: .normal)
-        btn.setTitleColor(UIColor.black.withAlphaComponent(0.8), for: .normal)
-        btn.titleLabel?.font = .systemFont(ofSize: 14)
-        btn.backgroundColor = .white
-        btn.layer.borderColor = UIColor.black.withAlphaComponent(0.8).cgColor
-        btn.layer.borderWidth = 1
-        btn.layer.cornerRadius = 5
-        btn.layer.masksToBounds = true
-        btn.tintColor = UIColor.black.withAlphaComponent(0.8)
-        btn.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 10)
-        btn.setImage(icon?.withRenderingMode(.alwaysTemplate), for: .normal)
-        btn.tag = tag.rawValue
-        btn.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
-        btn.isEnabled = false
-        return btn
+    /// 自己持有动作的按钮，省掉 `UIButton.tag` 那层 Int↔枚举 的来回转换。
+    private final class ActionButton: UIButton {
+
+        let action: HierarchyInfoViewAction
+
+        init(_ action: HierarchyInfoViewAction) {
+            self.action = action
+            super.init(frame: .zero)
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+    }
+}
+
+// MARK: - Info Row
+
+/// 一行「键：值」。值为 nil 时整行隐藏。
+///
+/// 隐藏靠 `isHidden`——UIStackView 会把隐藏的 arranged subview 从布局里摘掉，
+/// 所以不需要任何手工高度计算。
+private final class InfoRowView: UIStackView {
+
+    private let valueLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13)
+        label.textColor = .label
+        label.numberOfLines = 0
+        return label
+    }()
+
+    init(key: String) {
+        super.init(frame: .zero)
+
+        axis = .horizontal
+        alignment = .firstBaseline
+        spacing = 4
+
+        let keyLabel = UILabel()
+        keyLabel.text = key
+        keyLabel.font = .boldSystemFont(ofSize: 13)
+        keyLabel.textColor = .label
+        // 键不该被压缩，值才是需要换行的那个
+        keyLabel.setContentHuggingPriority(.required, for: .horizontal)
+        keyLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        addArrangedSubview(keyLabel)
+        addArrangedSubview(valueLabel)
+    }
+
+    required init(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    var value: String? {
+        get { valueLabel.text }
+        set {
+            valueLabel.text = newValue
+            isHidden = (newValue == nil)
+        }
     }
 }

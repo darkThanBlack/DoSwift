@@ -29,10 +29,10 @@ class HierarchyViewController: UIViewController {
     }()
 
     private lazy var infoView: HierarchyInfoView = {
-        let screenW = UIScreen.main.bounds.width
-        let screenH = UIScreen.main.bounds.height
-        let h: CGFloat = 100
-        let v = HierarchyInfoView(frame: CGRect(x: 10, y: screenH - 40 - h, width: screenW - 20, height: h))
+        // 只给宽度：高度由内容算（HierarchyInfoView 自己负责尺寸），
+        // 未拖动前它会自己贴到父视图底部。
+        let width = view.bounds.width - 20
+        let v = HierarchyInfoView(frame: CGRect(x: 10, y: 0, width: width, height: 0))
         v.delegate = self
         return v
     }()
