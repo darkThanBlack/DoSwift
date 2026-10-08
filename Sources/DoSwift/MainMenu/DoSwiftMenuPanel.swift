@@ -23,62 +23,19 @@ import UIKit
 ///
 /// 实现上是 `UIScrollView` + 一次性摆好所有方块。37 项全部是静态数据，建好之后
 /// 内容不再变化，所以既不需要 table view 的复用机制，也不需要数据源/代理那一套。
+protocol DoSwiftMenuPanelDelegate: AnyObject {
+    /// 选中了某个工具。面板自身不执行任何行为。
+    func menuPanel(_ panel: DoSwiftMenuPanel, didSelect item: DoSwiftMenuItem)
+
+    /// 点了导航栏的关闭按钮。
+    ///
+    /// 面板只上报，**不自己收起**——收起动作必须走外部的唯一入口，
+    /// 那里还要同步手柄的空闲淡化状态。面板自己调 `hide()` 会绕过它，
+    /// 结果就是面板关了、手柄却永久停在「不淡化」。
+    func menuPanelDidSelectClose(_ panel: DoSwiftMenuPanel)
+}
+
 final class DoSwiftMenuPanel: UIView {
-
-    // MARK: - Metrics
-
-    enum Metrics {
-        /// 一行放几个方块
-        static let columns: Int = 3
-        /// 面板左右内边距。方块列、分组标签、导航栏标题**共用**这一个值，
-        /// 三者左边缘必须对齐——之前方块用 8、文字用 12，差 4pt，看着就是没对齐。
-        static let horizontalPadding: CGFloat = 12
-        /// 面板上下内边距。必须留：面板只有朝外一侧圆角 16pt，
-        /// 内容贴到顶/底会被圆角切掉一块。
-        static let verticalPadding: CGFloat = 10
-        /// 方块之间的横向间距
-        static let tileSpacing: CGFloat = 6
-        static let tileWidth: CGFloat = 64
-        static let tileLabelFontSize: CGFloat = 11
-        static let tileIconSize: CGFloat = 24
-        static let tileTopPadding: CGFloat = 8
-        static let tileIconLabelGap: CGFloat = 4
-        static let tileBottomPadding: CGFloat = 6
-
-        /// 方块高度由内容推出来，不写死：改字号或图标尺寸会自动跟着变，
-        /// 也保证 `DoSwiftMenuTile.sizeThatFits` 与实际排版一致。
-        static let tileHeight: CGFloat = ceil(
-            tileTopPadding
-                + tileIconSize
-                + tileIconLabelGap
-                + UIFont.systemFont(ofSize: tileLabelFontSize, weight: .regular).lineHeight
-                + tileBottomPadding
-        )
-
-        /// 面板宽度由列数和方块宽推出来，改 `columns` 会自动跟着变。
-        /// 66 是让「沙盒浏览器」这类 5 字标题排得下的值。
-        static let panelWidth: CGFloat = horizontalPadding * 2
-            + tileWidth * CGFloat(columns)
-            + tileSpacing * CGFloat(columns - 1)
-
-        /// 顶部固定导航栏高度（不随内容滚动）
-        static let headerBarHeight: CGFloat = 44
-        /// 分组头高度（随内容滚动，会被圆角切到，所以上下留白是必须的）
-        static let groupHeaderHeight: CGFloat = 28
-        static let cornerRadius: CGFloat = 16
-        /// 面板与安全区之间的留白
-        static let verticalMargin: CGFloat = 12
-        /// 面板与手柄之间的留白
-        static let handleGap: CGFloat = 8
-        /// 可视高度上限，超出则内部滚动
-        static let maxPanelHeight: CGFloat = 420
-        /// 高度下限：目录为空时也要能打开。空轨是可见症状，点不动是不可见症状。
-        static let minimumPanelHeight: CGFloat = 132
-        /// 关闭动画时向停靠边外侧多移一点，免得阴影露在边上
-        static let shadowMargin: CGFloat = 32
-        static let closeButtonSize: CGFloat = 32
-        static let closeButtonSymbolSize: CGFloat = 13
-    }
 
     /// 停靠边
     enum Edge {
@@ -88,8 +45,7 @@ final class DoSwiftMenuPanel: UIView {
 
     // MARK: - Public State
 
-    /// 选中某一项后的回调。面板自身不执行任何行为。
-    var onSelectItem: ((DoSwiftMenuItem) -> Void)?
+    weak var delegate: DoSwiftMenuPanelDelegate?
 
     private(set) var isOpen: Bool = false
 
@@ -115,7 +71,8 @@ final class DoSwiftMenuPanel: UIView {
     private lazy var navigationBar: DoSwiftMenuNavigationBar = {
         let bar = DoSwiftMenuNavigationBar()
         bar.onClose = { [weak self] in
-            self?.hide(animated: true)
+            guard let self = self else { return }
+            self.delegate?.menuPanelDidSelectClose(self)
         }
         return bar
     }()
@@ -167,7 +124,7 @@ final class DoSwiftMenuPanel: UIView {
         contentContainer.frame = bounds
         blurView.frame = contentContainer.bounds
 
-        let barHeight = Metrics.headerBarHeight
+        let barHeight = DoSwiftMenuMetrics.headerBarHeight
         navigationBar.frame = CGRect(x: 0, y: 0, width: bounds.width, height: barHeight)
         scrollView.frame = CGRect(
             x: 0,
@@ -184,46 +141,46 @@ final class DoSwiftMenuPanel: UIView {
     /// 全部是 frame 计算——内容静态，一次性摆完就不再动。
     private func layoutItems() {
         let width = bounds.width
-        var y: CGFloat = Metrics.verticalPadding
+        var y: CGFloat = DoSwiftMenuMetrics.verticalPadding
 
         for (groupIndex, _) in menuGroups.enumerated() {
             guard groupIndex < headerViews.count, groupIndex < tilesByGroup.count else { break }
 
             headerViews[groupIndex].frame = CGRect(
-                x: 0, y: y, width: width, height: Metrics.groupHeaderHeight
+                x: 0, y: y, width: width, height: DoSwiftMenuMetrics.groupHeaderHeight
             )
-            y += Metrics.groupHeaderHeight
+            y += DoSwiftMenuMetrics.groupHeaderHeight
 
             var column = 0
             for tile in tilesByGroup[groupIndex] {
                 tile.frame = CGRect(
-                    x: Metrics.horizontalPadding
-                        + CGFloat(column) * (Metrics.tileWidth + Metrics.tileSpacing),
+                    x: DoSwiftMenuMetrics.horizontalPadding
+                        + CGFloat(column) * (DoSwiftMenuMetrics.tileWidth + DoSwiftMenuMetrics.tileSpacing),
                     y: y,
-                    width: Metrics.tileWidth,
-                    height: Metrics.tileHeight
+                    width: DoSwiftMenuMetrics.tileWidth,
+                    height: DoSwiftMenuMetrics.tileHeight
                 )
                 column += 1
-                if column == Metrics.columns {
+                if column == DoSwiftMenuMetrics.columns {
                     column = 0
-                    y += Metrics.tileHeight
+                    y += DoSwiftMenuMetrics.tileHeight
                 }
             }
             // 该组最后一行没排满也要占一整行高度
             if column != 0 {
-                y += Metrics.tileHeight
+                y += DoSwiftMenuMetrics.tileHeight
             }
         }
 
         scrollView.contentSize = CGSize(
             width: width,
-            height: y + Metrics.verticalPadding
+            height: y + DoSwiftMenuMetrics.verticalPadding
         )
     }
 
     /// 圆角只圆朝外的一侧，阴影路径与之对齐。
     private func applyEdgeStyle() {
-        let radius = Metrics.cornerRadius
+        let radius = DoSwiftMenuMetrics.cornerRadius
         contentContainer.layer.cornerRadius = radius
 
         let uiCorners: UIRectCorner
@@ -263,32 +220,32 @@ final class DoSwiftMenuPanel: UIView {
 
         let availableHeight = containerBounds.height
             - safeAreaInsets.top - safeAreaInsets.bottom
-            - Metrics.verticalMargin * 2
+            - DoSwiftMenuMetrics.verticalMargin * 2
         // 导航栏是固定高度，不参与滚动，所以面板高度 = 导航栏 + 滚动内容
-        let totalContentHeight = Metrics.headerBarHeight + contentHeight
+        let totalContentHeight = DoSwiftMenuMetrics.headerBarHeight + contentHeight
         let height = max(
-            Metrics.minimumPanelHeight,
-            min(totalContentHeight, Metrics.maxPanelHeight, max(Metrics.minimumPanelHeight, availableHeight))
+            DoSwiftMenuMetrics.minimumPanelHeight,
+            min(totalContentHeight, DoSwiftMenuMetrics.maxPanelHeight, max(DoSwiftMenuMetrics.minimumPanelHeight, availableHeight))
         )
 
         // 横向：让开刘海那一侧的安全区
         let dockInset = edge == .right ? safeAreaInsets.right : safeAreaInsets.left
         let x = edge == .right
-            ? containerBounds.width - Metrics.panelWidth - dockInset
+            ? containerBounds.width - DoSwiftMenuMetrics.panelWidth - dockInset
             : dockInset
 
         // 纵向：贴着柄展开，方向取决于手柄在上半屏还是下半屏。
         // 固定朝下会有个 bug——手柄位置偏低时，面板被安全区夹回来，
         // 顶端反而跑到手柄上方，把刚点过的那个手柄盖住。
-        let minY = safeAreaInsets.top + Metrics.verticalMargin
-        let maxY = containerBounds.height - safeAreaInsets.bottom - Metrics.verticalMargin - height
+        let minY = safeAreaInsets.top + DoSwiftMenuMetrics.verticalMargin
+        let maxY = containerBounds.height - safeAreaInsets.bottom - DoSwiftMenuMetrics.verticalMargin - height
         let opensDownward = handleFrame.midY < containerBounds.midY
         let preferredY = opensDownward
-            ? handleFrame.maxY + Metrics.handleGap
-            : handleFrame.minY - Metrics.handleGap - height
+            ? handleFrame.maxY + DoSwiftMenuMetrics.handleGap
+            : handleFrame.minY - DoSwiftMenuMetrics.handleGap - height
         let y = min(max(preferredY, minY), max(minY, maxY))
 
-        frame = CGRect(x: x, y: y, width: Metrics.panelWidth, height: height)
+        frame = CGRect(x: x, y: y, width: DoSwiftMenuMetrics.panelWidth, height: height)
         setNeedsLayout()
     }
 
@@ -379,7 +336,10 @@ final class DoSwiftMenuPanel: UIView {
             for item in group.items {
                 let tile = DoSwiftMenuTile()
                 tile.configure(with: item)
-                tile.onTap = { [weak self] item in self?.onSelectItem?(item) }
+                tile.onTap = { [weak self] item in
+                    guard let self = self else { return }
+                    self.delegate?.menuPanel(self, didSelect: item)
+                }
                 scrollView.addSubview(tile)
                 tiles.append(tile)
             }
@@ -389,17 +349,17 @@ final class DoSwiftMenuPanel: UIView {
 
     private var contentHeight: CGFloat {
         let rows = menuGroups.reduce(0) { partial, group in
-            partial + (group.items.count + Metrics.columns - 1) / Metrics.columns
+            partial + (group.items.count + DoSwiftMenuMetrics.columns - 1) / DoSwiftMenuMetrics.columns
         }
-        return Metrics.verticalPadding * 2
-            + CGFloat(menuGroups.count) * Metrics.groupHeaderHeight
-            + CGFloat(rows) * Metrics.tileHeight
+        return DoSwiftMenuMetrics.verticalPadding * 2
+            + CGFloat(menuGroups.count) * DoSwiftMenuMetrics.groupHeaderHeight
+            + CGFloat(rows) * DoSwiftMenuMetrics.tileHeight
     }
 
     /// 关闭态：朝停靠边外侧平移。用 transform 而不是 frame，
     /// 这样动画途中触发的 `layoutSubviews`（只动 bounds）不会和动画打架。
     private func closedTransform() -> CGAffineTransform {
-        let offset = Metrics.panelWidth + Metrics.shadowMargin
+        let offset = DoSwiftMenuMetrics.panelWidth + DoSwiftMenuMetrics.shadowMargin
         return CGAffineTransform(translationX: edge == .right ? offset : -offset, y: 0)
     }
 }
@@ -439,7 +399,7 @@ final class DoSwiftMenuGroupHeaderView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let inset = DoSwiftMenuPanel.Metrics.horizontalPadding
+        let inset = DoSwiftMenuMetrics.horizontalPadding
         hairline.frame = CGRect(x: 0, y: 0, width: bounds.width, height: 0.5)
         titleLabel.frame = CGRect(
             x: inset,
@@ -473,7 +433,7 @@ final class DoSwiftMenuNavigationBar: UIView {
         let button = UIButton(type: .system)
         // 不指定配置的话，符号会按按钮默认字号（约 17pt）渲染，在这个窄面板里太重
         let symbol = UIImage.SymbolConfiguration(
-            pointSize: DoSwiftMenuPanel.Metrics.closeButtonSymbolSize,
+            pointSize: DoSwiftMenuMetrics.closeButtonSymbolSize,
             weight: .medium
         )
         button.setImage(UIImage(systemName: "xmark", withConfiguration: symbol), for: .normal)
@@ -503,10 +463,10 @@ final class DoSwiftMenuNavigationBar: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let inset = DoSwiftMenuPanel.Metrics.horizontalPadding
+        let inset = DoSwiftMenuMetrics.horizontalPadding
         hairline.frame = CGRect(x: 0, y: bounds.height - 0.5, width: bounds.width, height: 0.5)
 
-        let buttonSize = DoSwiftMenuPanel.Metrics.closeButtonSize
+        let buttonSize = DoSwiftMenuMetrics.closeButtonSize
         closeButton.frame = CGRect(
             x: bounds.width - inset - buttonSize,
             y: (bounds.height - buttonSize) / 2,

@@ -8,10 +8,6 @@
 
 import UIKit
 
-/// 度量集中定义在 `DoSwiftMenuPanel.Metrics`。这里起个别名，
-/// 免得每个用到的地方都写全限定名（也免得再把类型名当值赋给变量）。
-typealias Metrics = DoSwiftMenuPanel.Metrics
-
 /// 主菜单面板里的一个方块：**图标在上、文字在下**，整体居中。
 ///
 /// 形态照搬 DoKit 自己的主菜单（`DoraemonHomeCell` 的方块网格），而不是
@@ -46,7 +42,7 @@ final class DoSwiftMenuTile: UIControl {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: DoSwiftMenuPanel.Metrics.tileLabelFontSize, weight: .regular)
+        label.font = .systemFont(ofSize: DoSwiftMenuMetrics.tileLabelFontSize, weight: .regular)
         label.textColor = .label
         label.textAlignment = .center
         label.numberOfLines = 1
@@ -79,8 +75,8 @@ final class DoSwiftMenuTile: UIControl {
 
     /// 宽度由面板按列宽传进来；高度按「上下留白 + 图标 + 间距 + 一行文字」算出来。
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        let width = size.width > 0 ? size.width : DoSwiftMenuPanel.Metrics.tileWidth
-        return CGSize(width: width, height: DoSwiftMenuPanel.Metrics.tileHeight)
+        let width = size.width > 0 ? size.width : DoSwiftMenuMetrics.tileWidth
+        return CGSize(width: width, height: DoSwiftMenuMetrics.tileHeight)
     }
 
     override var intrinsicContentSize: CGSize {
@@ -95,17 +91,17 @@ final class DoSwiftMenuTile: UIControl {
         highlightView.frame = bounds
 
         iconView.frame = CGRect(
-            x: (bounds.width - Metrics.tileIconSize) / 2,
-            y: Metrics.tileTopPadding,
-            width: Metrics.tileIconSize,
-            height: Metrics.tileIconSize
+            x: (bounds.width - DoSwiftMenuMetrics.tileIconSize) / 2,
+            y: DoSwiftMenuMetrics.tileTopPadding,
+            width: DoSwiftMenuMetrics.tileIconSize,
+            height: DoSwiftMenuMetrics.tileIconSize
         )
 
         titleLabel.frame = CGRect(
             x: 2,
-            y: iconView.frame.maxY + Metrics.tileIconLabelGap,
+            y: iconView.frame.maxY + DoSwiftMenuMetrics.tileIconLabelGap,
             width: max(0, bounds.width - 4),
-            height: max(0, bounds.height - iconView.frame.maxY - Metrics.tileIconLabelGap - Metrics.tileBottomPadding)
+            height: max(0, bounds.height - iconView.frame.maxY - DoSwiftMenuMetrics.tileIconLabelGap - DoSwiftMenuMetrics.tileBottomPadding)
         )
     }
 

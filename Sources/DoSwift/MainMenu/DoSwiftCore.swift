@@ -181,7 +181,7 @@ public class DoSwiftCore {
     }
     
     private func showUIHierarchy() {
-        HierarchyPlugin.shared.pluginDidLoad()
+        HierarchyPlugin.shared.show()
     }
     
     private func showAppInfo() {

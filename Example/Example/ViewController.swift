@@ -50,6 +50,6 @@ class ViewController: UIViewController {
     @objc private func launchHierarchy() {
         // 业务 window 已由 AppDelegate 在 start(appWindow:) 时交给 DoSwiftCore，
         // Hierarchy 的拾取直接读它，这里不再单独注入。
-        HierarchyPlugin.shared.pluginDidLoad()
+        HierarchyPlugin.shared.show()
     }
 }

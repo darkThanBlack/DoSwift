@@ -206,6 +206,9 @@ private final class HierarchyInfoRowView: UIView {
     var value: String? {
         get { valueLabel.text }
         set {
+            // 标尺行每个布局周期都会被写一次，值没变就别动 —— 否则每次都会
+            // 标脏父链条，把 viewDidLayoutSubviews 拖成循环
+            guard valueLabel.text != newValue else { return }
             valueLabel.text = newValue
             isHidden = (newValue == nil)
         }

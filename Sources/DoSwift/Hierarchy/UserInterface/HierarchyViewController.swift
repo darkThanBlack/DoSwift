@@ -102,8 +102,10 @@ class HierarchyViewController: UIViewController {
 
     private func beginObserving(_ view: UIView, borderWidth: CGFloat) {
         guard !observeViews.contains(view) else { return }
-
+        
+        /// 绘制边框
         let bv = UIView()
+        bv.isUserInteractionEnabled = false
         bv.backgroundColor = .clear
         self.view.addSubview(bv)
         self.view.sendSubviewToBack(bv)
@@ -139,10 +141,33 @@ class HierarchyViewController: UIViewController {
 
     // MARK: - Align Ruler
 
-    /// 把标尺推到拾取器当前位置，并把四个距离同步到信息面板
+    /// 把标尺推到拾取器当前位置，并把四个距离同步到信息面板。
+    ///
+    /// 关掉标尺时连 Position 行一起收起来——没有标线却留着四个距离是残缺状态。
     private func refreshAlignRuler() {
+        let shouldHideRuler = !HierarchyPlugin.shared.isAlignRulerEnabled
+        if alignRulerView.isHidden != shouldHideRuler {
+            alignRulerView.isHidden = shouldHideRuler
+        }
+
+        guard !shouldHideRuler else {
+            infoView.updateRulerInfo(nil)
+            return
+        }
+
         alignRulerView.update(center: pickerView.center)
         infoView.updateRulerInfo(alignRulerView.infoText)
+    }
+
+    // MARK: - No Response
+
+    /// 把本层里不该拦触摸的视图登记到 window 上。
+    ///
+    /// `vc.view` 放行之后，这一层只剩拾取器、信息面板会消费触摸，其余一律穿透到业务 App；
+    /// 标尺本身已经 `isUserInteractionEnabled = false`，登记它是把意图写明。
+    func registerNoResponseViews(on window: OverlayWindow) {
+        window.addNoResponseView(view)
+        window.addNoResponseView(alignRulerView)
     }
 
     // MARK: - Coordinate
@@ -255,8 +280,7 @@ extension HierarchyViewController: HierarchyInfoViewDelegate {
     }
 
     func hierarchyInfoViewDidSelectClose(_ view: HierarchyInfoView) {
-        HierarchyPlugin.shared.window?.hide()
-        HierarchyPlugin.shared.window = nil
+        HierarchyPlugin.shared.hide()
     }
 
     // MARK: - Actions

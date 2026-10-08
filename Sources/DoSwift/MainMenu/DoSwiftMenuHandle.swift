@@ -28,12 +28,30 @@ protocol DoSwiftMenuHandleDelegate: AnyObject {
 /// 每个插件各自持有并管理自己的 window，手柄只负责「打开主菜单」这一件事。
 final class DoSwiftMenuHandle: DraggableView {
 
+    // MARK: - Constants
+
+    /// 位置记忆在 UserDefaults 里的 key
+    static let handleFrameKey = "kMenuHandleFrameKey"
+
     // MARK: - Properties
 
     weak var delegate: DoSwiftMenuHandleDelegate?
 
-    /// 是否启用空闲淡化
-    var isFadeEnabled: Bool = true
+    /// 是否启用空闲淡化。
+    ///
+    /// 由**外部**驱动：主菜单展开期间置 `false`，手柄恒亮；关闭后置 `true`，从满额重新计时。
+    /// 手柄自己从不写它，所以它的含义只有一层——外部要求暂停空闲淡化。
+    var isFadeEnabled: Bool = true {
+        didSet {
+            guard isFadeEnabled != oldValue else { return }
+
+            if isFadeEnabled {
+                fadeCounts = fadeDelayTime     // 恢复：从满额重新计数
+            } else {
+                showHandle()                   // 暂停：立刻回到不透明
+            }
+        }
+    }
 
     // MARK: - Fade Properties
 
@@ -100,6 +118,13 @@ final class DoSwiftMenuHandle: DraggableView {
         glassView.addSubview(blurView)
         glassView.addSubview(iconView)
 
+        // 计时器常驻，1Hz。用完即销毁的写法没有重启者——那正是之前手柄淡下去
+        // 就再也亮不回来的原因。默认 runloop mode，滚动/拖动期间会被挂起，
+        // 而那几个时刻本来也不该淡化。
+        fadeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.idleTick()
+        }
+
         addGestureRecognizer(tapGesture)
         // 显式声明互斥：pan 一旦成立就让 tap 失败。
         // 之前手写 touchesMoved + tap 手势两套判定并存，中间留出过一段灰区
@@ -141,15 +166,16 @@ final class DoSwiftMenuHandle: DraggableView {
     // MARK: - DraggableView 钩子
 
     override func dragDidBegin() {
-        // 拖拽期间不淡化
-        fireFade(false)
+        // 拖动期间手柄必须完整可见。计数在这里填满、又在 idleTick 里被 isDragging 冻结，
+        // 所以真正开始倒数是松手之后——不需要在 dragDidUpdate 里反复重置。
+        showHandle()
         delegate?.menuHandleDidBeginDrag(self)
     }
 
     override func dragDidEnd() {
         // 位置记忆
         let frameDict = ["x": frame.origin.x, "y": frame.origin.y]
-        UserDefaults.standard.set(frameDict, forKey: UserDefaults.handleFrameKey)
+        UserDefaults.standard.set(frameDict, forKey: DoSwiftMenuHandle.handleFrameKey)
     }
 
     @objc private func handleTap() {
@@ -158,54 +184,34 @@ final class DoSwiftMenuHandle: DraggableView {
 
     // MARK: - Fade
 
-    /// 执行淡化效果
-    func fireFade(_ isFade: Bool) {
-        guard isFadeEnabled else { return }
-
-        if isFade {
-            UIView.animate(withDuration: 0.5) {
-                self.alpha = 0.3
-            }
-        } else {
-            UIView.animate(withDuration: 0.3) {
-                self.alpha = 1.0
-            }
-            fadeTimerRestart()
+    /// 回到不透明并重新计时。
+    ///
+    /// 任何「用户还在操作手柄」的时刻都该调它——「可见」在语义上本来就蕴含「重新计时」，
+    /// 这两件事不该拆开给调用方选。
+    private func showHandle() {
+        UIView.animate(withDuration: 0.3) {
+            self.alpha = 1.0
         }
-    }
-
-    private func fadeTimerRestart() {
-        guard isFadeEnabled else { return }
-
         fadeCounts = fadeDelayTime
+    }
 
-        guard fadeTimer == nil else { return }
-
-        fadeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
-            self?.fadeTimerEvent(timer)
+    /// 空闲到期，淡下去
+    private func dimHandle() {
+        UIView.animate(withDuration: 0.5) {
+            self.alpha = 0.3
         }
     }
 
-    private func fadeTimerEnd() {
-        fadeCounts = 0
-        fadeTimer?.invalidate()
-        fadeTimer = nil
-
-        fireFade(true)
-    }
-
-    private func fadeTimerEvent(_ timer: Timer?) {
-        guard !isDragging else { return }
+    /// 空闲跳动。计时器常驻，每秒一跳。
+    private func idleTick() {
+        // 暂停期间不倒数；拖动期间也不倒数——松手那一刻计数仍是满的，
+        // 于是空闲时间从拖拽结束才开始算。
+        guard isFadeEnabled, !isDragging else { return }
 
         fadeCounts -= 1
         guard fadeCounts <= 0 else { return }
 
-        fadeTimerEnd()
+        dimHandle()
+        fadeCounts = fadeDelayTime   // 淡完自己填满：空闲淡化是循环，不是一次性
     }
-}
-
-// MARK: - UserDefaults Keys
-
-extension UserDefaults {
-    static let handleFrameKey = "kMenuHandleFrameKey"
 }
