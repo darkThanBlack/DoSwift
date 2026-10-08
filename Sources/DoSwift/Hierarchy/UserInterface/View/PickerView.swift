@@ -9,27 +9,47 @@ import UIKit
 
 /// 圆形拾取器基类
 class PickerView: DraggableView {
-
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        pickerViewInit()
+        initUI()
     }
-
+    
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        pickerViewInit()
+        initUI()
     }
-
-    private func pickerViewInit() {
-        // 拾取器要能贴到屏幕边缘工作，越界只在松手时收回
-        releasePolicy = .bounceBack
+    
+    private func initUI() {
         backgroundColor = .clear
-        layer.cornerRadius = min(bounds.width, bounds.height) / 2
-
-        // TODO: Use actual asset - doraemon_visual
-        let imageView = UIImageView(image: UIImage(systemName: "scope"))
+        addSubview(icon)
+    }
+    
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: 56.0, height: 56.0)
+    }
+    
+    override func sizeThatFits(_ size: CGSize) -> CGSize {
+        return CGSize(width: 56.0, height: 56.0)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        let iconSize: CGFloat = 44.0
+        icon.frame = CGRect(
+            x: (bounds.width - iconSize) / 2,
+            y: (bounds.height - iconSize) / 2,
+            width: iconSize,
+            height: iconSize
+        )
+    }
+    
+    private lazy var icon: UIImageView = {
+        let imageView = UIImageView(image: UIImage(systemName: "dot.scope"))
         imageView.frame = bounds
         imageView.contentMode = .scaleAspectFit
-        addSubview(imageView)
-    }
+        return imageView
+    }()
+    
 }

@@ -23,11 +23,19 @@ final class HierarchyInfoView: UIView {
     
     private(set) weak var selectedView: UIView?
     
+    /// 更新标尺行。
+    ///
+    /// 与 `updateSelectedView` 分开是必须的：后者在选中项未变时直接 return，
+    /// 而手柄每动一步，四个距离都在变。
+    func updateRulerInfo(_ text: String?) {
+        rulerRow.value = text
+    }
+    
     func updateSelectedView(_ view: UIView?) {
         guard let view = view, view !== selectedView else { return }
         selectedView = view
         
-        titleLabel.text = String(describing: type(of: view))
+        nameRow.value = String(describing: type(of: view))
         frameRow.value = HierarchyFormatterTool.string(from: view.frame)
         backgroundColorRow.value = view.backgroundColor?.hierarchy_description
         tagRow.value = view.tag == 0 ? nil : "\(view.tag)"
@@ -118,6 +126,7 @@ final class HierarchyInfoView: UIView {
     
     private lazy var infoStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [
+            rulerRow, nameRow,
             frameRow, backgroundColorRow, textColorRow, fontRow, tagRow,
         ])
         stack.axis = .vertical
@@ -135,6 +144,7 @@ final class HierarchyInfoView: UIView {
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
+        label.text = "UI Hierarchy"
         label.font = .boldSystemFont(ofSize: 15)
         label.textColor = .label
         label.numberOfLines = 1
@@ -151,6 +161,8 @@ final class HierarchyInfoView: UIView {
         return button
     }()
     
+    private lazy var rulerRow = HierarchyInfoRowView(key: "Position:")
+    private lazy var nameRow = HierarchyInfoRowView(key: "Name:")
     private lazy var frameRow = HierarchyInfoRowView(key: "Frame:")
     private lazy var backgroundColorRow = HierarchyInfoRowView(key: "Background:")
     private lazy var textColorRow = HierarchyInfoRowView(key: "Text Color:")

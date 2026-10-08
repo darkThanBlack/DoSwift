@@ -38,6 +38,9 @@ class HierarchyViewController: UIViewController {
     /// 承载 `infoView` 的可拖拽容器。位置由拖动决定，高度由内容决定。
     private lazy var infoContainer = DraggableLayoutView(contentView: infoView)
 
+    /// 对齐标尺：常驻。只认一个点，不认识拾取器。
+    private lazy var alignRulerView = HierarchyAlignRulerView(frame: .zero)
+
     // MARK: - State
 
     private var observeViews = NSMutableSet()
@@ -47,19 +50,24 @@ class HierarchyViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.green.withAlphaComponent(0.5)
+        view.backgroundColor = .clear
 
+        // 标尺必须先进：它在边框（会被 sendSubviewToBack）之上，但在信息面板与拾取器之下
+        view.addSubview(alignRulerView)
         view.addSubview(infoContainer)
         view.addSubview(borderView)
         view.addSubview(pickerView)
         
         // 给一个大致的 origin, 让 settle() 来确保完全展示
-        infoContainer.frame = CGRect(x: 12.0, y: view.bounds.height, width: 0,height: 0)
+        infoContainer.frame = CGRect(x: 12.0, y: view.bounds.height, width: 0, height: 0)
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
+
+        alignRulerView.frame = view.bounds
+        refreshAlignRuler()
+
         /// 宽度固定
         let width = view.bounds.width - (12.0 * 2.0)
         
@@ -129,10 +137,18 @@ class HierarchyViewController: UIViewController {
         bv.frame = frameInLocal(for: view)
     }
 
+    // MARK: - Align Ruler
+
+    /// 把标尺推到拾取器当前位置，并把四个距离同步到信息面板
+    private func refreshAlignRuler() {
+        alignRulerView.update(center: pickerView.center)
+        infoView.updateRulerInfo(alignRulerView.infoText)
+    }
+
     // MARK: - Coordinate
 
     private func frameInLocal(for view: UIView) -> CGRect {
-        guard let window = HierarchyHelper.shared.businessWindow else { return .zero }
+        guard let window = HierarchyPlugin.shared.appWindow else { return .zero }
         var rect = view.convert(view.bounds, to: window)
         rect = self.view.convert(rect, from: window)
         return rect
@@ -141,7 +157,7 @@ class HierarchyViewController: UIViewController {
     // MARK: - View Hierarchy
 
     private func findSelectedView(in chain: [UIView]) -> UIView? {
-        if HierarchyHelper.shared.isIgnorePrivateClass {
+        if HierarchyPlugin.shared.isIgnorePrivateClass {
             return chain.first { view in
                 !String(describing: type(of: view)).hasPrefix("_")
             }
@@ -164,7 +180,7 @@ class HierarchyViewController: UIViewController {
         var views: [UIView] = []
         var current: UIView? = selectedView.superview
         while let view = current {
-            if HierarchyHelper.shared.isIgnorePrivateClass {
+            if HierarchyPlugin.shared.isIgnorePrivateClass {
                 if !String(describing: type(of: view)).hasPrefix("_") {
                     views.append(view)
                 }
@@ -178,7 +194,7 @@ class HierarchyViewController: UIViewController {
 
     private func findSubviews(of selectedView: UIView) -> [UIView] {
         selectedView.subviews.filter { view in
-            if HierarchyHelper.shared.isIgnorePrivateClass {
+            if HierarchyPlugin.shared.isIgnorePrivateClass {
                 return !String(describing: type(of: view)).hasPrefix("_")
             }
             return true
@@ -191,6 +207,9 @@ class HierarchyViewController: UIViewController {
 extension HierarchyViewController: HierarchyPickerViewDelegate {
 
     func hierarchyPickerView(_ pickerView: HierarchyPickerView, didMoveTo selectedView: UIView?) {
+        // 放在 guard 之前：手柄动一步就要跟一步，与有没有拾取到 view 无关
+        refreshAlignRuler()
+
         objc_sync_enter(self)
         defer { objc_sync_exit(self) }
 
@@ -236,8 +255,8 @@ extension HierarchyViewController: HierarchyInfoViewDelegate {
     }
 
     func hierarchyInfoViewDidSelectClose(_ view: HierarchyInfoView) {
-        HierarchyHelper.shared.window?.hide()
-        HierarchyHelper.shared.window = nil
+        HierarchyPlugin.shared.window?.hide()
+        HierarchyPlugin.shared.window = nil
     }
 
     // MARK: - Actions

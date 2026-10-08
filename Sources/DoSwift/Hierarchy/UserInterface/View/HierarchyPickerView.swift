@@ -44,15 +44,15 @@ class HierarchyPickerView: PickerView {
     ///
     /// 原版（DoKit-iOS）无注入，故遍历所有 window 逐个 hitTest 定位目标：
     ///   var windowForSelection: UIWindow? = keyWindow
-    ///   for window in HierarchyHelper.shared.allWindowsIgnorePrefix("Doraemon").reversed() {
+    ///   for window in DoraemonHierarchyHelper.shared().allWindows(ignorePrefix: "Doraemon").reversed() {
     ///       if window.hitTest(pointInWindow, with: nil) != nil {
     ///           windowForSelection = window
     ///           break
     ///       }
     ///   }
     /// 恢复该逻辑的场景：不注入业务 window、或需支持多 window（含键盘/alert）拾取。
-    private var targetWindow: UIWindow? {
-        HierarchyHelper.shared.businessWindow
+    private var appWindow: UIWindow? {
+        HierarchyPlugin.shared.appWindow
     }
 
     // MARK: - Strategy A · 组件检查
@@ -66,9 +66,9 @@ class HierarchyPickerView: PickerView {
     /// 原版还排除了自身与红框 `_viewBound`（`![view isDescendantOfView:self]`）；
     /// 拾取器不在被搜的 window 里，故这里不需要。
     private func viewByViewCheck(at pointInWindow: CGPoint) -> UIView? {
-        guard let targetWindow = targetWindow else { return nil }
+        guard let appWindow = appWindow else { return nil }
         var hits: [UIView] = []
-        collectByViewCheck(pointInWindow, in: targetWindow, into: &hits)
+        collectByViewCheck(pointInWindow, in: appWindow, into: &hits)
         return hits.last
     }
 
@@ -98,9 +98,9 @@ class HierarchyPickerView: PickerView {
 
     /// 搜索空间被限制在 topMost VC 一棵子树内
     private func viewByTopViewController(at pointInWindow: CGPoint) -> UIView? {
-        guard let targetWindow = targetWindow,
-              let topVC = Self.topMostViewController(targetWindow.rootViewController) else { return nil }
-        let pointInTopView = topVC.view.convert(pointInWindow, from: targetWindow)
+        guard let appWindow = appWindow,
+              let topVC = Self.topMostViewController(appWindow.rootViewController) else { return nil }
+        let pointInTopView = topVC.view.convert(pointInWindow, from: appWindow)
         return recursiveSubviews(at: pointInTopView, in: topVC.view, skipHidden: true).last
     }
 
