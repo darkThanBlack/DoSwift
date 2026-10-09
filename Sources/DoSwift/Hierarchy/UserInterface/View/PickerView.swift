@@ -25,17 +25,14 @@ class PickerView: DraggableView {
         addSubview(icon)
     }
     
-    override var intrinsicContentSize: CGSize {
-        return CGSize(width: 56.0, height: 56.0)
-    }
-    
+    /// 尺寸只由这里回答，调用方读它再摆位置
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        return CGSize(width: 56.0, height: 56.0)
+        return CGSize(width: 60.0, height: 60.0)
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
-        
+
         let iconSize: CGFloat = 44.0
         icon.frame = CGRect(
             x: (bounds.width - iconSize) / 2,
@@ -44,11 +41,11 @@ class PickerView: DraggableView {
             height: iconSize
         )
     }
-    
+
     private lazy var icon: UIImageView = {
-        let imageView = UIImageView(image: UIImage(systemName: "dot.scope"))
-        imageView.frame = bounds
+        let imageView = UIImageView(image: UIImage(systemName: "scope"))
         imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = .systemIndigo
         return imageView
     }()
     

@@ -20,10 +20,7 @@ class HierarchyViewController: UIViewController {
     }()
 
     private lazy var pickerView: HierarchyPickerView = {
-        let size: CGFloat = 60
-        let x = (view.bounds.width - size) / 2
-        let y = (view.bounds.height - size) / 2
-        let v = HierarchyPickerView(frame: CGRect(x: x, y: y, width: size, height: size))
+        let v = HierarchyPickerView(frame: .zero)
         v.delegate = self
         return v
     }()
@@ -57,6 +54,15 @@ class HierarchyViewController: UIViewController {
         view.addSubview(infoContainer)
         view.addSubview(borderView)
         view.addSubview(pickerView)
+
+        // 尺寸问拾取器自己；它可自由拖动，所以首帧摆到屏幕正中就够了
+        let pickerSize = pickerView.sizeThatFits(view.bounds.size)
+        pickerView.frame = CGRect(
+            x: (view.bounds.width - pickerSize.width) / 2,
+            y: (view.bounds.height - pickerSize.height) / 2,
+            width: pickerSize.width,
+            height: pickerSize.height
+        )
         
         // 给一个大致的 origin, 让 settle() 来确保完全展示
         infoContainer.frame = CGRect(x: 12.0, y: view.bounds.height, width: 0, height: 0)

@@ -76,12 +76,11 @@ open class DraggableView: UIView {
         super.init(frame: frame)
         addGestureRecognizer(panGesture)
     }
-
+    
     public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        addGestureRecognizer(panGesture)
+        fatalError("init(coder:) has not been implemented")
     }
-
+    
     // MARK: - 子类重写
 
     /// 拖动开始
