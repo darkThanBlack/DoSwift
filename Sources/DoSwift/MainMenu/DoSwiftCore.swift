@@ -157,27 +157,10 @@ public class DoSwiftCore {
         ])
 
         let visual = DoSwiftMenuGroup(title: "视觉工具", items: [
-            item("color_pick",   "取色器",   "eyedropper"),
-            item("view_check",   "组件检查", "viewfinder"),
-            item("view_align",   "对齐标尺", "arrow.left.and.right"),
-            item("view_metrics", "布局边框", "rectangle"),
-            item("ui_hierarchy", "UI结构",   "list.bullet.indent"),
+            item("ui_hierarchy", "视图结构",   "viewfinder"),
         ])
 
-        let weex = DoSwiftMenuGroup(title: "Weex", items: [
-            item("weex_log",     "日志",    "list.dash"),
-            item("weex_storage", "缓存",    "tray"),
-            item("weex_info",    "信息",    "info"),
-            item("weex_devtool", "DevTool", "hammer"),
-        ])
-
-        let platform = DoSwiftMenuGroup(title: "平台工具", items: [
-            item("mock",      "Mock数据", "wand.and.stars"),
-            item("health",    "健康体检", "waveform.path.ecg"),
-            item("file_sync", "文件同步", "arrow.2.circlepath"),
-        ])
-
-        return [common, performance, visual, weex, platform]
+        return [common, performance, visual]
     }
     
     private func showUIHierarchy() {

@@ -106,6 +106,21 @@ class HierarchyPropertyEngine {
         return buildModels(view: view, sizeGroups: true)
     }
 
+    /// 按 key 取单独一行。
+    ///
+    /// `key` 在同一条类链上唯一（已对 JSON 全量校验：没有一条链上出现重复 key），
+    /// 所以**不需要组名参与**——多一个维度就多一处要同步的东西。
+    ///
+    /// 取不到就返回 nil，这同时回答了两个问题：属性**不适用**（`textColor` 之于 UIView），
+    /// 以及值**读不出来**（`backgroundColor` 为 nil）。调用方按「隐藏这一行」处理即可。
+    ///
+    /// - Parameter compact: 用浮层所需的紧凑格式。详情页要完整信息，浮层只有一行宽，
+    ///   两处密度不同但都出自同一份 JSON —— 见 `compactEditors`。
+    func cellModel(for view: UIView, key: String, compact: Bool) -> HierarchyCellModel? {
+        guard let item = item(for: key, in: view) else { return nil }
+        return makeCellModel(for: view, item: item, compact: compact)
+    }
+
     // MARK: - Model Building
 
     private func buildModels(view: UIView, sizeGroups: Bool) -> [HierarchyCategoryModel] {
@@ -147,12 +162,59 @@ class HierarchyPropertyEngine {
         return result
     }
 
+    // MARK: - Presentation Overrides
+
+    /// 浮层的紧凑 editor，按 key 覆盖 JSON 里的 `editor`。
+    ///
+    /// JSON 里的格式是**照详情页写的**：UIFont 的 `description` 有三行、颜色是
+    /// `R:… G:… B:… A:…` 加一行 hex，塞进浮层那一行会把面板撑开。这里给少数几个 key
+    /// 补一个紧凑变体，两种密度仍然出自同一份数据。
+    ///
+    /// **刻意不改 JSON**：它是唯一数据源，而且详情页正需要那份完整信息。
+    private static let compactEditors: [String: String] = [
+        "font": "fontSize",
+        "backgroundColor": "colorShort",
+        "textColor": "colorShort",
+        "tintColor": "colorShort",
+        "tag": "tagShort",
+    ]
+
+    /// JSON 里 `title` 的两处历史遗留，在这里补一层**稀疏覆盖**：
+    /// UILabel 的 `textColor` 也叫 "Text"（与 `text` 撞名）、`font` 的 title 是空的。
+    /// 拍平成一列之后这两处就再也分不开了，所以必须有人纠一下。
+    ///
+    /// 放在引擎而不是 JSON：改 JSON 会同时动到详情页的既有显示，而这张表只有两条，
+    /// 将来要搬进 JSON 直接删掉即可。
+    private static let titleOverrides: [String: String] = [
+        "textColor": "Text Color",
+        "font": "Font",
+    ]
+
+    /// key → JSON item，按类链顺序（父类在前）找到即返回。
+    ///
+    /// key 在链上唯一，所以「找到即返回」不会漏掉更靠后的同 key 项。
+    private func item(for key: String, in view: UIView) -> HierarchyPropertyItem? {
+        for className in classChain(view) {
+            guard let entry = entries[className] else { continue }
+            for group in entry.groups {
+                if let item = group.items.first(where: { $0.key == key }) {
+                    return item
+                }
+            }
+        }
+        return nil
+    }
+
     // MARK: - Per-Item Cell Building
 
-    private func makeCellModel(for view: UIView, item: HierarchyPropertyItem) -> HierarchyCellModel? {
+    private func makeCellModel(
+        for view: UIView,
+        item: HierarchyPropertyItem,
+        compact: Bool = false
+    ) -> HierarchyCellModel? {
         let key = item.key
-        let editor = item.editor
-        let title = item.title
+        let editor = compact ? (Self.compactEditors[key] ?? item.editor) : item.editor
+        let title = Self.titleOverrides[key] ?? item.title
 
         // Editors that do not read a KVC key path — resolved without KVC.
         switch editor {
@@ -184,6 +246,11 @@ class HierarchyPropertyEngine {
             let detail = flag ? (item.trueTitle ?? "On") : (item.falseTitle ?? "Off")
             return HierarchyCellModel(title: title ?? item.falseTitle, detailTitle: detail).noneInsets()
 
+        case "tagShort":
+            // tag 为 0（默认值）时不占行：detailTitle 给 nil，行自己收起
+            let tag = value as? Int ?? (value as? NSNumber)?.intValue ?? 0
+            return HierarchyCellModel(title: title, detailTitle: tag == 0 ? nil : "\(tag)").noneInsets()
+
         case "int":
             let formatted: String
             if let v = value as? Int {
@@ -205,8 +272,17 @@ class HierarchyPropertyEngine {
         case "color":
             return HierarchyCellModel(title: title, detailTitle: colorDescription(value as? UIColor)).noneInsets()
 
+        case "colorShort":
+            // 浮层一行：走 UIColor+Hierarchy 的短描述（动态色会带上系统色名）
+            return HierarchyCellModel(title: title, detailTitle: (value as? UIColor)?.hierarchy_description).noneInsets()
+
         case "font":
             return HierarchyCellModel(title: title, detailTitle: formatObject(value)).noneInsets()
+
+        case "fontSize":
+            // 浮层只要字号；UIFont 的完整描述在这里排不下
+            guard let font = value as? UIFont else { return nil }
+            return HierarchyCellModel(title: title, detailTitle: String(format: "%0.2f", font.pointSize)).noneInsets()
 
         case "frame":
             let rect = (value as? NSValue)?.cgRectValue ?? .zero

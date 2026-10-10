@@ -43,23 +43,30 @@ final class HierarchyInfoView: UIView {
     func updateSelectedView(_ view: UIView?) {
         guard let view = view, view !== selectedView else { return }
         selectedView = view
-        
-        nameRow.value = String(describing: type(of: view))
-        frameRow.value = HierarchyFormatterTool.string(from: view.frame)
-        backgroundColorRow.value = view.backgroundColor?.hierarchy_description
-        tagRow.value = view.tag == 0 ? nil : "\(view.tag)"
-        
-        if let label = view as? UILabel {
-            textColorRow.value = label.textColor.hierarchy_description
-            fontRow.value = String(format: "%0.2f", label.font.pointSize)
-        } else {
-            textColorRow.value = nil
-            fontRow.value = nil
-        }
-        
+
+        // 行名与值一律问引擎（JSON 是唯一数据源），面板这边只决定「要哪几行、摆在哪儿」。
+        // 这里不再自己读 `view.backgroundColor` / `label.font.pointSize`——那样值的格式
+        // 就有两套权威，迟早和详情页说的不一样。
+        apply("class", of: view, to: nameRow)
+        apply("frame", of: view, to: frameRow)
+        apply("backgroundColor", of: view, to: backgroundColorRow)
+        apply("textColor", of: view, to: textColorRow)
+        apply("font", of: view, to: fontRow)
+        apply("tag", of: view, to: tagRow)
+
         parentButton.isEnabled = view.superview != nil
         subviewsButton.isEnabled = !view.subviews.isEmpty
         moreButton.isEnabled = true
+    }
+
+    /// 取一行填进来。
+    ///
+    /// 属性**是否适用**不用在这里判断：`textColor` 在 UIView 的类链上找不到，引擎返回 nil，
+    /// 行自然收起——原来那段 `if let label = view as? UILabel` 因此可以删掉。
+    private func apply(_ key: String, of view: UIView, to row: HierarchyInfoRowView) {
+        let model = HierarchyPropertyEngine.shared.cellModel(for: view, key: key, compact: true)
+        row.key = model?.title
+        row.value = model?.detailTitle
     }
     
     // MARK: - Life Cycle
@@ -230,6 +237,12 @@ final class HierarchyInfoView: UIView {
 
 /// 单行。值不为空时可以点一下复制走。
 private final class HierarchyInfoRowView: UIView {
+    
+    /// 行名。来自数据源（JSON 的 `title`），所以可写——那边改名这里自然跟着变。
+    var key: String? {
+        get { keyLabel.text }
+        set { keyLabel.text = newValue }
+    }
     
     var value: String? {
         get { valueLabel.text }
