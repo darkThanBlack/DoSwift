@@ -13,17 +13,6 @@ class HierarchyDetailViewController: HierarchyTableViewController {
 
     var selectView: UIView?
 
-    private lazy var segmentedControl: UISegmentedControl = {
-        let sc = UISegmentedControl(items: ["Object", "Size"])
-        sc.frame = CGRect(x: 10, y: 10, width: view.bounds.width - 20, height: 30)
-        sc.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
-        sc.selectedSegmentIndex = 0
-        return sc
-    }()
-
-    private var objectDatas: [HierarchyCategoryModel] = []
-    private var sizeDatas: [HierarchyCategoryModel] = []
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -34,10 +23,6 @@ class HierarchyDetailViewController: HierarchyTableViewController {
             target: self,
             action: #selector(dismissDetail)
         )
-
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 50))
-        headerView.addSubview(segmentedControl)
-        tableView.tableHeaderView = headerView
 
         loadData()
 
@@ -55,27 +40,16 @@ class HierarchyDetailViewController: HierarchyTableViewController {
     private func loadData() {
         guard let view = selectView else { return }
 
-        objectDatas = HierarchyPropertyEngine.shared.categoryModels(for: view)
-        sizeDatas = HierarchyPropertyEngine.shared.sizeCategoryModels(for: view)
+        // 尺寸组在前、属性组在后，**不再分页**：读一个 view 的顺序本来就是
+        // 「多大、在哪」→「是什么」，切成两页只会让人来回切。
+        // 组标题由 JSON 里的分组名给出，两段天然分得清。
+        dataArray = HierarchyPropertyEngine.shared.sizeCategoryModels(for: view)
+            + HierarchyPropertyEngine.shared.categoryModels(for: view)
 
-        reloadTableView()
-    }
-
-    private func reloadTableView() {
-        dataArray.removeAll()
-        if segmentedControl.selectedSegmentIndex == 0 {
-            dataArray.append(contentsOf: objectDatas)
-        } else {
-            dataArray.append(contentsOf: sizeDatas)
-        }
         tableView.reloadData()
     }
 
     // MARK: - Actions
-
-    @objc private func segmentChanged(_ sender: UISegmentedControl) {
-        reloadTableView()
-    }
 
     @objc private func didReceiveChangeNotification(_ notification: Notification) {
         loadData()

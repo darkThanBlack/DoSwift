@@ -16,6 +16,16 @@ import UIKit
 /// `UIView` 交给代理（见 `DoSwiftPropertyHeaderView`）。
 final class DoSwiftMenuGroupHeaderView: UIView {
 
+    // MARK: - Metrics
+
+    /// 分组头高度。（随内容滚动，会被面板圆角切到，所以面板在内容上下留了内边距）
+    private static let headerHeight: CGFloat = 28
+
+    /// 高度自己回答；宽度由面板铺满
+    override func sizeThatFits(_ size: CGSize) -> CGSize {
+        return CGSize(width: size.width, height: DoSwiftMenuGroupHeaderView.headerHeight)
+    }
+
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 11, weight: .semibold)
@@ -45,7 +55,8 @@ final class DoSwiftMenuGroupHeaderView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let inset = DoSwiftMenuMetrics.horizontalPadding
+        // 与 DoSwiftMenuPanel 的 horizontalPadding 必须一致——三者左边缘要对齐
+        let inset: CGFloat = 12
         hairline.frame = CGRect(x: 0, y: 0, width: bounds.width, height: 0.5)
         titleLabel.frame = CGRect(
             x: inset,

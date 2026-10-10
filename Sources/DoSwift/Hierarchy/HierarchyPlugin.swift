@@ -14,7 +14,7 @@ public class HierarchyPlugin {
     public static let shared = HierarchyPlugin()
 
     private init() {}
-
+    
     // MARK: - State
 
     /// 层级检查器自己的 window：.alert - 1，压在业务窗口之上但在系统弹窗之下
@@ -25,11 +25,16 @@ public class HierarchyPlugin {
         DoSwiftCore.shared.appWindow
     }
 
-    /// 是否忽略私有类（类名以下划线开头）
-    var isIgnorePrivateClass: Bool = true
+    // MARK: - Settings
 
-    /// 是否显示对齐标尺（标线 + 信息面板里的 Position 行）
-    var isAlignRulerEnabled: Bool = true
+    /// 全部配置。**单例初始化时从本地读一次**（`HierarchyConfig.load()`），
+    /// 之后运行时读的都是这份内存属性。写入由配置页负责——它改完调 `persistConfig()`。
+    var config: HierarchyConfig = .load()
+
+    /// 把当前配置写回本地
+    func persistConfig() {
+        config.save()
+    }
 
     // MARK: - Public Interface
 

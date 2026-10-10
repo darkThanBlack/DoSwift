@@ -7,11 +7,10 @@
 
 import UIKit
 
-protocol HierarchyPickerViewDelegate: AnyObject {
-    func hierarchyPickerView(_ view: HierarchyPickerView, didMoveTo selectedView: UIView?)
-}
-
-/// 可拖拽的视图拾取器
+/// 可拖拽的视图拾取器。
+///
+/// 只负责一件事：**按 `searchStrategy` 找出「手柄正对的那个 view」**。
+/// 拖动事件的转发在 `PickerView` 里，本类不再持有 delegate。
 class HierarchyPickerView: PickerView {
 
     /// 查找方式。两种实现并行保留在下面，改这一行来回切换对比。
@@ -23,12 +22,6 @@ class HierarchyPickerView: PickerView {
     }
 
     var searchStrategy: SearchStrategy = .viewCheck
-
-    weak var delegate: HierarchyPickerViewDelegate?
-
-    override func dragDidUpdate(offset: CGPoint) {
-        delegate?.hierarchyPickerView(self, didMoveTo: selectedView())
-    }
 
     /// 手柄正对的那个 view
     func selectedView() -> UIView? {

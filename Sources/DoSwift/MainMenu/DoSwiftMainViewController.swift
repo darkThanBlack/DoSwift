@@ -122,17 +122,7 @@ class DoSwiftMainViewController: UIViewController {
     }
 
     private func relayoutPanel() {
-        panelView.relayout(
-            edge: currentDockEdge(),
-            handleFrame: handleView.frame,
-            containerBounds: view.bounds,
-            safeAreaInsets: view.safeAreaInsets
-        )
-    }
-
-    /// 手柄在哪半边就贴哪条边，与 DoSwiftMenuHandle.absorbHorizontal 的判定一致
-    private func currentDockEdge() -> DoSwiftMenuPanel.Edge {
-        return handleView.frame.midX > view.bounds.midX ? .right : .left
+        panelView.relayout(handleFrame: handleView.frame)
     }
 }
 

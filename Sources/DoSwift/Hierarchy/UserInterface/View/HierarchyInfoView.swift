@@ -13,6 +13,7 @@ protocol HierarchyInfoViewDelegate: AnyObject {
     func hierarchyInfoViewDidSelectParent(_ view: HierarchyInfoView)
     func hierarchyInfoViewDidSelectSubview(_ view: HierarchyInfoView)
     func hierarchyInfoViewDidSelectMoreInfo(_ view: HierarchyInfoView)
+    func hierarchyInfoViewDidSelectSetting(_ view: HierarchyInfoView)
     func hierarchyInfoViewDidSelectClose(_ view: HierarchyInfoView)
 }
 
@@ -29,6 +30,14 @@ final class HierarchyInfoView: UIView {
     /// 而手柄每动一步，四个距离都在变。
     func updateRulerInfo(_ text: String?) {
         rulerRow.value = text
+    }
+    
+    /// 更新取色行（屏幕上的实际像素）。
+    ///
+    /// 与 `updateSelectedView` 分开是必须的：它说的是「手柄指着的那一点渲染出来是什么色」，
+    /// 而不是「这个 view 的属性写了什么色」——那两个值可以不一样（叠加、毛玻璃、渐变）。
+    func updatePixelColor(_ description: String?) {
+        pixelColorRow.value = description
     }
     
     func updateSelectedView(_ view: UIView?) {
@@ -73,7 +82,7 @@ final class HierarchyInfoView: UIView {
         
         addSubview(rootStack)
         
-        [rootStack, closeButton, actionStack].forEach {
+        [rootStack, closeButton, settingButton, actionStack].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
         NSLayoutConstraint.activate([
@@ -84,6 +93,9 @@ final class HierarchyInfoView: UIView {
             
             closeButton.widthAnchor.constraint(equalToConstant: 28),
             closeButton.heightAnchor.constraint(equalToConstant: 28),
+            
+            settingButton.widthAnchor.constraint(equalToConstant: 28),
+            settingButton.heightAnchor.constraint(equalToConstant: 28),
             
             actionStack.heightAnchor.constraint(equalToConstant: 34),
         ])
@@ -103,6 +115,10 @@ final class HierarchyInfoView: UIView {
         delegate?.hierarchyInfoViewDidSelectMoreInfo(self)
     }
     
+    @objc private func settingTapped() {
+        delegate?.hierarchyInfoViewDidSelectSetting(self)
+    }
+    
     @objc private func closeTapped() {
         delegate?.hierarchyInfoViewDidSelectClose(self)
     }
@@ -117,7 +133,7 @@ final class HierarchyInfoView: UIView {
     }()
     
     private lazy var headerStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [titleLabel, closeButton])
+        let stack = UIStackView(arrangedSubviews: [titleLabel, settingButton, closeButton])
         stack.axis = .horizontal
         stack.alignment = .center
         stack.spacing = 8
@@ -126,7 +142,7 @@ final class HierarchyInfoView: UIView {
     
     private lazy var infoStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [
-            rulerRow, nameRow,
+            rulerRow, pixelColorRow, nameRow,
             frameRow, backgroundColorRow, textColorRow, fontRow, tagRow,
         ])
         stack.axis = .vertical
@@ -153,6 +169,17 @@ final class HierarchyInfoView: UIView {
         return label
     }()
     
+    /// 配置入口。放标题栏而不是按钮行：按钮行有 3 个等宽按钮，再挤一个进去
+    /// 每个只剩 45pt，"Parents" 这种文字会被截断。
+    private lazy var settingButton: UIButton = {
+        let button = UIButton(type: .system)
+        // gear 属 2019 年度符号集（iOS 13）。gearshape 是 2020 年度（iOS 14），不能用。
+        button.setImage(UIImage(systemName: "gear"), for: .normal)
+        button.tintColor = .secondaryLabel
+        button.addTarget(self, action: #selector(settingTapped), for: .touchUpInside)
+        return button
+    }()
+    
     private lazy var closeButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
@@ -163,6 +190,7 @@ final class HierarchyInfoView: UIView {
     
     private lazy var rulerRow = HierarchyInfoRowView(key: "Position:")
     private lazy var nameRow = HierarchyInfoRowView(key: "Name:")
+    private lazy var pixelColorRow = HierarchyInfoRowView(key: "Pixel:")
     private lazy var frameRow = HierarchyInfoRowView(key: "Frame:")
     private lazy var backgroundColorRow = HierarchyInfoRowView(key: "Background:")
     private lazy var textColorRow = HierarchyInfoRowView(key: "Text Color:")
@@ -200,7 +228,7 @@ final class HierarchyInfoView: UIView {
 
 // MARK: -
 
-/// 单行
+/// 单行。值不为空时可以点一下复制走。
 private final class HierarchyInfoRowView: UIView {
     
     var value: String? {
@@ -230,6 +258,10 @@ private final class HierarchyInfoRowView: UIView {
         keyLabel.setContentHuggingPriority(.required, for: .horizontal)
         keyLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         
+        // 点击反馈用的底色要跟面板的圆角呼应
+        layer.cornerRadius = 4.0
+        
+        addGestureRecognizer(tapGesture)
         addSubview(stacks)
         
         [stacks].forEach({
@@ -251,6 +283,30 @@ private final class HierarchyInfoRowView: UIView {
         stacks.spacing = 4.0
         return stacks
     }()
+    
+    // MARK: - Actions
+    
+    /// 点一下把这一行的值复制走。
+    ///
+    /// 面板里都是「看见了就要用」的短值——类名、hex、坐标、tag。此前只能照着抄一遍，
+    /// 而在浮层上长按选中这条路本身也不好走。反馈就地做：闪一下底色，
+    /// 免得为一个「复制成功」再去引一套 toast。
+    @objc private func handleTap() {
+        guard let text = valueLabel.text, !text.isEmpty else { return }
+        
+        UIPasteboard.general.string = text
+        
+        backgroundColor = .clear
+        UIView.animate(withDuration: 0.12) {
+            self.backgroundColor = .tertiarySystemFill
+        } completion: { _ in
+            UIView.animate(withDuration: 0.22) {
+                self.backgroundColor = .clear
+            }
+        }
+    }
+    
+    private lazy var tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
     
     private lazy var keyLabel: UILabel = {
         let label = UILabel()

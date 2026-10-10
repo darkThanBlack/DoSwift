@@ -21,6 +21,18 @@ final class DoSwiftMenuNavigationBar: UIView {
     /// 关闭按钮回调
     var onClose: (() -> Void)?
 
+    // MARK: - Metrics
+
+    /// 固定高度，不随内容滚动
+    private static let barHeight: CGFloat = 44
+    private static let closeButtonSize: CGFloat = 32
+    private static let closeButtonSymbolSize: CGFloat = 13
+
+    /// 高度自己回答；宽度由面板铺满
+    override func sizeThatFits(_ size: CGSize) -> CGSize {
+        return CGSize(width: size.width, height: DoSwiftMenuNavigationBar.barHeight)
+    }
+
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "DoSwift"
@@ -33,7 +45,7 @@ final class DoSwiftMenuNavigationBar: UIView {
         let button = UIButton(type: .system)
         // 不指定配置的话，符号会按按钮默认字号（约 17pt）渲染，在这个窄面板里太重
         let symbol = UIImage.SymbolConfiguration(
-            pointSize: DoSwiftMenuMetrics.closeButtonSymbolSize,
+            pointSize: DoSwiftMenuNavigationBar.closeButtonSymbolSize,
             weight: .medium
         )
         button.setImage(UIImage(systemName: "xmark", withConfiguration: symbol), for: .normal)
@@ -63,10 +75,11 @@ final class DoSwiftMenuNavigationBar: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let inset = DoSwiftMenuMetrics.horizontalPadding
+        // 与 DoSwiftMenuPanel 的 horizontalPadding 必须一致——三者左边缘要对齐
+        let inset: CGFloat = 12
         hairline.frame = CGRect(x: 0, y: bounds.height - 0.5, width: bounds.width, height: 0.5)
 
-        let buttonSize = DoSwiftMenuMetrics.closeButtonSize
+        let buttonSize = DoSwiftMenuNavigationBar.closeButtonSize
         closeButton.frame = CGRect(
             x: bounds.width - inset - buttonSize,
             y: (bounds.height - buttonSize) / 2,
