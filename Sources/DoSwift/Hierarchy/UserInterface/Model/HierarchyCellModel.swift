@@ -20,6 +20,12 @@ class HierarchyCellModel {
     /// 分隔线内边距
     var separatorInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
 
+    /// 编辑入口。由引擎在构造这一行时挂上，**nil 就是只读行**。
+    ///
+    /// 挂的条件在引擎里：JSON 的 `userEditable` 允许，且这一期实现了对应的编辑器。
+    /// 所以「哪些行能改」这件事在这里只是一个 Bool，两边都不用再问一次。
+    var edit: HierarchyEditDescriptor?
+
     init(title: String?, detailTitle: String?) {
         self.title = title
         self.detailTitle = detailTitle

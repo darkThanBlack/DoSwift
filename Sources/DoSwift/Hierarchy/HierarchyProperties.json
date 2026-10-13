@@ -22,13 +22,13 @@
       ],
       "overrides": {
         "class": {
-          "editor": "className"
+          "userEditable": false
         },
         "address": {
-          "editor": "address"
+          "userEditable": false
         },
         "description": {
-          "editor": "readonly"
+          "userEditable": false
         }
       }
     },
@@ -56,28 +56,32 @@
       ],
       "overrides": {
         "layer.description": {
-          "editor": "readonly"
+          "userEditable": false
         },
         "layer.class": {
-          "editor": "layerClass"
+          "userEditable": false
         },
         "contentMode": {
           "enumType": "viewContentMode"
         },
         "traitCollection": {
-          "editor": "readonly"
+          "userEditable": false
         },
         "traitCollection.userInterfaceStyle": {
-          "enumType": "userInterfaceStyle"
+          "enumType": "userInterfaceStyle",
+          "userEditable": false
         },
         "traitCollection.verticalSizeClass": {
-          "enumType": "userInterfaceSizeClass"
+          "enumType": "userInterfaceSizeClass",
+          "userEditable": false
         },
         "traitCollection.horizontalSizeClass": {
-          "enumType": "userInterfaceSizeClass"
+          "enumType": "userInterfaceSizeClass",
+          "userEditable": false
         },
         "traitCollection.layoutDirection": {
-          "enumType": "traitEnvironmentLayoutDirection"
+          "enumType": "traitEnvironmentLayoutDirection",
+          "userEditable": false
         }
       }
     },
@@ -99,6 +103,9 @@
         "shadowOffset"
       ],
       "overrides": {
+        "attributedText": {
+          "userEditable": false
+        },
         "textAlignment": {
           "enumType": "textAlignment"
         },
@@ -148,10 +155,27 @@
       ],
       "overrides": {
         "buttonType": {
-          "enumType": "buttonType"
+          "enumType": "buttonType",
+          "userEditable": false
         },
         "state": {
-          "enumType": "controlState"
+          "enumType": "controlState",
+          "userEditable": false
+        },
+        "currentTitle": {
+          "userEditable": false
+        },
+        "currentAttributedTitle": {
+          "userEditable": false
+        },
+        "currentTitleColor": {
+          "userEditable": false
+        },
+        "currentTitleShadowColor": {
+          "userEditable": false
+        },
+        "currentImage": {
+          "userEditable": false
         },
         "lineBreakMode": {
           "enumType": "lineBreakMode"
@@ -163,7 +187,15 @@
         "image",
         "highlightedImage",
         "isHighlighted"
-      ]
+      ],
+      "overrides": {
+        "image": {
+          "userEditable": false
+        },
+        "highlightedImage": {
+          "userEditable": false
+        }
+      }
     },
     "UITextField": {
       "properties": [
@@ -191,10 +223,16 @@
       ],
       "overrides": {
         "attributedText": {
-          "editor": "readonly"
+          "userEditable": false
         },
         "textAlignment": {
           "enumType": "textAlignment"
+        },
+        "background": {
+          "userEditable": false
+        },
+        "disabledBackground": {
+          "userEditable": false
         },
         "borderStyle": {
           "enumType": "textBorderStyle"
@@ -230,7 +268,15 @@
         "maximumTrackTintColor",
         "thumbTintColor",
         "isContinuous"
-      ]
+      ],
+      "overrides": {
+        "minimumValueImage": {
+          "userEditable": false
+        },
+        "maximumValueImage": {
+          "userEditable": false
+        }
+      }
     },
     "UISwitch": {
       "properties": [
@@ -249,6 +295,9 @@
       "overrides": {
         "activityIndicatorViewStyle": {
           "enumType": "activityIndicatorViewStyle"
+        },
+        "isAnimating": {
+          "userEditable": false
         }
       }
     },
@@ -264,6 +313,12 @@
       "overrides": {
         "progressViewStyle": {
           "enumType": "progressViewStyle"
+        },
+        "progressImage": {
+          "userEditable": false
+        },
+        "trackImage": {
+          "userEditable": false
         }
       }
     },
@@ -331,10 +386,11 @@
       ],
       "overrides": {
         "numberOfSections": {
-          "editor": "readonly"
+          "userEditable": false
         },
         "style": {
-          "enumType": "tableViewStyle"
+          "enumType": "tableViewStyle",
+          "userEditable": false
         },
         "separatorStyle": {
           "enumType": "tableViewCellSeparatorStyle"
@@ -355,7 +411,7 @@
       ],
       "overrides": {
         "reuseIdentifier": {
-          "editor": "readonly"
+          "userEditable": false
         },
         "selectionStyle": {
           "enumType": "tableViewCellSelectionStyle"
@@ -375,17 +431,22 @@
       ],
       "overrides": {
         "numberOfSections": {
-          "editor": "readonly"
+          "userEditable": false
         },
         "collectionViewLayout": {
-          "editor": "readonly"
+          "userEditable": false
         }
       }
     },
     "UICollectionReusableView": {
       "properties": [
         "reuseIdentifier"
-      ]
+      ],
+      "overrides": {
+        "reuseIdentifier": {
+          "userEditable": false
+        }
+      }
     },
     "UITextView": {
       "properties": [
@@ -407,7 +468,7 @@
       ],
       "overrides": {
         "attributedText": {
-          "editor": "readonly"
+          "userEditable": false
         },
         "textAlignment": {
           "enumType": "textAlignment"
@@ -441,6 +502,9 @@
       "overrides": {
         "datePickerMode": {
           "enumType": "datePickerMode"
+        },
+        "countDownDuration": {
+          "userEditable": false
         }
       }
     },
@@ -450,7 +514,7 @@
       ],
       "overrides": {
         "delegate": {
-          "editor": "readonly"
+          "userEditable": false
         }
       }
     },
@@ -538,8 +602,11 @@
         "rootViewController"
       ],
       "overrides": {
+        "isKeyWindow": {
+          "userEditable": false
+        },
         "rootViewController": {
-          "editor": "readonly"
+          "userEditable": false
         }
       }
     },
@@ -552,7 +619,7 @@
       ],
       "overrides": {
         "numberOfSegments": {
-          "editor": "readonly"
+          "userEditable": false
         }
       }
     }
