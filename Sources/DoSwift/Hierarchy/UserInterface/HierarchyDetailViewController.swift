@@ -31,11 +31,10 @@ class HierarchyDetailViewController: SectionTableViewController {
     private func loadData() {
         guard let view = selectView else { return }
 
-        // 尺寸组在前、属性组在后，**不再分页**：读一个 view 的顺序本来就是
+        // 置顶段在前、类段在后，**不再分页**：读一个 view 的顺序本来就是
         // 「多大、在哪」→「是什么」，切成两页只会让人来回切。
-        // 组标题由 JSON 里的分组名给出，两段天然分得清。
-        let models = HierarchyPropertyEngine.shared.sizeCategoryModels(for: view)
-            + HierarchyPropertyEngine.shared.categoryModels(for: view)
+        // 段标题不由这里决定：置顶段取 JSON 的键名，类段由引擎从类名派生。
+        let models = HierarchyPropertyEngine.shared.categoryModels(for: view)
 
         sections = models.map { model in
             Section(title: model.title, rows: model.items.map { item in
