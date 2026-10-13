@@ -105,6 +105,9 @@ public class DoSwiftCore {
                 if item.identifier == "ui_hierarchy" {
                     item.actionHandler = { [weak self] _ in self?.showUIHierarchy() }
                 }
+                if item.identifier == "user_defaults" {
+                    item.actionHandler = { _ in UserDefaultsPlugin.shared.show() }
+                }
             }
         }
     }

@@ -34,6 +34,14 @@ final class SelectorCell: UITableViewCell, SectionCell {
     /// 事件出口。谁持有这张表谁就是代理，由 `SectionTableViewController` 接上。
     weak var sectionDelegate: SectionCellDelegate?
 
+    /// 副标题最多显示几行。0 = 不限。
+    ///
+    /// 默认不限：配置页那种一句说明常常要写满一行。要「单行摘要 + 下钻看全文」的列表
+    /// （UserDefaults 浏览器）在调用点显式传 1。
+    var detailNumberOfLines: Int = 0 {
+        didSet { detailLabel.numberOfLines = detailNumberOfLines }
+    }
+
     // MARK: - Update
 
     /// 数据源入口

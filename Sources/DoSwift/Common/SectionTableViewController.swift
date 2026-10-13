@@ -87,7 +87,10 @@ class SectionTableViewController: UIViewController, SectionCellDelegate {
     // MARK: - Views
 
     lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .grouped)
+        // .insetGrouped：分组卡片（白底 + 圆角 + 内缩）是**系统画的**，一个词换掉整页观感
+        // （`UITableView.h:27`：grouped sections are inset with rounded corners，iOS 13 起）。
+        // 卡片内缩之后，cell 内容与分隔线都改成相对卡片定位，下面那两处 16 仍然互相对齐。
+        let tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.dataSource = self
         tableView.delegate = self
 
@@ -166,12 +169,16 @@ class SectionTableViewController: UIViewController, SectionCellDelegate {
     func sectionCellDidTrigger(_ cell: UITableViewCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
 
-        // 没有 `didSelectRowAt`，系统的选中就没人收尾了：异步让它灭掉，
-        // 时序与系统一致（先亮后灭），也不会把 `onTrigger` 里要弹出的界面盖住。
-        // 下标在执行时才重算：`onTrigger` 里可能已经刷过表，捕获旧下标没有意义。
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self, let indexPath = self.tableView.indexPath(for: cell) else { return }
-            self.tableView.deselectRow(at: indexPath, animated: true)
+        // 编辑态里高亮**就是**「已选中」，收掉它等于把多选废掉（`deselectRow` 会一并
+        // 把这一行从 `indexPathsForSelectedRows` 里摘掉）——所以那一档交给系统。
+        if !tableView.isEditing {
+            // 没有 `didSelectRowAt`，系统的选中就没人收尾了：异步让它灭掉，
+            // 时序与系统一致（先亮后灭），也不会把 `onTrigger` 里要弹出的界面盖住。
+            // 下标在执行时才重算：`onTrigger` 里可能已经刷过表，捕获旧下标没有意义。
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self, let indexPath = self.tableView.indexPath(for: cell) else { return }
+                self.tableView.deselectRow(at: indexPath, animated: true)
+            }
         }
 
         sections[indexPath.section].rows[indexPath.row].trigger(cell)
