@@ -52,19 +52,4 @@ extension UIViewController {
             self.present(alert, animated: true)
         }
     }
-
-    /// 弹出文本输入框
-    func hierarchy_showTextFieldAlert(message: String, text: String?, handler: ((String?) -> Void)?) {
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        alert.addTextField { textField in
-            textField.text = text
-        }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Confirm", style: .destructive) { _ in
-            handler?(alert.textFields?.first?.text)
-        })
-        DispatchQueue.main.async {
-            self.present(alert, animated: true)
-        }
-    }
 }

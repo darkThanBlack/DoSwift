@@ -100,13 +100,16 @@ public class DoSwiftCore {
         for group in menuGroups {
             for item in group.items where item.actionHandler == nil {
                 if item.identifier == "app_info" {
-                    item.actionHandler = { [weak self] _ in self?.showAppInfo() }
+                    item.actionHandler = { _ in AppInfoPlugin.shared.show() }
                 }
                 if item.identifier == "ui_hierarchy" {
                     item.actionHandler = { [weak self] _ in self?.showUIHierarchy() }
                 }
                 if item.identifier == "user_defaults" {
                     item.actionHandler = { _ in UserDefaultsPlugin.shared.show() }
+                }
+                if item.identifier == "nslog" {
+                    item.actionHandler = { _ in ConsolePlugin.shared.show() }
                 }
             }
         }
@@ -170,38 +173,4 @@ public class DoSwiftCore {
         HierarchyPlugin.shared.show()
     }
     
-    private func showAppInfo() {
-        let alertController = UIAlertController(
-            title: "应用信息",
-            message: """
-            DoSwift v0.1.0
-            纯 Swift iOS 调试工具库
-            """,
-            preferredStyle: .alert
-        )
-
-        alertController.addAction(UIAlertAction(title: "确定", style: .default))
-
-        if let topController = topMostController() {
-            topController.present(alertController, animated: true)
-        }
-    }
-
-    /// 获取当前最顶层的控制器
-    private func topMostController() -> UIViewController? {
-        func recursion(_ vc: UIViewController?) -> UIViewController? {
-            if let nav = vc as? UINavigationController {
-                return recursion(nav.visibleViewController)
-            }
-            if let tab = vc as? UITabBarController {
-                return recursion(tab.selectedViewController)
-            }
-            if let presented = vc?.presentedViewController {
-                return recursion(presented)
-            }
-            return vc
-        }
-
-        return recursion(appWindow?.rootViewController) ?? recursion(window?.rootViewController)
-    }
 }

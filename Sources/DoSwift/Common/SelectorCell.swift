@@ -42,6 +42,14 @@ final class SelectorCell: UITableViewCell, SectionCell {
         didSet { detailLabel.numberOfLines = detailNumberOfLines }
     }
 
+    /// 主标题最多显示几行。0 = 不限。
+    ///
+    /// 与 `detailNumberOfLines` 对称。默认不限（配置页的标题都短）；日志那种
+    /// 「一行正文 + 下钻看全文」的列表在调用点显式传 1，行高才整齐。
+    var titleNumberOfLines: Int = 0 {
+        didSet { titleLabel.numberOfLines = titleNumberOfLines }
+    }
+
     // MARK: - Update
 
     /// 数据源入口

@@ -123,7 +123,7 @@ final class UserDefaultsViewController: SectionTableViewController {
     private func showDetail(_ item: UserDefaultsSnapshot.Item) {
         // 全文在**推页面这一步**才拼：列表是滚动时逐行拼一次（`summary` 已经绕开了
         // Data 那个大头），详情页则是用户明确要看的这一次
-        let detail = UserDefaultsDetailViewController(key: item.key, text: item.fullText)
+        let detail = PlainTextViewController(title: item.key, text: item.fullText)
         navigationController?.pushViewController(detail, animated: true)
     }
 

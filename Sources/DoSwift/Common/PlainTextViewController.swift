@@ -1,22 +1,25 @@
 //
-//  UserDefaultsDetailViewController.swift
+//  PlainTextViewController.swift
 //  DoSwift
 //
 
 import UIKit
 
-/// 一条 UserDefaults 的完整值。
+/// 一段纯文本的全屏阅读页。
 ///
-/// **纯文本**：把 `String(describing:)` 的结果原样铺进一个原生 `UITextView`。
-/// 不解析 Data / JSON，也不按类型换控件——要看的就是「这里面到底存了什么」。
-final class UserDefaultsDetailViewController: UIViewController {
+/// 从 `UserDefaultsDetailViewController` 提上来的：它当初就只是「把一段字符串铺进
+/// `UITextView`」，与 UserDefaults 毫无关系。控制台的「点一行看全文」要的是同一个东西
+/// ——一处通用能力，两个工具共用。
+///
+/// **纯文本**：不解析 JSON、不按类型换控件。要看的本来就是「它到底长什么样」。
+final class PlainTextViewController: UIViewController {
 
     private let text: String
 
-    init(key: String, text: String) {
+    init(title: String, text: String) {
         self.text = text
         super.init(nibName: nil, bundle: nil)
-        title = key
+        self.title = title
     }
 
     required init?(coder: NSCoder) {
@@ -32,7 +35,7 @@ final class UserDefaultsDetailViewController: UIViewController {
         textView.isEditable = false
         textView.isSelectable = true
 
-        // 等宽：Data、JSON 这类值对齐了才看得出结构
+        // 等宽：Data、JSON、日志里的对齐输出，等宽才看得出结构
         textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
         textView.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
         textView.alwaysBounceVertical = true

@@ -112,8 +112,10 @@ class SectionTableViewController: UIViewController, SectionCellDelegate {
             forHeaderFooterViewReuseIdentifier: String(describing: SectionFooterView.self)
         )
 
-        // 与 cell 内容的 16pt 左右留白对齐
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
+        // 不要分隔线：这里排的都是同质的多行内容，一条横线把每行都框起来，
+        // 扫读时反而多出几十条干扰；分组本身由卡片（`.insetGrouped`）和段间距交代，
+        // 行与行之间靠留白分开就够了
+        tableView.separatorStyle = .none
         return tableView
     }()
 

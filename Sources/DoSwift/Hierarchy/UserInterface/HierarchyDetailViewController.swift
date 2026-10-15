@@ -47,7 +47,7 @@ class HierarchyDetailViewController: SectionTableViewController {
     ///
     ///   只读          → `KeyValueCell`
     ///   可切换        → `ToggleCell`（开关拨动即写）
-    ///   点开编辑器    → `SelectorCell`（textarea / action sheet）
+    ///   点开编辑器    → `SelectorCell`（弹出编辑卡片）
     ///
     /// 三种 cell、每行的动作、事件回流这一整套在 `SectionTableViewController` 里已经就位，
     /// 这里只是选一下。
@@ -62,20 +62,18 @@ class HierarchyDetailViewController: SectionTableViewController {
             }
         }
 
-        switch edit.editor {
-        case "bool":
+        switch edit.kind {
+        case .bool(let isOn):
             return Row(
                 cellClass: ToggleCell.self,
                 onTrigger: { [weak self] cell in self?.writeToggle(edit, isOn: cell.isOn) }
             ) { cell in
                 // 开关自带状态，副标题仍旧显示字面值，两处对得上就说明写成功了
-                cell.update(title: item.title,
-                            detail: item.detailTitle,
-                            isOn: edit.currentValue as? Bool ?? false)
+                cell.update(title: item.title, detail: item.detailTitle, isOn: isOn)
                 cell.separatorInset = item.separatorInsets
             }
 
-        default:    // text / enum —— 都要点开一个编辑器
+        default:    // text / int / double / enum / color / font / date / 几何 —— 都要点开卡片
             return Row(
                 cellClass: SelectorCell.self,
                 onTrigger: { [weak self] _ in self?.presentEditor(edit) }
@@ -90,51 +88,33 @@ class HierarchyDetailViewController: SectionTableViewController {
 
     /// 开关拨动：直接写，不弹窗。
     ///
-    /// 写失败（没有 setter / 被布局改回）时重载这一行——把开关拨回**真实状态**。
-    /// 不重载的话开关会停在用户拨到的位置，而属性其实没变，那是假象。
+    /// 写完**一律重读**这张表。重读就是校验：写没写进去、被布局弹没弹回，
+    /// 那一行自己会显示真实值 —— 比在引擎里回读再对一遍更准。不重读的话，
+    /// 开关会停在用户拨到的位置，而属性其实没变，那是假象。
     private func writeToggle(_ edit: HierarchyEditDescriptor, isOn: Bool) {
         guard let view = selectView else { return }
-        if !HierarchyPropertyEngine.shared.write(NSNumber(value: isOn), forKey: edit.key, to: view) {
-            loadData()
-        }
+        HierarchyPropertyEngine.shared.write(.bool(isOn), forKey: edit.key, to: view)
+        loadData()
     }
 
-    /// 点开编辑器：text 走输入框，enum 走 action sheet（带当前项勾选）。
+    /// 点开编辑器。
+    ///
+    /// 外壳、进场、键盘、取消/完成那一整套都在 `HierarchyEditorCard` 里，和类型无关；
+    /// 这里只做两件事：**按 `kind` 造一块输入区**，以及**写完之后刷新列表**。
+    ///
+    /// 之前那个 `switch edit.kind`（text 走 alert、enum 走 action sheet、其余默认什么都不做）
+    /// 就是卡片要替掉的东西 —— 十种类型能编辑，它只认两种。
     private func presentEditor(_ edit: HierarchyEditDescriptor) {
-        guard let view = selectView else { return }
+        guard let view = selectView,
+              let input = HierarchyValueInputFactory.make(for: edit.kind) else { return }
 
-        switch edit.editor {
-        case "text":
-            hierarchy_showTextFieldAlert(message: edit.key, text: edit.currentValue as? String) { [weak self] text in
-                guard let self = self, let text = text else { return }
-                if HierarchyPropertyEngine.shared.write(text, forKey: edit.key, to: view) {
-                    self.loadData()
-                }
-            }
-
-        case "enum":
-            let enumType = edit.enumType ?? ""
-            let options = HierarchyPropertyEngine.shared.enumOptions(
-                for: enumType,
-                currentRawValue: edit.currentValue as? Int ?? 0
-            )
-            guard !options.names.isEmpty else { return }
-
-            hierarchy_showActionSheet(
-                title: edit.key,
-                actions: options.names,
-                currentAction: options.currentIndex.map { options.names[$0] }
-            ) { [weak self] index in
-                guard let self = self,
-                      let rawValue = HierarchyPropertyEngine.shared.enumValue(for: enumType, at: index),
-                      HierarchyPropertyEngine.shared.write(NSNumber(value: rawValue), forKey: edit.key, to: view)
-                else { return }
-                self.loadData()
-            }
-
-        default:
-            break
+        let card = HierarchyEditorCard(key: edit.key, kind: edit.kind, input: input) { [weak self] value in
+            HierarchyPropertyEngine.shared.write(value, forKey: edit.key, to: view)
+            // 写完重读：那一行自己会显示真实值，这就是写入的验证
+            self?.loadData()
         }
+        // 转场由 `BasePresentFitViewController` + `PresentAnimation` 提供，
+        // 所以这里是普通的 `animated: true`
+        present(card, animated: true)
     }
-
 }

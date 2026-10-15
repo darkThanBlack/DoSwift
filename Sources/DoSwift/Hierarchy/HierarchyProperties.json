@@ -62,25 +62,25 @@
           "userEditable": false
         },
         "contentMode": {
-          "enumType": "viewContentMode"
+          "enumType": "UIViewContentMode"
         },
         "traitCollection": {
           "userEditable": false
         },
         "traitCollection.userInterfaceStyle": {
-          "enumType": "userInterfaceStyle",
+          "enumType": "UIUserInterfaceStyle",
           "userEditable": false
         },
         "traitCollection.verticalSizeClass": {
-          "enumType": "userInterfaceSizeClass",
+          "enumType": "UIUserInterfaceSizeClass",
           "userEditable": false
         },
         "traitCollection.horizontalSizeClass": {
-          "enumType": "userInterfaceSizeClass",
+          "enumType": "UIUserInterfaceSizeClass",
           "userEditable": false
         },
         "traitCollection.layoutDirection": {
-          "enumType": "traitEnvironmentLayoutDirection",
+          "enumType": "UITraitEnvironmentLayoutDirection",
           "userEditable": false
         }
       }
@@ -107,13 +107,13 @@
           "userEditable": false
         },
         "textAlignment": {
-          "enumType": "textAlignment"
+          "enumType": "NSTextAlignment"
         },
         "baselineAdjustment": {
-          "enumType": "baselineAdjustment"
+          "enumType": "UIBaselineAdjustment"
         },
         "lineBreakMode": {
-          "enumType": "lineBreakMode"
+          "enumType": "NSLineBreakMode"
         }
       }
     },
@@ -127,10 +127,10 @@
       ],
       "overrides": {
         "contentHorizontalAlignment": {
-          "enumType": "controlContentHorizontalAlignment"
+          "enumType": "UIControlContentHorizontalAlignment"
         },
         "contentVerticalAlignment": {
-          "enumType": "controlContentVerticalAlignment"
+          "enumType": "UIControlContentVerticalAlignment"
         }
       }
     },
@@ -155,11 +155,11 @@
       ],
       "overrides": {
         "buttonType": {
-          "enumType": "buttonType",
+          "enumType": "UIButtonType",
           "userEditable": false
         },
         "state": {
-          "enumType": "controlState",
+          "enumType": "UIControlState",
           "userEditable": false
         },
         "currentTitle": {
@@ -178,7 +178,7 @@
           "userEditable": false
         },
         "lineBreakMode": {
-          "enumType": "lineBreakMode"
+          "enumType": "NSLineBreakMode"
         }
       }
     },
@@ -226,7 +226,7 @@
           "userEditable": false
         },
         "textAlignment": {
-          "enumType": "textAlignment"
+          "enumType": "NSTextAlignment"
         },
         "background": {
           "userEditable": false
@@ -235,25 +235,25 @@
           "userEditable": false
         },
         "borderStyle": {
-          "enumType": "textBorderStyle"
+          "enumType": "UITextBorderStyle"
         },
         "clearButtonMode": {
-          "enumType": "textFieldViewMode"
+          "enumType": "UITextFieldViewMode"
         },
         "autocapitalizationType": {
-          "enumType": "textAutocapitalizationType"
+          "enumType": "UITextAutocapitalizationType"
         },
         "autocorrectionType": {
-          "enumType": "textAutocorrectionType"
+          "enumType": "UITextAutocorrectionType"
         },
         "keyboardType": {
-          "enumType": "keyboardType"
+          "enumType": "UIKeyboardType"
         },
         "keyboardAppearance": {
-          "enumType": "keyboardAppearance"
+          "enumType": "UIKeyboardAppearance"
         },
         "returnKeyType": {
-          "enumType": "returnKeyType"
+          "enumType": "UIReturnKeyType"
         }
       }
     },
@@ -294,7 +294,7 @@
       ],
       "overrides": {
         "activityIndicatorViewStyle": {
-          "enumType": "activityIndicatorViewStyle"
+          "enumType": "UIActivityIndicatorViewStyle"
         },
         "isAnimating": {
           "userEditable": false
@@ -312,7 +312,7 @@
       ],
       "overrides": {
         "progressViewStyle": {
-          "enumType": "progressViewStyle"
+          "enumType": "UIProgressViewStyle"
         },
         "progressImage": {
           "userEditable": false
@@ -361,10 +361,10 @@
       ],
       "overrides": {
         "indicatorStyle": {
-          "enumType": "scrollViewIndicatorStyle"
+          "enumType": "UIScrollViewIndicatorStyle"
         },
         "keyboardDismissMode": {
-          "enumType": "scrollViewKeyboardDismissMode"
+          "enumType": "UIScrollViewKeyboardDismissMode"
         }
       }
     },
@@ -389,11 +389,11 @@
           "userEditable": false
         },
         "style": {
-          "enumType": "tableViewStyle",
+          "enumType": "UITableViewStyle",
           "userEditable": false
         },
         "separatorStyle": {
-          "enumType": "tableViewCellSeparatorStyle"
+          "enumType": "UITableViewCellSeparatorStyle"
         }
       }
     },
@@ -414,13 +414,13 @@
           "userEditable": false
         },
         "selectionStyle": {
-          "enumType": "tableViewCellSelectionStyle"
+          "enumType": "UITableViewCellSelectionStyle"
         },
         "accessoryType": {
-          "enumType": "tableViewCellAccessoryType"
+          "enumType": "UITableViewCellAccessoryType"
         },
         "editingAccessoryType": {
-          "enumType": "tableViewCellAccessoryType"
+          "enumType": "UITableViewCellAccessoryType"
         }
       }
     },
@@ -471,22 +471,22 @@
           "userEditable": false
         },
         "textAlignment": {
-          "enumType": "textAlignment"
+          "enumType": "NSTextAlignment"
         },
         "autocapitalizationType": {
-          "enumType": "textAutocapitalizationType"
+          "enumType": "UITextAutocapitalizationType"
         },
         "autocorrectionType": {
-          "enumType": "textAutocorrectionType"
+          "enumType": "UITextAutocorrectionType"
         },
         "keyboardType": {
-          "enumType": "keyboardType"
+          "enumType": "UIKeyboardType"
         },
         "keyboardAppearance": {
-          "enumType": "keyboardAppearance"
+          "enumType": "UIKeyboardAppearance"
         },
         "returnKeyType": {
-          "enumType": "returnKeyType"
+          "enumType": "UIReturnKeyType"
         }
       }
     },
@@ -501,7 +501,7 @@
       ],
       "overrides": {
         "datePickerMode": {
-          "enumType": "datePickerMode"
+          "enumType": "UIDatePickerMode"
         },
         "countDownDuration": {
           "userEditable": false
@@ -527,7 +527,7 @@
       ],
       "overrides": {
         "barStyle": {
-          "enumType": "barStyle"
+          "enumType": "UIBarStyle"
         }
       }
     },
@@ -539,7 +539,7 @@
       ],
       "overrides": {
         "barStyle": {
-          "enumType": "barStyle"
+          "enumType": "UIBarStyle"
         }
       }
     },
@@ -554,10 +554,10 @@
       ],
       "overrides": {
         "barStyle": {
-          "enumType": "barStyle"
+          "enumType": "UIBarStyle"
         },
         "itemPositioning": {
-          "enumType": "tabBarItemPositioning"
+          "enumType": "UITabBarItemPositioning"
         }
       }
     },
@@ -580,19 +580,19 @@
       ],
       "overrides": {
         "searchBarStyle": {
-          "enumType": "searchBarStyle"
+          "enumType": "UISearchBarStyle"
         },
         "barStyle": {
-          "enumType": "barStyle"
+          "enumType": "UIBarStyle"
         },
         "autocapitalizationType": {
-          "enumType": "textAutocapitalizationType"
+          "enumType": "UITextAutocapitalizationType"
         },
         "autocorrectionType": {
-          "enumType": "textAutocorrectionType"
+          "enumType": "UITextAutocorrectionType"
         },
         "keyboardType": {
-          "enumType": "keyboardType"
+          "enumType": "UIKeyboardType"
         }
       }
     },
@@ -625,629 +625,211 @@
     }
   },
   "enums": {
-    "viewContentMode": [
-      {
-        "value": 0,
-        "name": "Scale To Fill"
-      },
-      {
-        "value": 1,
-        "name": "Scale Aspect Fit"
-      },
-      {
-        "value": 2,
-        "name": "Scale Aspect Fill"
-      },
-      {
-        "value": 3,
-        "name": "Redraw"
-      },
-      {
-        "value": 4,
-        "name": "Center"
-      },
-      {
-        "value": 5,
-        "name": "Top"
-      },
-      {
-        "value": 6,
-        "name": "Bottom"
-      },
-      {
-        "value": 7,
-        "name": "Left"
-      },
-      {
-        "value": 8,
-        "name": "Right"
-      },
-      {
-        "value": 9,
-        "name": "Top Left"
-      },
-      {
-        "value": 10,
-        "name": "Top Right"
-      },
-      {
-        "value": 11,
-        "name": "Bottom Left"
-      },
-      {
-        "value": 12,
-        "name": "Bottom Right"
-      }
-    ],
-    "textAlignment": [
-      {
-        "value": 0,
-        "name": "Left"
-      },
-      {
-        "value": 1,
-        "name": "Center"
-      },
-      {
-        "value": 2,
-        "name": "Right"
-      },
-      {
-        "value": 3,
-        "name": "Justified"
-      },
-      {
-        "value": 4,
-        "name": "Natural"
-      }
-    ],
-    "lineBreakMode": [
-      {
-        "value": 0,
-        "name": "By Word Wrapping"
-      },
-      {
-        "value": 1,
-        "name": "By Char Wrapping"
-      },
-      {
-        "value": 2,
-        "name": "By Clipping"
-      },
-      {
-        "value": 3,
-        "name": "By Truncating Head"
-      },
-      {
-        "value": 4,
-        "name": "By Truncating Tail"
-      },
-      {
-        "value": 5,
-        "name": "By Truncating Middle"
-      }
-    ],
-    "baselineAdjustment": [
-      {
-        "value": 0,
-        "name": "Align Baselines"
-      },
-      {
-        "value": 1,
-        "name": "Align Centers"
-      },
-      {
-        "value": 2,
-        "name": "None"
-      }
-    ],
-    "controlContentHorizontalAlignment": [
-      {
-        "value": 0,
-        "name": "Center"
-      },
-      {
-        "value": 1,
-        "name": "Left"
-      },
-      {
-        "value": 2,
-        "name": "Right"
-      },
-      {
-        "value": 3,
-        "name": "Fill"
-      },
-      {
-        "value": 4,
-        "name": "Leading"
-      },
-      {
-        "value": 5,
-        "name": "Trailing"
-      }
-    ],
-    "controlContentVerticalAlignment": [
-      {
-        "value": 0,
-        "name": "Center"
-      },
-      {
-        "value": 1,
-        "name": "Top"
-      },
-      {
-        "value": 2,
-        "name": "Bottom"
-      },
-      {
-        "value": 3,
-        "name": "Fill"
-      }
-    ],
-    "buttonType": [
-      {
-        "value": 0,
-        "name": "Custom"
-      },
-      {
-        "value": 1,
-        "name": "System"
-      },
-      {
-        "value": 2,
-        "name": "Detail Disclosure"
-      },
-      {
-        "value": 3,
-        "name": "Info Light"
-      },
-      {
-        "value": 4,
-        "name": "Info Dark"
-      },
-      {
-        "value": 5,
-        "name": "Contact Add"
-      },
-      {
-        "value": 6,
-        "name": "Close"
-      }
-    ],
-    "controlState": [
-      {
-        "value": 0,
-        "name": "Normal"
-      },
-      {
-        "value": 1,
-        "name": "Highlighted"
-      },
-      {
-        "value": 2,
-        "name": "Disabled"
-      },
-      {
-        "value": 3,
-        "name": "Selected"
-      },
-      {
-        "value": 4,
-        "name": "Focused"
-      },
-      {
-        "value": 5,
-        "name": "Application"
-      },
-      {
-        "value": 6,
-        "name": "Reserved"
-      }
-    ],
-    "textBorderStyle": [
-      {
-        "value": 0,
-        "name": "None"
-      },
-      {
-        "value": 1,
-        "name": "Line"
-      },
-      {
-        "value": 2,
-        "name": "Bezel"
-      },
-      {
-        "value": 3,
-        "name": "Rounded Rect"
-      }
-    ],
-    "textFieldViewMode": [
-      {
-        "value": 0,
-        "name": "Never"
-      },
-      {
-        "value": 1,
-        "name": "While Editing"
-      },
-      {
-        "value": 2,
-        "name": "Unless Editing"
-      },
-      {
-        "value": 3,
-        "name": "Always"
-      }
-    ],
-    "textAutocapitalizationType": [
-      {
-        "value": 0,
-        "name": "None"
-      },
-      {
-        "value": 1,
-        "name": "Words"
-      },
-      {
-        "value": 2,
-        "name": "Sentences"
-      },
-      {
-        "value": 3,
-        "name": "All Characters"
-      }
-    ],
-    "textAutocorrectionType": [
-      {
-        "value": 0,
-        "name": "Default"
-      },
-      {
-        "value": 1,
-        "name": "No"
-      },
-      {
-        "value": 2,
-        "name": "Yes"
-      }
-    ],
-    "keyboardType": [
-      {
-        "value": 0,
-        "name": "Default"
-      },
-      {
-        "value": 1,
-        "name": "ASCIICapable"
-      },
-      {
-        "value": 2,
-        "name": "Numbers and Punctuation"
-      },
-      {
-        "value": 3,
-        "name": "URL"
-      },
-      {
-        "value": 4,
-        "name": "Number Pad"
-      },
-      {
-        "value": 5,
-        "name": "Phone Pad"
-      },
-      {
-        "value": 6,
-        "name": "Name Phone Pad"
-      },
-      {
-        "value": 7,
-        "name": "Email Address"
-      },
-      {
-        "value": 8,
-        "name": "Decimal Pad"
-      },
-      {
-        "value": 9,
-        "name": "Twitter"
-      },
-      {
-        "value": 10,
-        "name": "Web Search"
-      },
-      {
-        "value": 11,
-        "name": "ASCIICapable Number Pad"
-      }
-    ],
-    "keyboardAppearance": [
-      {
-        "value": 0,
-        "name": "Default"
-      },
-      {
-        "value": 1,
-        "name": "Dark"
-      },
-      {
-        "value": 2,
-        "name": "Light"
-      }
-    ],
-    "returnKeyType": [
-      {
-        "value": 0,
-        "name": "Default"
-      },
-      {
-        "value": 1,
-        "name": "Go"
-      },
-      {
-        "value": 2,
-        "name": "Google"
-      },
-      {
-        "value": 3,
-        "name": "Join"
-      },
-      {
-        "value": 4,
-        "name": "Next"
-      },
-      {
-        "value": 5,
-        "name": "Route"
-      },
-      {
-        "value": 6,
-        "name": "Search"
-      },
-      {
-        "value": 7,
-        "name": "Send"
-      },
-      {
-        "value": 8,
-        "name": "Yahoo"
-      },
-      {
-        "value": 9,
-        "name": "Done"
-      },
-      {
-        "value": 10,
-        "name": "Emergency Call"
-      },
-      {
-        "value": 11,
-        "name": "Continue"
-      }
-    ],
-    "activityIndicatorViewStyle": [
-      {
-        "value": 0,
-        "name": "White Large"
-      },
-      {
-        "value": 1,
-        "name": "White"
-      },
-      {
-        "value": 100,
-        "name": "Medium (iOS 13+)"
-      },
-      {
-        "value": 101,
-        "name": "Large (iOS 13+)"
-      }
-    ],
-    "progressViewStyle": [
-      {
-        "value": 0,
-        "name": "Default"
-      },
-      {
-        "value": 1,
-        "name": "Bar"
-      }
-    ],
-    "scrollViewIndicatorStyle": [
-      {
-        "value": 0,
-        "name": "Default"
-      },
-      {
-        "value": 1,
-        "name": "Black"
-      },
-      {
-        "value": 2,
-        "name": "White"
-      }
-    ],
-    "scrollViewKeyboardDismissMode": [
-      {
-        "value": 0,
-        "name": "None"
-      },
-      {
-        "value": 1,
-        "name": "On Drag"
-      },
-      {
-        "value": 2,
-        "name": "Interactive"
-      }
-    ],
-    "tableViewStyle": [
-      {
-        "value": 0,
-        "name": "Plain"
-      },
-      {
-        "value": 1,
-        "name": "Grouped"
-      },
-      {
-        "value": 2,
-        "name": "Inset Grouped"
-      }
-    ],
-    "tableViewCellSeparatorStyle": [
-      {
-        "value": 0,
-        "name": "None"
-      },
-      {
-        "value": 1,
-        "name": "Single Line"
-      },
-      {
-        "value": 2,
-        "name": "Single Line Etched"
-      }
-    ],
-    "tableViewCellSelectionStyle": [
-      {
-        "value": 0,
-        "name": "None"
-      },
-      {
-        "value": 1,
-        "name": "Blue"
-      },
-      {
-        "value": 2,
-        "name": "Gray"
-      },
-      {
-        "value": 3,
-        "name": "Default"
-      }
-    ],
-    "tableViewCellAccessoryType": [
-      {
-        "value": 0,
-        "name": "None"
-      },
-      {
-        "value": 1,
-        "name": "Disclosure Indicator"
-      },
-      {
-        "value": 2,
-        "name": "Detail Disclosure Button"
-      },
-      {
-        "value": 3,
-        "name": "Checkmark"
-      },
-      {
-        "value": 4,
-        "name": "Detail Button"
-      }
-    ],
-    "datePickerMode": [
-      {
-        "value": 0,
-        "name": "Time"
-      },
-      {
-        "value": 1,
-        "name": "Date"
-      },
-      {
-        "value": 2,
-        "name": "Date and Time"
-      },
-      {
-        "value": 3,
-        "name": "Count Down Timer"
-      }
-    ],
-    "barStyle": [
-      {
-        "value": 0,
-        "name": "Default"
-      },
-      {
-        "value": 1,
-        "name": "Black"
-      }
-    ],
-    "searchBarStyle": [
-      {
-        "value": 0,
-        "name": "Default"
-      },
-      {
-        "value": 1,
-        "name": "Prominent"
-      },
-      {
-        "value": 2,
-        "name": "Minimal"
-      }
-    ],
-    "tabBarItemPositioning": [
-      {
-        "value": 0,
-        "name": "Automatic"
-      },
-      {
-        "value": 1,
-        "name": "Fill"
-      },
-      {
-        "value": 2,
-        "name": "Centered"
-      }
-    ],
-    "userInterfaceStyle": [
-      {
-        "value": 0,
-        "name": "Unspecified"
-      },
-      {
-        "value": 1,
-        "name": "Light"
-      },
-      {
-        "value": 2,
-        "name": "Dark"
-      }
-    ],
-    "userInterfaceSizeClass": [
-      {
-        "value": 0,
-        "name": "Unspecified"
-      },
-      {
-        "value": 1,
-        "name": "Compact"
-      },
-      {
-        "value": 2,
-        "name": "Regular"
-      }
-    ],
-    "traitEnvironmentLayoutDirection": [
-      {
-        "value": 0,
-        "name": "Unspecified"
-      },
-      {
-        "value": 1,
-        "name": "Left To Right"
-      },
-      {
-        "value": 2,
-        "name": "Right To Left"
-      }
-    ]
+    "UIViewContentMode": {
+      "0": "scaleToFill",
+      "1": "scaleAspectFit",
+      "2": "scaleAspectFill",
+      "3": "redraw",
+      "4": "center",
+      "5": "top",
+      "6": "bottom",
+      "7": "left",
+      "8": "right",
+      "9": "topLeft",
+      "10": "topRight",
+      "11": "bottomLeft",
+      "12": "bottomRight"
+    },
+    "NSTextAlignment": {
+      "0": "left",
+      "1": "center",
+      "2": "right",
+      "3": "justified",
+      "4": "natural"
+    },
+    "NSLineBreakMode": {
+      "0": "byWordWrapping",
+      "1": "byCharWrapping",
+      "2": "byClipping",
+      "3": "byTruncatingHead",
+      "4": "byTruncatingTail",
+      "5": "byTruncatingMiddle"
+    },
+    "UIBaselineAdjustment": {
+      "0": "alignBaselines",
+      "1": "alignCenters",
+      "2": "none"
+    },
+    "UIControlContentHorizontalAlignment": {
+      "0": "center",
+      "1": "left",
+      "2": "right",
+      "3": "fill",
+      "4": "leading",
+      "5": "trailing"
+    },
+    "UIControlContentVerticalAlignment": {
+      "0": "center",
+      "1": "top",
+      "2": "bottom",
+      "3": "fill"
+    },
+    "UIButtonType": {
+      "0": "custom",
+      "1": "system",
+      "2": "detailDisclosure",
+      "3": "infoLight",
+      "4": "infoDark",
+      "5": "contactAdd",
+      "7": "close"
+    },
+    "UIControlState": {
+      "0": "normal",
+      "1": "highlighted",
+      "2": "disabled",
+      "4": "selected",
+      "8": "focused",
+      "16711680": "application",
+      "4278190080": "reserved"
+    },
+    "UITextBorderStyle": {
+      "0": "none",
+      "1": "line",
+      "2": "bezel",
+      "3": "roundedRect"
+    },
+    "UITextFieldViewMode": {
+      "0": "never",
+      "1": "whileEditing",
+      "2": "unlessEditing",
+      "3": "always"
+    },
+    "UITextAutocapitalizationType": {
+      "0": "none",
+      "1": "words",
+      "2": "sentences",
+      "3": "allCharacters"
+    },
+    "UITextAutocorrectionType": {
+      "0": "default",
+      "1": "no",
+      "2": "yes"
+    },
+    "UIKeyboardType": {
+      "0": "default",
+      "1": "asciiCapable",
+      "2": "numbersAndPunctuation",
+      "3": "URL",
+      "4": "numberPad",
+      "5": "phonePad",
+      "6": "namePhonePad",
+      "7": "emailAddress",
+      "8": "decimalPad",
+      "9": "twitter",
+      "10": "webSearch",
+      "11": "asciiCapableNumberPad"
+    },
+    "UIKeyboardAppearance": {
+      "0": "default",
+      "1": "dark",
+      "2": "light"
+    },
+    "UIReturnKeyType": {
+      "0": "default",
+      "1": "go",
+      "2": "google",
+      "3": "join",
+      "4": "next",
+      "5": "route",
+      "6": "search",
+      "7": "send",
+      "8": "yahoo",
+      "9": "done",
+      "10": "emergencyCall",
+      "11": "continue"
+    },
+    "UIActivityIndicatorViewStyle": {
+      "0": "whiteLarge",
+      "1": "white",
+      "2": "gray",
+      "100": "medium",
+      "101": "large"
+    },
+    "UIProgressViewStyle": {
+      "0": "default",
+      "1": "bar"
+    },
+    "UIScrollViewIndicatorStyle": {
+      "0": "default",
+      "1": "black",
+      "2": "white"
+    },
+    "UIScrollViewKeyboardDismissMode": {
+      "0": "none",
+      "1": "onDrag",
+      "2": "interactive",
+      "3": "onDragWithAccessory",
+      "4": "interactiveWithAccessory"
+    },
+    "UITableViewStyle": {
+      "0": "plain",
+      "1": "grouped",
+      "2": "insetGrouped"
+    },
+    "UITableViewCellSeparatorStyle": {
+      "0": "none",
+      "1": "singleLine",
+      "2": "singleLineEtched"
+    },
+    "UITableViewCellSelectionStyle": {
+      "0": "none",
+      "1": "blue",
+      "2": "gray",
+      "3": "default"
+    },
+    "UITableViewCellAccessoryType": {
+      "0": "none",
+      "1": "disclosureIndicator",
+      "2": "detailDisclosureButton",
+      "3": "checkmark",
+      "4": "detailButton"
+    },
+    "UIDatePickerMode": {
+      "0": "time",
+      "1": "date",
+      "2": "dateAndTime",
+      "3": "countDownTimer",
+      "4": "yearAndMonth"
+    },
+    "UIBarStyle": {
+      "0": "default",
+      "1": "black",
+      "2": "blackTranslucent"
+    },
+    "UISearchBarStyle": {
+      "0": "default",
+      "1": "prominent",
+      "2": "minimal"
+    },
+    "UITabBarItemPositioning": {
+      "0": "automatic",
+      "1": "fill",
+      "2": "centered"
+    },
+    "UIUserInterfaceStyle": {
+      "0": "unspecified",
+      "1": "light",
+      "2": "dark"
+    },
+    "UIUserInterfaceSizeClass": {
+      "0": "unspecified",
+      "1": "compact",
+      "2": "regular"
+    },
+    "UITraitEnvironmentLayoutDirection": {
+      "-1": "unspecified",
+      "0": "leftToRight",
+      "1": "rightToLeft"
+    }
   }
 }

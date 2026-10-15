@@ -59,16 +59,111 @@ struct HierarchyPinnedGroup: Decodable {
     let properties: [String]
 }
 
-struct HierarchyEnumValue: Decodable {
+/// 折成有序表之后的一条。读取 / 写入 / 编辑都吃它。
+struct HierarchyEnumValue {
     let value: Int
     let name: String
+}
+
+/// 一个属性值的**类型 + 值本身**。
+///
+/// `probe(_:)` 从 KVC 拿到的 `Any` 判出它，此后渲染和回写都走它 —— 类型判定只做一次。
+///
+/// 为什么是枚举而不是 `Any` + 一堆 `as?`：上层 switch 它是**穷尽**的（编译器强制列全），
+/// 而字符串分派会被 `default` 悄悄吞掉（这个引擎原来就是这么写的）。
+enum ValueKind {
+    case bool(Bool)
+    case int(Int)
+    case double(Double)
+    case text(String)
+    case color(UIColor)
+    case font(UIFont)
+    case image(UIImage)
+    case date(Date)
+    case attributedText(NSAttributedString)
+    case frame(CGRect)
+    case point(CGPoint)
+    case size(CGSize)
+    case insets(UIEdgeInsets)
+    /// 裸 Int + 表名 + **已查好的文案**。
+    ///
+    /// 值在 KVC 边界上只剩裸 Int，**类型只能由 JSON 的 `enumType` 声明**——
+    /// 这是探针唯一猜不出来的情况（`int` 和枚举同形）。文案在 resolve 时查表得到，
+    /// 这样显示不必再回引擎拿表；表名留着给回写用。
+    case enumValue(raw: Int, table: String, name: String)
+    /// 探针不认识的值：原样 dump
+    case unknown(Any)
+
+    // MARK: 探针
+
+    /// 值 → 类型。
+    ///
+    /// **两条路**：对象靠 `is` 判类；标量和结构体靠 `objCType` 编码串 ——
+    /// 后者不能换成 `as?`，因为 KVC 把标量装箱成 `NSNumber`，`as? Bool` 是**值相关**的
+    /// （实测对 `CGFloat(1.0)` 返回 true、对 `Int(2)` 返回 nil）。
+    ///
+    /// 顺序要紧：`NSNumber` 必须排在 `NSValue` 之前（它是子类）。
+    static func probe(_ value: Any) -> ValueKind {
+        switch value {
+        case is UIColor: return .color(value as! UIColor)
+
+        case let number as NSNumber:
+            switch String(cString: number.objCType) {
+            case "c", "C", "B": return .bool(number.boolValue)
+            case "d", "f":      return .double(number.doubleValue)
+            default:            return .int(number.intValue)
+            }
+
+        case let box as NSValue:
+            // 取包含而非全等：结构体编码在 32/64 位、float/double 下写法不同
+            let encoding = String(cString: box.objCType)
+            if encoding.contains("CGRect")       { return .frame(box.cgRectValue) }
+            if encoding.contains("CGPoint")      { return .point(box.cgPointValue) }
+            if encoding.contains("CGSize")       { return .size(box.cgSizeValue) }
+            if encoding.contains("UIEdgeInsets") { return .insets(box.uiEdgeInsetsValue) }
+            return .unknown(value)
+
+        case is UIFont:              return .font(value as! UIFont)
+        case is UIImage:             return .image(value as! UIImage)
+        case is Date, is NSDate:     return .date(value as! Date)
+        case is NSAttributedString:  return .attributedText(value as! NSAttributedString)
+        case is String, is NSString: return .text(value as! String)
+
+        default:
+            return .unknown(value)
+        }
+    }
+
+    // MARK: 交给 KVC 写回的值
+
+    /// 写回时交给 KVC 的装箱值。形状由这个 case 自己决定 —— 读它的时候是什么类型，写回去就是什么类型。
+    var boxed: Any {
+        switch self {
+        case .bool(let v):   return NSNumber(value: v)
+        case .int(let v):    return NSNumber(value: v)
+        case .double(let v): return NSNumber(value: v)
+        case .text(let v):   return v
+        case .color(let v):  return v
+        case .font(let v):   return v
+        case .image(let v):  return v
+        case .date(let v):   return v
+        case .attributedText(let v): return v
+        case .frame(let v):  return NSValue(cgRect: v)
+        case .point(let v):  return NSValue(cgPoint: v)
+        case .size(let v):   return NSValue(cgSize: v)
+        case .insets(let v): return NSValue(uiEdgeInsets: v)
+        case .enumValue(let raw, _, _): return NSNumber(value: raw)
+        case .unknown(let v): return v
+        }
+    }
 }
 
 struct HierarchyPropertiesRoot: Decodable {
     /// 置顶段。整块删掉也能跑，删了就只剩按类链分的段。
     let pinned: [HierarchyPinnedGroup]?
     let types: [String: HierarchyTypeEntry]
-    let enums: [String: [HierarchyEnumValue]]
+    /// 表名 = UIKit 的类型名；值 = Swift 的 case 字面量。
+    let enums: [String: [String: String]]
 
     private enum CodingKeys: String, CodingKey {
         // 键名大小写不齐（`types`/`enums` 小写）是刻意的：这个键名同时就是段标题，
@@ -81,14 +176,12 @@ struct HierarchyPropertiesRoot: Decodable {
 
 /// 一行的编辑入口。挂在 `HierarchyCellModel.edit` 上，nil 就是只读行。
 struct HierarchyEditDescriptor {
-    /// 写回时用的 key（**Swift 名**；真正的 KVC 写键由 `kvcWriteKey` 在实例上探出来）
+    /// JSON 里的 key（**Swift 名**）
     let key: String
-    /// 用哪个编辑器。取值同渲染用的 editor：`bool` / `text` / `enum`
-    let editor: String
-    /// `editor == "enum"` 时给表名，选项从 `enumOptions(for:currentRawValue:)` 取
-    let enumType: String?
-    /// 当前值原样带着，供编辑器初始化：bool 读 `as? Bool`，enum 读 `as? Int` 当 rawValue
-    let currentValue: Any?
+    /// **类型 + 当前值**。UI 按它选编辑器，回写也按它比对 —— 中途不再猜类型。
+    let kind: ValueKind
+    /// 实例上探出来的 KVC 写键。能走到这里就必然非 nil（第三道闸门刚验过）
+    let writeKey: String
 }
 
 // MARK: - Engine
@@ -101,7 +194,7 @@ class HierarchyPropertyEngine {
     /// 枚举表，**有序**（顺序即 UI 顺序）。
     ///
     /// 一份数据同时伺候三个方向，不再另建派生索引：
-    ///   读取   rawValue → 文案      （`enumDescription`，扫表）
+    ///   读取   rawValue → 文案      （`enumName`，扫表）
     ///   写入   index    → rawValue  （`enumValue`）
     ///   编辑   [文案] + 当前下标    （`enumOptions`）
     private var enumTables: [String: [HierarchyEnumValue]] = [:]
@@ -114,17 +207,6 @@ class HierarchyPropertyEngine {
 
     /// 置顶段标题就是 JSON 的键名，不另设 title 字段
     private static let pinnedSectionTitle = "Pinned"
-
-    /// 段标题默认由类名派生（去 `UI` 前缀 + 驼峰拆词），只有这两处对不上
-    private static let sectionTitleOverrides: [String: String] = [
-        "NSObject": "Object",
-        "UIToolbar": "Tool Bar",
-    ]
-
-    /// 这一期实现了编辑器的 editor。**阶段闸门在代码里，不在 JSON 里** ——
-    /// 一行实际可编辑 = JSON 说 `userEditable` 且这里认这个 editor。
-    /// 往后每做一批编辑器就往这里加一个，JSON 一行都不用动。
-    private static let editableEditors: Set<String> = ["bool", "text", "enum"]
 
     /// 不读 KVC、靠自己合成的行。`editor` 字段删掉之后，它们只能按 key 认。
     private static let syntheticKeys: [String: String] = [
@@ -146,7 +228,15 @@ class HierarchyPropertyEngine {
             let data = try Data(contentsOf: url)
             let root = try JSONDecoder().decode(HierarchyPropertiesRoot.self, from: data)
             types = root.types
-            enumTables = root.enums
+            // 值就是 JSON 的 key，**显示顺序按值升序排**出来。
+            // JSON 对象的键序不可靠（`JSONSerialization` / `JSONDecoder` 都不保序），
+            // 所以顺序必须算，不能指望文件里的书写顺序。
+            enumTables = root.enums.mapValues { table -> [HierarchyEnumValue] in
+                table.compactMap { key, name in
+                    Int(key).map { HierarchyEnumValue(value: $0, name: name) }
+                }
+                .sorted { $0.value < $1.value }
+            }
             // `where` 顺带去了重 —— 同一个 key 在两处列出会渲染出两行，而没有任何东西会报错
             for group in root.pinned ?? [] {
                 for key in group.properties where !pinnedKeys.contains(key) {
@@ -191,7 +281,7 @@ class HierarchyPropertyEngine {
         let chain = classChain(view)
         var result: [HierarchyCategoryModel] = []
 
-        let pinnedRows = pinnedKeys.compactMap { cellModel(for: view, key: $0, compact: false, chain: chain) }
+        let pinnedRows = pinnedKeys.compactMap { cellModel(for: view, key: $0, chain: chain) }
         if !pinnedRows.isEmpty {
             result.append(HierarchyCategoryModel(title: Self.pinnedSectionTitle, items: pinnedRows))
         }
@@ -200,9 +290,10 @@ class HierarchyPropertyEngine {
             guard let entry = types[className] else { continue }
             let rows = entry.properties
                 .filter { !pinnedKeys.contains($0) }
-                .compactMap { cellModel(for: view, key: $0, compact: false, chain: chain) }
+                .compactMap { cellModel(for: view, key: $0, chain: chain) }
             if !rows.isEmpty {
-                result.append(HierarchyCategoryModel(title: sectionTitle(for: className), items: rows))
+                // 段标题就是类名本身，不翻译：`UIView` 比 "View" 更没有歧义
+                result.append(HierarchyCategoryModel(title: className, items: rows))
             }
         }
 
@@ -217,38 +308,38 @@ class HierarchyPropertyEngine {
     /// 取不到就返回 nil，这同时回答了两个问题：属性**不适用**（`textColor` 之于 UIView），
     /// 以及值**读不出来**（`backgroundColor` 为 nil）。调用方按「隐藏这一行」处理即可。
     ///
-    /// - Parameter compact: 用浮层所需的紧凑格式。详情页要完整信息，浮层只有一行宽，
-    ///   两处密度不同但都出自同一份 JSON —— 见 `compactEditors`。
-    func cellModel(for view: UIView, key: String, compact: Bool) -> HierarchyCellModel? {
-        return cellModel(for: view, key: key, compact: compact, chain: classChain(view))
+    func cellModel(for view: UIView, key: String) -> HierarchyCellModel? {
+        return cellModel(for: view, key: key, chain: classChain(view))
     }
 
     // MARK: - Key Resolution
 
-    /// 一个字段解析完的样子
+    /// 一个字段解析完的样子。**类型判定在这里做完，之后一路带着走。**
     private struct ResolvedProperty {
         let key: String
-        let editor: String
-        let enumType: String?
+        /// 合成行（`class` / `address` / `layer.class`）的构造方式；非合成行为 nil
+        let synthetic: String?
+        /// 值的类型 + 值本身。合成行没有值，这里是 nil
+        let kind: ValueKind?
         let desc: String?
-        /// 合成行（`class` / `address` / `layer.class`）不读值，这里是 nil
-        let value: Any?
-        /// 这一行给不给编辑器。编辑功能尚未实现，当前只是把数据带到位。
+        /// 这一行给不给编辑器（JSON 政策）
         let isUserEditable: Bool
     }
 
-    private func cellModel(for view: UIView, key: String, compact: Bool, chain: [String]) -> HierarchyCellModel? {
+    private func cellModel(for view: UIView, key: String, chain: [String]) -> HierarchyCellModel? {
         guard let resolved = resolve(key: key, view: view, chain: chain),
-              let model = makeCellModel(for: view, resolved: resolved, compact: compact)
+              let model = makeCellModel(for: view, resolved: resolved)
         else { return nil }
 
-        // 编辑入口只挂给**详情页**（浮层不是编辑器），且要过两道闸门：
-        // JSON 的 userEditable，以及这一期实现了编辑器没有。
-        if !compact, resolved.isUserEditable, Self.editableEditors.contains(resolved.editor) {
-            model.edit = HierarchyEditDescriptor(key: key,
-                                                 editor: resolved.editor,
-                                                 enumType: resolved.enumType,
-                                                 currentValue: resolved.value)
+        // 编辑入口三道闸门，缺一不可：
+        //   ① JSON 说 `userEditable`（政策：这一行**该不该**给编辑器）
+        //   ② `canEdit(kind)`   （阶段：这一期**做没做**这个类型的解析）
+        //   ③ 实例上真有 setter（技术：探测，不是声明）
+        // 第三道以前不存在，所以 22 行"只读 API"不得不写死在 JSON 里；现在它们可推。
+        // 浮层拿到的模型也带 `edit`，但它自己不读这个字段（浮层是只读的）。
+        if resolved.isUserEditable, let kind = resolved.kind,
+           canEdit(kind), let writeKey = kvcWriteKey(for: key, on: view) {
+            model.edit = HierarchyEditDescriptor(key: key, kind: kind, writeKey: writeKey)
         }
         return model
     }
@@ -274,196 +365,170 @@ class HierarchyPropertyEngine {
         let isUserEditable = override?.userEditable ?? true
 
         // 合成行不读 KVC：它们要的是类型名或地址，没有「值」可探
-        if let editor = Self.syntheticKeys[key] {
-            return ResolvedProperty(key: key, editor: editor, enumType: nil,
-                                    desc: override?.desc, value: nil, isUserEditable: isUserEditable)
+        if let synthetic = Self.syntheticKeys[key] {
+            return ResolvedProperty(key: key, synthetic: synthetic, kind: nil,
+                                    desc: override?.desc, isUserEditable: isUserEditable)
         }
 
         // 读不出值的字段直接不占行——`textColor` 之于 UIView、`backgroundColor` 为 nil
         guard let value = safeValue(forKeyPath: key, on: view) else { return nil }
 
-        // editor 只剩两条路：有枚举表名就是枚举，否则看值的形状
-        let editor = override?.enumType != nil ? "enum" : probe(value)
-
-        return ResolvedProperty(key: key, editor: editor, enumType: override?.enumType,
-                                desc: override?.desc, value: value, isUserEditable: isUserEditable)
-    }
-
-    /// 值 → editor。
-    ///
-    /// **`NSNumber` 必须排在 `NSValue` 之前**——它是 `NSValue` 的子类，反过来的话
-    /// 所有标量都会落进 NSValue 那支，而那里没有 `q` / `c` / `d` 的分支。
-    ///
-    /// 判布尔**不能用 `as? Bool`**：实测它对 `CGFloat(1.0)` 返回 true、对 `Int(0)` 返回 false，
-    /// 是值相关的，不是类型判断。`objCType` 才是可靠判据。
-    private func probe(_ value: Any) -> String {
-        switch value {
-        case is UIColor:
-            return "color"
-
-        case let number as NSNumber:
-            switch String(cString: number.objCType) {
-            case "c", "C", "B": return "bool"
-            case "d", "f":      return "double"
-            default:            return "int"
-            }
-
-        case let box as NSValue:
-            // 取包含而非全等：结构体编码在 32/64 位、float/double 下写法不同
-            let encoding = String(cString: box.objCType)
-            if encoding.contains("CGRect")       { return "frame" }
-            if encoding.contains("CGPoint")      { return "point" }
-            if encoding.contains("CGSize")       { return "size" }
-            if encoding.contains("UIEdgeInsets") { return "insets" }
-            return "readonly"
-
-        case is UIFont:              return "font"
-        case is UIImage:             return "image"
-        case is Date, is NSDate:     return "date"
-        case is NSAttributedString:  return "attributedTextStyle"
-        case is String, is NSString: return "text"
-
-        default:
-            return "readonly"
+        // 类型在这里定死。枚举由 JSON 声明（探针分不出它和 int），其余交给探针
+        let kind: ValueKind
+        if let table = override?.enumType {
+            let raw = (value as? Int) ?? (value as? NSNumber)?.intValue ?? 0
+            kind = .enumValue(raw: raw, table: table, name: enumName(table, raw))
+        } else {
+            kind = ValueKind.probe(value)
         }
-    }
 
-    // MARK: - Presentation Overrides
-
-    /// 浮层的紧凑 editor，按 key 覆盖已定下的 editor。
-    ///
-    /// JSON 里的格式是**照详情页写的**：UIFont 的 `description` 有三行、颜色是
-    /// `R:… G:… B:… A:…` 加一行 hex，塞进浮层那一行会把面板撑开。这里给少数几个 key
-    /// 补一个紧凑变体，两种密度仍然出自同一份数据。
-    private static let compactEditors: [String: String] = [
-        "font": "fontSize",
-        "backgroundColor": "colorShort",
-        "textColor": "colorShort",
-        "tintColor": "colorShort",
-        "tag": "tagShort",
-    ]
-
-    /// 段标题 = 声明该段的那个类。派生规则与 JSON 里原本手写的 28 个标题逐字一致。
-    private func sectionTitle(for className: String) -> String {
-        if let title = Self.sectionTitleOverrides[className] { return title }
-        let stripped = className.hasPrefix("UI") ? String(className.dropFirst(2)) : className
-        var result = ""
-        for (index, character) in stripped.enumerated() {
-            if index > 0, character.isUppercase { result.append(" ") }
-            result.append(character)
-        }
-        return result
+        return ResolvedProperty(key: key, synthetic: nil, kind: kind,
+                                desc: override?.desc, isUserEditable: isUserEditable)
     }
 
     // MARK: - Per-Item Cell Building
 
-    private func makeCellModel(for view: UIView, resolved: ResolvedProperty, compact: Bool) -> HierarchyCellModel? {
-        let key = resolved.key
-        let editor = compact ? (Self.compactEditors[key] ?? resolved.editor) : resolved.editor
-        // 没有 desc 就用 key 本身
-        let title = resolved.desc ?? key
-        let value = resolved.value
+    private func makeCellModel(for view: UIView, resolved: ResolvedProperty) -> HierarchyCellModel? {
+        let title = resolved.desc ?? resolved.key
 
-        switch editor {
-        case "className":
-            return cell(title, String(describing: type(of: view)), editor)
-
-        case "address":
-            let detail = String(format: "%p", Int(bitPattern: Unmanaged.passUnretained(view).toOpaque()))
-            return cell(title, detail, editor)
-
-        case "layerClass":
-            return cell(title, String(describing: type(of: view.layer)), editor)
-
-        case "readonly":
-            return cell(title, formatObject(value), editor)
-
-        case "bool":
-            // editor 由探针或 JSON 定为 bool，值必然取到了 BOOL
-            return cell(title, (value as? Bool ?? false) ? "true" : "false", editor)
-
-        case "tagShort":
-            let tag = value as? Int ?? (value as? NSNumber)?.intValue ?? 0
-            return cell(title, tag == 0 ? nil : "\(tag)", editor)
-
-        case "int":
-            let formatted: String
-            if let v = value as? Int {
-                formatted = "\(v)"
-            } else if let n = value as? NSNumber {
-                formatted = "\(n.intValue)"
-            } else {
-                formatted = "\(value ?? "-")"
-            }
-            return cell(title, formatted, editor)
-
-        case "double":
-            let number = value as? NSNumber ?? NSNumber(value: 0)
-            return cell(title, HierarchyFormatterTool.format(number), editor)
-
-        case "text":
-            return cell(title, formatText(value), editor)
-
-        case "color":
-            return cell(title, colorDescription(value as? UIColor), editor)
-
-        case "colorShort":
-            // 浮层一行：走 UIColor+Hierarchy 的短描述（动态色会带上系统色名）
-            return cell(title, (value as? UIColor)?.hierarchy_description, editor)
-
-        case "font":
-            return cell(title, formatObject(value), editor)
-
-        case "fontSize":
-            // 浮层只要字号；UIFont 的完整描述在这里排不下
-            guard let font = value as? UIFont else { return nil }
-            return cell(title, String(format: "%0.2f", font.pointSize), editor)
-
-        case "frame":
-            let rect = (value as? NSValue)?.cgRectValue ?? .zero
-            return cell(title, HierarchyFormatterTool.string(from: rect), editor)
-
-        case "point":
-            let point = (value as? NSValue)?.cgPointValue ?? .zero
-            return cell(title, pointDescription(point), editor)
-
-        case "size":
-            let size = (value as? NSValue)?.cgSizeValue ?? .zero
-            return cell(title, sizeDescription(size), editor)
-
-        case "insets":
-            let insets = (value as? NSValue)?.uiEdgeInsetsValue ?? .zero
-            return cell(title, insetsTopBottomDescription(insets), editor)
-
-        case "image":
-            return cell(title, formatImage(value as? UIImage), editor)
-
-        case "date":
-            let detail = (value as? Date).flatMap { HierarchyFormatterTool.string(from: $0) } ?? "<null>"
-            return cell(title, detail, editor)
-
-        case "attributedTextStyle":
-            let detail = (value as? NSAttributedString) != nil ? "Attributed Text" : "Plain Text"
-            return cell(title, detail, editor)
-
-        case "enum":
-            guard let enumType = resolved.enumType else { return nil }
-            let rawValue = value as? Int ?? 0
-            return cell(title, enumDescription(for: enumType, rawValue: rawValue), editor)
-
-        default:
-            return cell(title, formatObject(value), editor)
+        // 合成行：不读值，从 view 自己造。它是全程唯一一行带分隔线的
+        if let synthetic = resolved.synthetic {
+            return cell(title, syntheticText(synthetic, view), separator: synthetic == "layerClass")
         }
+
+        guard let kind = resolved.kind else { return nil }
+
+        return cell(title, displayText(of: kind), separator: false)
     }
 
-    /// 造一行。分隔线的显隐是**逐行**的：除 `layer.class` 外都不显示分隔线
-    /// （沿用本仓库现状，不是这次改动引入的规则）。
-    private func cell(_ title: String?, _ detail: String?, _ editor: String) -> HierarchyCellModel {
+    /// 造一行。分隔线的显隐是**逐行**的（沿用本仓库现状，不是这次改动引入的规则）。
+    private func cell(_ title: String?, _ detail: String?, separator: Bool) -> HierarchyCellModel {
         let model = HierarchyCellModel(title: title, detailTitle: detail)
-        if editor != "layerClass" {
+        if !separator {
             model.noneInsets()
         }
         return model
+    }
+
+    // MARK: - 值的两个方向：显示 ⇄ 解析
+    //
+    // 两个 switch **并排、case 顺序一致**：看某一种类型的显示时，它的解析就在下面几行。
+    // 两侧都穷尽（编译器强制列全），所以加一个类型时两处都会报错、都会被填上。
+
+    /// 值 → 显示字符串
+    /// 同一个值的字符串形态 —— 列表那一行和卡片底栏的「当前」**都出自这里**，
+    /// 所以是 internal 而不是 private。
+    func displayText(of kind: ValueKind) -> String {
+        switch kind {
+        case .bool(let v):          return v ? "true" : "false"
+        case .int(let v):           return "\(v)"
+        case .double(let v):        return HierarchyFormatterTool.format(NSNumber(value: v))
+        case .text(let v):          return formatText(v)
+        case .color(let v):         return v.hierarchy_description
+        case .font(let v):          return fontDescription(v)
+        case .image(let v):         return formatImage(v)
+        case .date(let v):          return HierarchyFormatterTool.string(from: v) ?? "<null>"
+        case .attributedText:       return "Attributed Text"
+        case .frame(let v):         return HierarchyFormatterTool.string(from: v)
+        case .point(let v):         return pointDescription(v)
+        case .size(let v):          return sizeDescription(v)
+        case .insets(let v):        return insetsDescription(v)
+        case .enumValue(_, _, let name): return name
+        case .unknown(let v):       return formatObject(v)
+        }
+    }
+
+    /// 显示字符串 → 同类型的新值。`nil` = 输入不合法。
+    /// 未实现的类型也返回 nil —— 靠 `canEdit` 那道闸门区分"没做"和"打错了"。
+    /// 对详情页可见：文本类编辑器拿到输入后先过它。
+    func parsed(_ string: String, into kind: ValueKind) -> ValueKind? {
+        switch kind {
+        case .bool:
+            switch string.lowercased() {
+            case "true", "1", "yes", "on":  return .bool(true)
+            case "false", "0", "no", "off": return .bool(false)
+            default:                        return nil
+            }
+
+        case .text:
+            return .text(string)                        // 无需解析
+
+        case .enumValue(_, let table, _):
+            // 文案（"center"）或裸值（"1"）都收
+            if let raw = Int(string) { return .enumValue(raw: raw, table: table, name: enumName(table, raw)) }
+            guard let hit = enumTables[table]?.first(where: { $0.name.caseInsensitiveCompare(string) == .orderedSame })
+            else { return nil }
+            return .enumValue(raw: hit.value, table: table, name: hit.name)
+
+        case .int:
+            return Int(string).map(ValueKind.int)
+
+        case .double:
+            return Double(string).map(ValueKind.double)
+
+        case .color:
+            return UIColor.hierarchy_color(from: string).map(ValueKind.color)
+
+        case .font(let current):
+            // 只改字号 —— 原版也是（`[font fontWithSize:]`）。
+            // 字体族是另一个轴，要走系统字体面板（`UIFontPickerViewController`），另说
+            return Double(string).map { ValueKind.font(current.withSize(CGFloat($0))) }
+
+        case .date:
+            return HierarchyFormatterTool.date(from: string).map(ValueKind.date)
+
+        case .size, .insets:
+            // **不走字符串**：这两种类型在 UI 上是数字格（N 个数字各自成格），
+            // 合成结构体直接交给 `write`，不经过"拼成 `{0, 2}` 再解析回来"这一圈。
+            return nil
+
+        case .frame, .point:
+            // **布局输出**：改了就弹回（Auto Layout 或父视图会盖掉），不在这一页的职责里。
+            // 显示照旧（上面的 displayText 有），但不给编辑器 —— 交给另起的布局页。
+            return nil
+
+        case .image, .attributedText:
+            // 能写，但 JSON 上这 12 行是 `userEditable: false`，所以不会有行走到这里。
+            // 想做的时候（`UIImage(systemName:)` / 整段替换）再补，闸门在 JSON 那一侧
+            return nil
+
+        case .unknown:
+            return nil                                  // 探针都不认识的类型，不给编辑器
+        }
+    }
+
+    /// 这一期实现了哪些类型的解析 —— **编辑器的阶段闸门就是它**。
+    ///
+    /// 单独一个 switch，而不是"让 parsed 拿空串试一次"：这里问的是"有没有做"，
+    /// 和"这个输入对不对"是两件事。
+    private func canEdit(_ kind: ValueKind) -> Bool {
+        switch kind {
+        case .bool, .text, .int, .double, .enumValue,
+             .color, .font, .date, .size, .insets:     return true
+        case .image, .attributedText:
+            // `parsed` 对这两个返回 nil，所以这里必须也是 false —— 否则那行会显示编辑器，
+            // 而任何输入都失败。等补了它们的 parsed，两处一起改。
+            // （它们那 12 行本来就全是 userEditable: false，所以现在也没有行会走到这）
+            return false
+        case .frame, .point:
+            return false                                // 布局输出，交给另起的布局页
+        case .unknown:
+            return false                                // 探针不认识的类型
+        }
+    }
+
+    /// 合成行（`class` / `address` / `layer.class`）的文本
+    private func syntheticText(_ synthetic: String, _ view: UIView) -> String {
+        switch synthetic {
+        case "className":  return String(describing: type(of: view))
+        case "layerClass": return String(describing: type(of: view.layer))
+        default:           return String(format: "%p", Int(bitPattern: Unmanaged.passUnretained(view).toOpaque()))
+        }
+    }
+
+    /// rawValue → 文案。查不到回落到裸数字（枚举表不全时的表现）
+    private func enumName(_ table: String, _ rawValue: Int) -> String {
+        enumTables[table]?.first { $0.value == rawValue }?.name ?? "\(rawValue)"
     }
 
     // MARK: - Enum Options
@@ -471,9 +536,12 @@ class HierarchyPropertyEngine {
     /// 枚举行的选项：**有序文案** + 当前下标。
     ///
     /// `enums` 本来就是有序数组（顺序即 UI 顺序），这里直接用，不需要另外维护一份。
-    func enumOptions(for enumType: String, currentRawValue: Int) -> (names: [String], currentIndex: Int?) {
-        guard let table = enumTables[enumType] else { return ([], nil) }
-        return (table.map(\.name), table.firstIndex { $0.value == currentRawValue })
+    /// `rawValues` 一并交出来：列表每一行右侧要显示它，而"名字"和"值"必须来自同一张表
+    /// —— 分开两次查，中间要是表被换了就对不上。
+    func enumOptions(for enumType: String, currentRawValue: Int)
+        -> (names: [String], rawValues: [Int], currentIndex: Int?) {
+        guard let table = enumTables[enumType] else { return ([], [], nil) }
+        return (table.map(\.name), table.map(\.value), table.firstIndex { $0.value == currentRawValue })
     }
 
     /// 第 `index` 个选项对应的 rawValue。
@@ -494,24 +562,26 @@ class HierarchyPropertyEngine {
     ///
     /// 只支持**点号路径之外**的属性：P1 的三个 editor（bool / text / enum）一个点号路径都没有，
     /// 而逐段确认 setter 要多写二十行。等布局页要写 `layer.position` 时再说。
-    @discardableResult
-    func write(_ newValue: Any, forKey key: String, to view: UIView) -> Bool {
+    func write(_ newValue: ValueKind, forKey key: String, to view: UIView) {
         guard let resolved = resolve(key: key, view: view, chain: classChain(view)),
-              resolved.isUserEditable, let oldValue = resolved.value else {
+              resolved.isUserEditable, let oldKind = resolved.kind else {
             print("[Hierarchy] \(key)：这一行不给编辑器")
-            return false
+            return
+        }
+        guard canEdit(oldKind) else {
+            print("[Hierarchy] \(key)：这个类型的编辑器还没做")
+            return
         }
         guard !key.contains(".") else {
             print("[Hierarchy] \(key)：点号路径这一页不写")
-            return false
+            return
         }
-        guard let writeKey = kvcWriteKey(for: key, on: view) else { return false }
-        guard isCompatible(newValue, with: oldValue) else {
-            print("[Hierarchy] \(key)：\(type(of: newValue)) 替代不了 \(type(of: oldValue))")
-            return false
-        }
+        guard let writeKey = kvcWriteKey(for: key, on: view) else { return }
 
-        view.setValue(newValue, forKey: writeKey)
+        // **不在这里判"能不能代替"**：`kind` 是刚从这一行读出来的，形状天然对得上；
+        // 再拦一道只会误伤 —— `Float` 属性（`UISlider.value` / `UIProgressView.progress`）
+        // 读出来是 `'f'`、我们装箱成 `'d'`，KVC 自己能按属性的真实编码解包，是我们挡下的。
+        view.setValue(newValue.boxed, forKey: writeKey)
 
         // 让业务页面重算布局。**不按属性分支**——isHidden 在 stack 里同样要重算，
         // 逐个判断的收益远小于维护成本。
@@ -521,13 +591,9 @@ class HierarchyPropertyEngine {
         view.invalidateIntrinsicContentSize()
         view.window?.layoutIfNeeded()
 
-        // 回读：写进去了 ≠ 站住了。Auto Layout 或业务自己的数据流可能已经改回去。
-        // 用**原 key** 回读——读写键可能不同名，但两个名字读都认。
-        guard let landed = safeValue(forKeyPath: key, on: view), landedEquals(landed, newValue) else {
-            print("[Hierarchy] \(key)：写进去了但被改回 —— 大概率由 Auto Layout 或业务逻辑管着")
-            return false
-        }
-        return true
+        // **不做回读校验**：写完把列表重读一遍，那一行自己会显示真实值 —— 那就是验证，
+        // 而且比我们判得准。自己判的代价是假阴性（`landedEquals` 的绝对容差会让
+        // `1_234_567.89` 这种大数值在 `Float` 属性上被冤判成"被弹回"）。
     }
 
     /// 从一个 **Swift 属性名**推出它在 KVC 里的写键候选，按可能性排序。
@@ -566,40 +632,6 @@ class HierarchyPropertyEngine {
         print("[Hierarchy] \(propertyName) 写不进去：\(type(of: object)) 没有 setter，"
             + "试过 \(candidates.map(setterName))")
         return nil
-    }
-
-    /// 新值能不能安全替代旧值。基准是**旧值的运行时形状**——我们本来就读过它。
-    ///
-    /// - 标量：KVC 会把 NSNumber 按 setter 的标量类型解包，给 NSNumber 就安全，
-    ///   但编码要一致（BOOL `c` / NSInteger `q` / CGFloat `d`），否则 `true` 会被塞进 `tag` 变成 1
-    /// - 结构体：KVC **不做转换**，`NSValue` 的编码必须逐字相同——
-    ///   `{CGPoint=dd}` 写进 `CGRect` 的属性会读出垃圾
-    /// - 对象：只挡"确定不兼容"的（把 UIColor 写进 NSString 属性）
-    ///
-    /// `NSNumber` 的分支必须在 `NSValue` 之前——它是 `NSValue` 的子类。
-    private func isCompatible(_ new: Any, with old: Any) -> Bool {
-        if let n = new as? NSNumber, let o = old as? NSNumber {
-            return String(cString: n.objCType) == String(cString: o.objCType)
-        }
-        if let n = new as? NSValue, let o = old as? NSValue {
-            return String(cString: n.objCType) == String(cString: o.objCType)
-        }
-        if let n = new as? NSObject, let o = old as? NSObject {
-            // Swift String ↔ NSString 桥接后动态类型名对不上，单独放行
-            if n is NSString, o is NSString { return true }
-            return n.isKind(of: type(of: o)) || o.isKind(of: type(of: n))
-        }
-        return false
-    }
-
-    /// 回读的值是否等于刚写进去的——"改了被弹回"和"改了没生效"的**唯一区分手段**。
-    /// 浮点给容差：写 0.3 读回 0.30000000000000004 不算被弹回。
-    private func landedEquals(_ landed: Any, _ written: Any) -> Bool {
-        if let l = landed as? NSNumber, let w = written as? NSNumber {
-            return abs(l.doubleValue - w.doubleValue) < 0.0001
-        }
-        if let l = landed as? NSValue, let w = written as? NSValue { return l == w }
-        return (landed as? NSObject)?.isEqual(written) ?? false
     }
 
     // MARK: - KeyPath Utilities
@@ -643,35 +675,16 @@ class HierarchyPropertyEngine {
         return false
     }
 
-    // MARK: - Enum Description
-
-    private func enumDescription(for enumType: String, rawValue: Int) -> String {
-        guard let table = enumTables[enumType] else { return "\(rawValue)" }
-        return table.first { $0.value == rawValue }?.name ?? "\(rawValue)"
-    }
-
     // MARK: - Formatters
 
-    func colorDescription(_ color: UIColor?) -> String {
-        guard let color = color else { return "<nil color>" }
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        if !color.getRed(&r, green: &g, blue: &b, alpha: &a) {
-            // Grayscale / dynamic colors: fall back to the white component.
-            var w: CGFloat = 0
-            color.getWhite(&w, alpha: &a)
-            r = w; g = w; b = w
-        }
-        let desc = String(
-            format: "R:%@ G:%@ B:%@ A:%@",
-            HierarchyFormatterTool.format(NSNumber(value: Double(r))),
-            HierarchyFormatterTool.format(NSNumber(value: Double(g))),
-            HierarchyFormatterTool.format(NSNumber(value: Double(b))),
-            HierarchyFormatterTool.format(NSNumber(value: Double(a)))
-        )
-        if let name = color.hierarchy_systemColorName {
-            return "\(desc)\n\(name)"
-        }
-        return "\(desc)\n\(color.hierarchy_hexString)"
+    /// 字体：**一行**，族名 + 字号。
+    ///
+    /// `UIFont.description` 是三行的 `<UICTFont: 0x…> font-family: …; font-size: 17.00pt`，
+    /// 有用的只有字号和族名两项，还都得从行中间挑。系统字体的族名是 `.AppleSystemUIFont`
+    /// 这种点开头的内部名，直接显示不如叫它 `System`。
+    private func fontDescription(_ font: UIFont) -> String {
+        let isSystem = font.familyName == UIFont.systemFont(ofSize: font.pointSize).familyName
+        return String(format: "%@ %0.2f", isSystem ? "System" : font.familyName, font.pointSize)
     }
 
     private func formatText(_ value: Any?) -> String {
@@ -702,9 +715,10 @@ class HierarchyPropertyEngine {
         return "W: \(HierarchyFormatterTool.format(NSNumber(value: Double(size.width))))   H: \(HierarchyFormatterTool.format(NSNumber(value: Double(size.height))))"
     }
 
-    func insetsTopBottomDescription(_ insets: UIEdgeInsets) -> String {
-        let top = HierarchyFormatterTool.format(NSNumber(value: Double(insets.top)))
-        let bottom = HierarchyFormatterTool.format(NSNumber(value: Double(insets.bottom)))
-        return "top \(top)    bottom \(bottom)"
+    /// 四个分量全列 —— 原版只给 top/bottom（当年浮层一行放不下），但编辑面板是四个格子，
+    /// 列表里少了两个分量，就等于让人蒙着眼改 left/right。
+    func insetsDescription(_ insets: UIEdgeInsets) -> String {
+        let f = { (v: CGFloat) in HierarchyFormatterTool.format(NSNumber(value: Double(v))) }
+        return "T: \(f(insets.top))   L: \(f(insets.left))   B: \(f(insets.bottom))   R: \(f(insets.right))"
     }
 }

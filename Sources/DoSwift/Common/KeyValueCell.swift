@@ -23,14 +23,26 @@ protocol KeyValueCellDataSource {
     var rightImage: UIImage? { get }
 }
 
-/// 键值行：**左侧主标题，右侧副标题**，尾部可挂一个图标。
+/// 键值行：左侧「标题 + 值」竖排，尾部可挂一个图标。
 ///
-/// - 结构：`H[ Title(定宽) | Detail | RightImage ]`
+/// - 结构：`H[ V[Title, Detail] | RightImage ]`
 ///
-/// 刻意横排、不上下堆叠：这种行常常几十条排在一起，堆叠会把滚动长度翻一倍，
-/// 而扫一眼看完全部内容正是它存在的意义。主标题**定宽**是为了让副标题的左边缘对齐成一列；
-/// 副标题左对齐且可换行——`UIFont` 的 `description` 这类值很长，右对齐会从中间断开。
-final class KeyValueCell: UITableViewCell {
+/// 与 `SelectorCell` 同构，只把箭头换成可选图标；字号、行距、留白是同一套数值，
+/// 所以两者排在一张表里对得齐。
+///
+/// 竖排而不是横排：值这一侧常常比标题长得多（`UIFont` 的 `description`、颜色 hex）
+/// 而标题都短，横排要么按标题宽度切一刀、让值从中间断开，要么把它压成一条窄柱。
+/// 竖排让值吃满整行宽，长值只往下长，横排省下的那点高度远不值得。
+///
+/// 它**也发事件**（`SectionCell`）：这一行的交互历来就有——尾部图标、或者整行被点
+/// ——只是以前没人从这一格往外报。事件照走 `SectionCellDelegate` 那条路，
+/// 于是「点一下这一行要做什么」由调用方在 `Row(onTrigger:)` 里给，不必新造一种 cell。
+final class KeyValueCell: UITableViewCell, SectionCell {
+
+    // MARK: - Output
+
+    /// 事件出口。谁持有这张表谁就是代理，由 `SectionTableViewController` 接上。
+    weak var sectionDelegate: SectionCellDelegate?
 
     // MARK: - Update
 
@@ -57,7 +69,9 @@ final class KeyValueCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
-        // 这一行本身没有交互，交互在尾部图标或整行的选中回调上
+        // 默认不给选中高亮：多数调用点（属性检查器）只是看，行不可交互。
+        // 可交互的调用点在 `configure` 里显式改回 `.default`——高亮就是那一点反馈，
+        // 而「这一行能不能点」在调用点比在这里更好看出来。
         selectionStyle = .none
         loadViews(in: contentView)
     }
@@ -66,11 +80,22 @@ final class KeyValueCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        super.setSelected(selected, animated: animated)
+
+        // 事件从这里发出，而不是表代理的 `didSelectRowAt`：整行被点只是这一格的一种事件，
+        // 与 `SelectorCell` / `ToggleCell` 走同一条路
+        guard selected else { return }
+        sectionDelegate?.sectionCellDidTrigger(self)
+    }
+
     private func loadViews(in box: UIView) {
-        // 伸缩由 stack 分配：副标题吃满剩余宽度，标题与图标各自定宽
-        detailLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        // 逐项同 `SelectorCell`：文字吃满剩余宽度后换行，尾部图标定宽
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         detailLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        textStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        // 图标为 nil 时整体从布局里退出（stack 会跳过隐藏项），文字自动拿满宽度；
+        // 所以要的只是「有图标时就定宽」，不必额外加一条宽度约束
         rightImageView.setContentHuggingPriority(.required, for: .horizontal)
         rightImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
 
@@ -85,26 +110,31 @@ final class KeyValueCell: UITableViewCell {
             stacks.leadingAnchor.constraint(equalTo: box.leadingAnchor, constant: 16),
             stacks.trailingAnchor.constraint(equalTo: box.trailingAnchor, constant: -16),
             stacks.bottomAnchor.constraint(equalTo: box.bottomAnchor, constant: -8),
-
-            // 主标题列宽 110。显示的都是短标题，偶尔超长就让它在列内换行，
-            // **不做截断**——标题被截掉一半比多一行更难用。
-            titleLabel.widthAnchor.constraint(equalToConstant: 110),
         ])
     }
 
     private lazy var stacks: UIStackView = {
-        let stacks = UIStackView(arrangedSubviews: [titleLabel, detailLabel, rightImageView])
+        let stacks = UIStackView(arrangedSubviews: [textStack, rightImageView])
         stacks.axis = .horizontal
-        // 顶对齐：主标题换行时副标题跟着从第一行起，而不是被居中挤到一块
-        stacks.alignment = .top
-        stacks.distribution = .fill
+        // 图标在竖直方向居中，跟两行文字整体对齐
+        stacks.alignment = .center
         stacks.spacing = 8
+        return stacks
+    }()
+
+    private lazy var textStack: UIStackView = {
+        let stacks = UIStackView(arrangedSubviews: [titleLabel, detailLabel])
+        stacks.axis = .vertical
+        // 左对齐：值比标题长时从标题的左边缘起，不居中
+        stacks.alignment = .leading
+        stacks.spacing = 2.0
         return stacks
     }()
 
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 13, weight: .semibold)
+        // 字号 / 颜色与系统 `.subtitle` cell 一致
+        label.font = .systemFont(ofSize: 15, weight: .medium)
         label.textColor = .label
         label.numberOfLines = 0
         return label
@@ -112,7 +142,7 @@ final class KeyValueCell: UITableViewCell {
 
     private lazy var detailLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 13)
+        label.font = .systemFont(ofSize: 12)
         label.textColor = .secondaryLabel
         label.numberOfLines = 0
         return label

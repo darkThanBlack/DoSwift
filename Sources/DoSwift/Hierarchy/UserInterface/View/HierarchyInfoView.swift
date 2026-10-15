@@ -64,7 +64,7 @@ final class HierarchyInfoView: UIView {
     /// 属性**是否适用**不用在这里判断：`textColor` 在 UIView 的类链上找不到，引擎返回 nil，
     /// 行自然收起——原来那段 `if let label = view as? UILabel` 因此可以删掉。
     private func apply(_ key: String, of view: UIView, to row: HierarchyInfoRowView) {
-        let model = HierarchyPropertyEngine.shared.cellModel(for: view, key: key, compact: true)
+        let model = HierarchyPropertyEngine.shared.cellModel(for: view, key: key)
         row.key = model?.title
         row.value = model?.detailTitle
     }
