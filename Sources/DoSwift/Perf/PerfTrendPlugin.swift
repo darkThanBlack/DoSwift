@@ -225,6 +225,11 @@ final class PerfTrendPlugin {
 
         startEnabledSources()
         didLayout = false
+
+        // 一次性基准：给「内存 / CPU 该走哪条采样路径」提供真机数据。
+        // 只打印，不改任何状态；进程内只跑一次（`prepare()` 有 `window == nil` 的闸）。
+        // 结论定下来之后，这一行和 `PerfBenchmark.swift` 可以一起删掉。
+        PerfBenchmark.run()
     }
 
     /// 按顺序找下一个**还在检测**的指标，循环。
