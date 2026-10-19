@@ -111,6 +111,9 @@ public class DoSwiftCore {
                 if item.identifier == "nslog" {
                     item.actionHandler = { _ in ConsolePlugin.shared.show() }
                 }
+                if item.identifier == "performance" {
+                    item.actionHandler = { _ in PerfTrendPlugin.shared.show() }
+                }
             }
         }
     }
@@ -145,21 +148,11 @@ public class DoSwiftCore {
             item("js_script",      "JS脚本",        "chevron.left.slash.chevron.right"),
         ])
 
-        let performance = DoSwiftMenuGroup(title: "性能检测", items: [
-            item("fps",             "帧率",         "speedometer"),
-            item("cpu",             "CPU",          "gauge"),
-            item("memory",          "内存",         "cube.box"),
-            item("network",         "网络",         "wifi"),
-            item("crash",           "Crash",        "exclamationmark.triangle"),
-            item("sub_thread_ui",   "子线程UI",     "rectangle.on.rectangle"),
-            item("anr",             "卡顿",         "hourglass"),
-            item("method_use_time", "Load耗时",     "clock"),
-            item("large_image",     "大图检测",     "photo"),
-            item("start_time",      "启动耗时",     "power"),
-            item("memory_leak",     "内存泄漏",     "drop.triangle"),
-            item("ui_profile",      "UI层级",       "square.stack.3d.up"),
-            item("time_profile",    "函数耗时",     "timer"),
-            item("weak_network",    "模拟弱网",     "wifi.exclamationmark"),
+        // 「性能检测」原本是 14 个独立工具（帧率 / CPU / 内存 / 网络 / Crash / 卡顿 …），
+        // 现在是**一个工具**：一个窗口、一页设置、一块可切换数据源的浮窗。
+        // 其余指标（Crash、卡顿、弱网…）将来落到这一页里，不再各占一个菜单项。
+        let performance = DoSwiftMenuGroup(title: "性能", items: [
+            item("performance", "性能", "gauge"),
         ])
 
         let visual = DoSwiftMenuGroup(title: "视觉工具", items: [
