@@ -63,6 +63,14 @@
 * [ ] 完整折线图页（读同一份序列，按像素列取 min/max 画竖线）
 * [ ] 其余性能工具（Crash / 卡顿 / 启动耗时 / 大图 / 泄漏 / 弱网…）落到这一页里
 
+#### 自定义插件
+
+* [x] 业务实现 `DoSwiftPlugin`，交给 `DoSwiftCore.start(appWindow:plugins:)` 就多一个菜单入口
+  * 窗口 / 层级 / 导航栈 / 关闭按钮由 `DoSwiftPluginHost` 提供，形态与内建工具一致：
+    一个插件一个 `OverlayWindow`（`.alert - 1`），注册进主菜单的「自定义」分组
+  * 页面**每次点开现造**（`makeViewController(host:)`），读到的永远是当下状态，不需要刷新协议
+  * 页面做完该走的事（切完环境、保存成功…）调 `host.hide()` 收掉自己
+
 #### App 信息
 
 * [x] 内建四组字段；四个域对象各管自己那一摊，页面只跟 `AppInfo` 打交道

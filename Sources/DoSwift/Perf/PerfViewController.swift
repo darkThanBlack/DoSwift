@@ -54,24 +54,55 @@ final class PerfViewController: SectionTableViewController {
     private func metricSection(at index: Int) -> Section? {
         guard let chart = PerfTrendPlugin.shared.chart(at: index) else { return nil }
 
-        return Section(
-            title: chart.title,
-            rows: [
-                Row(cellClass: ToggleCell.self, onTrigger: { [weak self] cell in
-                    guard let self = self else { return }
-                    if !PerfTrendPlugin.shared.setEnabled(cell.isOn, for: index) {
-                        self.presentCannotDisableLast()
-                    }
-                    self.reload()
-                }) { cell in
-                    cell.update(
-                        title: "检测",
-                        detail: Self.detail(for: chart),
-                        isOn: PerfTrendPlugin.shared.isEnabled(index)
-                    )
+        var rows: [Row] = [
+            Row(cellClass: ToggleCell.self, onTrigger: { [weak self] cell in
+                guard let self = self else { return }
+                if !PerfTrendPlugin.shared.setEnabled(cell.isOn, for: index) {
+                    self.presentCannotDisableLast()
                 }
-            ]
+                self.reload()
+            }) { cell in
+                cell.update(
+                    title: "检测",
+                    detail: Self.detail(for: chart),
+                    isOn: PerfTrendPlugin.shared.isEnabled(index)
+                )
+            }
+        ]
+
+        // 内存有两种口径：进程占用（jetsam 口径）和 malloc 堆。换口径会清空已采的数据。
+        if index == 2 {
+            rows.append(Row(cellClass: SelectorCell.self, onTrigger: { [weak self] _ in
+                self?.chooseMemoryMetric()
+            }) { cell in
+                cell.update(title: "测量方式", detail: PerfTrendPlugin.shared.memoryMetric.title)
+            })
+        }
+
+        // 内存这一段多一句：换口径会把已经采到的历史清掉
+        let footer = (index == 2) ? "两种口径量的不是一回事：进程占用是系统杀进程看的量，堆分配只覆盖 malloc。换口径会清空已采数据。" : nil
+        return Section(title: chart.title, footer: footer, rows: rows)
+    }
+
+    /// 用 **`.alert`** 而不是 `.actionSheet`：后者在 iPad / Mac 上会变成锚在
+    /// 控件旁边的小气泡，而这个选择器没有「锚点」的语义。`.alert` 在哪儿都是居中的。
+    private func chooseMemoryMetric() {
+        let metrics = PerfMemoryMetric.allCases
+        let current = PerfTrendPlugin.shared.memoryMetric
+
+        let alert = UIAlertController(
+            title: "内存测量方式",
+            message: "当前：\(current.title)",
+            preferredStyle: .alert
         )
+        for metric in metrics {
+            alert.addAction(UIAlertAction(title: metric.title, style: .default) { [weak self] _ in
+                PerfTrendPlugin.shared.setMemoryMetric(metric)
+                self?.reload()
+            })
+        }
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        present(alert, animated: true)
     }
 
     private func styleSection() -> Section {
@@ -80,8 +111,8 @@ final class PerfViewController: SectionTableViewController {
             title: "显示",
             footer: "两种样式读的是同一批数据，换样式不会清空任何历史。",
             rows: [
-                Row(cellClass: SelectorCell.self, onTrigger: { [weak self] cell in
-                    self?.chooseStyle(from: cell)
+                Row(cellClass: SelectorCell.self, onTrigger: { [weak self] _ in
+                    self?.chooseStyle()
                 }) { cell in
                     cell.update(title: "浮窗样式", detail: plugin.displayStyle.title)
                 }
@@ -109,23 +140,23 @@ final class PerfViewController: SectionTableViewController {
         present(alert, animated: true)
     }
 
-    private func chooseStyle(from cell: UITableViewCell) {
-        let sheet = UIAlertController(title: "浮窗样式", message: nil, preferredStyle: .actionSheet)
+    private func chooseStyle() {
+        let styles = TrendDisplayStyle.allCases
+        let current = PerfTrendPlugin.shared.displayStyle
 
-        for style in TrendDisplayStyle.allCases {
-            sheet.addAction(UIAlertAction(title: style.title, style: .default) { [weak self] _ in
+        let alert = UIAlertController(
+            title: "浮窗样式",
+            message: "当前：\(current.title)",
+            preferredStyle: .alert
+        )
+        for style in styles {
+            alert.addAction(UIAlertAction(title: style.title, style: .default) { [weak self] _ in
                 PerfTrendPlugin.shared.setDisplayStyle(style)
                 self?.reload()
             })
         }
-        sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
-
-        // iPad 上 actionSheet 必须有锚点，否则直接崩
-        if let popover = sheet.popoverPresentationController {
-            popover.sourceView = cell
-            popover.sourceRect = cell.bounds
-        }
-        present(sheet, animated: true)
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        present(alert, animated: true)
     }
 
     /// 副标题把这条源的两个关键参数写出来：量程和阈值。

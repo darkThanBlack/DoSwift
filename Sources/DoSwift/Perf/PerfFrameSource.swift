@@ -21,11 +21,23 @@ import UIKit
 /// 这是刻意的——不同指标的原始记录形状不同，硬抽成一个会丢信息。
 final class PerfFrameSource {
 
+    /// 一个结算窗口的完整记录。`points` 里只有帧率，这里存齐，供详情页按区间聚合。
+    struct Sample {
+        let t: TimeInterval
+        let fps: Double
+        let slow: Int
+        let frozen: Int
+        let frames: Int
+    }
+
     /// 每秒结算一个点
     let interval: TimeInterval = 1
 
     /// 序列**只在主线程写、只在主线程读**（display link 本来就在主线程）
     private(set) var points: [TrendPoint] = []
+
+    /// 带慢帧计数的原始记录
+    private(set) var samples: [Sample] = []
 
     var onChange: (() -> Void)?
 
@@ -107,6 +119,7 @@ final class PerfFrameSource {
         let value = slowFrames == 0 ? nominal : measured
 
         points.append(TrendPoint(t: now, v: value))
+        samples.append(Sample(t: now, fps: value, slow: slowFrames, frozen: frozenFrames, frames: frames))
 
         frames = 0
         slowFrames = 0

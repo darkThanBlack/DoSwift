@@ -106,7 +106,9 @@ final class DoSwiftMenuPanel: UIView {
     /// 裁切容器：负责圆角。阴影在 `self.layer` 上，因为 `masksToBounds` 会连阴影一起裁掉。
     private let contentContainer: UIView = {
         let view = UIView()
-        view.backgroundColor = .white
+        // 动态色：暗黑模式下跟着系统走。写死 .white 的话面板底色永远是浅色，
+        // 而文字用的是 .label 这类动态色，切到暗色就变成白字白底。
+        view.backgroundColor = .systemBackground
         view.clipsToBounds = true
         return view
     }()

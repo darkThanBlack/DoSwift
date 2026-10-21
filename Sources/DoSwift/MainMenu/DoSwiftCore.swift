@@ -29,16 +29,25 @@ public class DoSwiftCore {
 
     // MARK: - Public Interface
 
-    /// 唯一入口：传入业务 App 的 window 与自定义菜单项，完成初始化并显示。
+    /// 唯一入口：传入业务 App 的 window、自定义菜单项与自定义插件，完成初始化并显示。
     ///
-    /// 默认菜单写死在 `defaultGroups()`；业务传入的自定义项会**合并进同一个分组**，
-    /// 追加在默认分组之后。运行期间不再改动。
-    public func start(appWindow: UIWindow?, items: [DoSwiftMenuItem] = []) {
+    /// 默认菜单写死在 `defaultGroups()`；业务传入的自定义项与插件**合并进同一个分组**，
+    /// 追加在默认分组之后（先菜单项、后插件，顺序与传入一致）。运行期间不再改动——
+    /// 要加工具就在下一次 `start` 时给全。
+    public func start(
+        appWindow: UIWindow?,
+        items: [DoSwiftMenuItem] = [],
+        plugins: [DoSwiftPlugin] = []
+    ) {
         self.appWindow = appWindow
 
         menuGroups = DoSwiftCore.defaultGroups()
-        if !items.isEmpty {
-            menuGroups.append(DoSwiftMenuGroup(title: DoSwiftCore.customGroupTitle, items: items))
+
+        // 插件转成菜单项时会把宿主一起建好，旧的一批先丢掉，免得重复 start 时越积越多
+        pluginHosts.removeAll()
+        let customItems = items + plugins.map({ makeItem(for: $0) })
+        if !customItems.isEmpty {
+            menuGroups.append(DoSwiftMenuGroup(title: DoSwiftCore.customGroupTitle, items: customItems))
         }
         attachActions()
 
@@ -63,6 +72,25 @@ public class DoSwiftCore {
     private static let customGroupTitle = "自定义"
 
     private var menuGroups: [DoSwiftMenuGroup] = []
+
+    /// 业务插件的宿主。core 持有，插件的页面靠它 `hide()` 自己。
+    private var pluginHosts: [DoSwiftPluginHost] = []
+
+    /// 把一个插件变成一个菜单项：行为在创建时挂成 `host.show()`。
+    ///
+    /// 菜单项本身仍然只有数据（见 `DoSwiftMenuItem`），且 `attachActions()` 只补没有
+    /// handler 的项，所以这里挂上的行为不会被覆盖。
+    private func makeItem(for plugin: DoSwiftPlugin) -> DoSwiftMenuItem {
+        let host = DoSwiftPluginHost(plugin: plugin)
+        pluginHosts.append(host)
+
+        return DoSwiftMenuItem(
+            identifier: plugin.identifier,
+            title: plugin.title,
+            icon: plugin.icon,
+            actionHandler: { _ in host.show() }
+        )
+    }
 
     private func prepare() {
         guard window == nil else { return }

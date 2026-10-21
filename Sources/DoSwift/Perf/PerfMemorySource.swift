@@ -6,24 +6,53 @@
 import UIKit
 import Darwin
 
-/// 堆内存占用。采集方式照抄 Firebase 的 `FPRMemoryGaugeCollector`：
-/// **私有串行队列 + `dispatch_source` 定时器 + `mstats()`**。
-///
-/// `mstats()` 是 malloc 分配器自己的账本：`bytes_used` 是各 zone 已分配出去的字节，
-/// `bytes_free` 是 zone 里还没分出去的空闲块。一次调用同时拿到两者，没有额外开销。
-///
-/// **它不是 jetsam 判据**。系统杀进程看的是 `phys_footprint`（含 IOSurface、
-/// CG 图像、mmap 这些 malloc 管不到的部分），而 `bytes_free` 只是分配器手头的余量。
-/// 所以这里的曲线回答的是「堆在怎么长」，不是「离被杀还有多远」。
-///
-/// 下一步会叠加 `os_proc_available_memory()` 作为**新的一个字段**——它和这里的
-/// 两个字段并列，不是二选一：一个说堆的趋势，一个说系统额度。
+/// 内存的两种测量口径。同一个页面上切换，用来对照。
+enum PerfMemoryMetric: String, CaseIterable {
+
+    /// `task_info(TASK_VM_INFO)` 的 `phys_footprint`：jetsam 真正看的量，
+    /// 和 Xcode 内存面板同一口径。大图、视频帧这些 IOSurface 内存也算在里面。
+    case footprint
+
+    /// `mstats()` 的 `bytes_used`：malloc 堆。只覆盖 malloc 分出去的内存，
+    /// 看不见 CG 图像和 mmap。
+    case heap
+
+    var title: String {
+        switch self {
+        case .footprint: return "进程占用"
+        case .heap: return "堆分配"
+        }
+    }
+}
+
 final class PerfMemorySource {
+
+    /// 一个采样点的完整记录。`points` 里只存了一个标量，这里存齐，供详情页按区间聚合。
+    struct Sample {
+        let t: TimeInterval
+        /// 当前口径下的值（MB）
+        let value: Double
+        /// 该口径下的「总额」（MB）。进程口径 = 预算，堆口径 = arena 总量
+        let budget: Double?
+        /// 下面三项只有进程口径拿得到，堆口径下是 nil
+        let graphics: Double?
+        let media: Double?
+        let network: Double?
+    }
 
     let interval: TimeInterval = 0.1
 
+    /// 当前口径。**切口径会清空序列**——两个量的量纲虽然都叫 MB，但描述的不是一回事，
+    /// 混在一条曲线上就是错的。
+    private(set) var metric: PerfMemoryMetric = .footprint
+
     /// 序列**只在主线程写、只在主线程读**
     private(set) var points: [TrendPoint] = []
+    private(set) var samples: [Sample] = []
+
+    /// **总额只确定一次**：预算 = footprint + 系统还能给多少。之后不再刷新——
+    /// 它是这台设备给这个 App 划的线，不跟着用量走。首次采样之前是 nil。
+    private(set) var totalMB: Double?
 
     var onChange: (() -> Void)?
 
@@ -42,23 +71,83 @@ final class PerfMemorySource {
         self.timer = timer
     }
 
-    /// 进后台就停，理由同 `PerfCpuSource.stop()`
     func stop() {
         timer?.cancel()
         timer = nil
     }
 
+    /// 换口径：清空历史，从下一点开始按新口径记。
+    func setMetric(_ metric: PerfMemoryMetric) {
+        guard metric != self.metric else { return }
+        self.metric = metric
+        points.removeAll()
+        samples.removeAll()
+        onChange?()
+    }
+
     // MARK: - Sample
 
     private func sample() {
-        let stats = mstats()
-        let used = Double(stats.bytes_used) / 1024 / 1024
         let now = CACurrentMediaTime()
+        let value: Sample?
+        switch metric {
+        case .footprint: value = Self.footprintSample(at: now)
+        case .heap:      value = Self.heapSample(at: now)
+        }
+        guard let sample = value else { return }
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.points.append(TrendPoint(t: now, v: used))
+            self.points.append(TrendPoint(t: now, v: sample.value))
+            self.samples.append(sample)
+            if self.totalMB == nil {
+                self.totalMB = sample.budget
+            }
             self.onChange?()
         }
+    }
+
+    /// 进程口径：一次 mach trap 拿到 footprint、预算和三个 ledger 分项
+    private static func footprintSample(at time: TimeInterval) -> Sample? {
+        var info = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size
+        )
+        let result = withUnsafeMutablePointer(to: &info) { pointer in
+            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return nil }
+
+        let unit = 1024.0 * 1024.0
+        let footprint = Double(info.phys_footprint) / unit
+
+        // 预算用 `os_proc_available_memory()` 而不是 `limit_bytes_remaining`：
+        // 后者在 iOS 上实测为 0，算出来的「总额」等于当时的 footprint，看着像 bug。
+        let remaining = Double(os_proc_available_memory()) / unit
+
+        return Sample(
+            t: time,
+            value: footprint,
+            budget: footprint + remaining,
+            graphics: Double(info.ledger_tag_graphics_footprint) / unit,
+            media: Double(info.ledger_tag_media_footprint) / unit,
+            network: Double(info.ledger_tag_network_nonvolatile + info.ledger_tag_network_volatile) / unit
+        )
+    }
+
+    /// 堆口径：malloc 自己的账本。`mstats()` 内部就是 `malloc_zone_statistics(NULL, …)`。
+    private static func heapSample(at time: TimeInterval) -> Sample? {
+        let stats = mstats()
+        let unit = 1024.0 * 1024.0
+        return Sample(
+            t: time,
+            value: Double(stats.bytes_used) / unit,
+            budget: Double(stats.bytes_total) / unit,
+            graphics: nil,
+            media: nil,
+            network: nil
+        )
     }
 }

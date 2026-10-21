@@ -8,6 +8,9 @@ import UIKit
 /// 显示样式在 UserDefaults 里的 key
 private let trendStyleKey = "kPerfTrendStyleKey"
 
+/// 内存口径在 UserDefaults 里的 key
+private let memoryMetricKey = "kPerfMemoryMetricKey"
+
 /// 「性能」工具的入口：一个窗口，装浮窗卡片与设置页。
 ///
 /// **一个工具，三个指标**——三个指标各自是一个独立的数据源，各带自己的时钟
@@ -34,6 +37,9 @@ final class PerfTrendPlugin {
     /// 标题、单位、量程、阈值都是展示参数，在这里字面量写死；源只提供它自己真正
     /// 用得上的 `interval` 和 `points`。加一个指标：加一个源类 + 在这里加一项。
     private var allCharts: [TrendChart] {
+        // 总额拿到之前用一个占位，拿到之后量程和阈值一起换成真实的
+        let memoryTotal = memory.totalMB ?? 512
+
         return [
             TrendChart(
                 title: "FPS",
@@ -51,13 +57,13 @@ final class PerfTrendPlugin {
                 interval: cpu.interval,
                 points: cpu.points
             ),
-            // 量程不是自校准的：`mstats` 不提供「上限」这个概念。等
-            // `os_proc_available_memory()` 作为新字段叠上来，换成「已用 + 系统还能给多少」
+            // 量程与阈值都由「总额」推出来：总额是这台设备给这个 App 划的线，
+            // 阈值取它的 80%
             TrendChart(
                 title: "内存",
                 unit: "MB",
-                range: 0...512,
-                threshold: .above(400),
+                range: 0...memoryTotal,
+                threshold: .above(memoryTotal * 0.8),
                 interval: memory.interval,
                 points: memory.points
             ),
@@ -71,7 +77,19 @@ final class PerfTrendPlugin {
             .map(\.element)
     }
 
-    /// 某一条的全部信息，不受开关影响——设置页要用它拿标题和量程。
+    /// CPU 的累计时间记录，详情页用它做差分算「累计 CPU 时间」。
+    var cpuSamples: [PerfCpuSource.Sample] { cpu.samples }
+
+    /// 内存分项（图形 / 媒体 / 网络）的原始记录，详情页按区间聚合要用。
+    var memorySamples: [PerfMemorySource.Sample] { memory.samples }
+
+    /// 内存总额（首次采样时确定，之后不变）
+    var memoryTotalMB: Double? { memory.totalMB }
+
+    /// 帧率的慢帧 / 冻结帧计数，详情页按区间求和要用。
+    var frameSamples: [PerfFrameSource.Sample] { frames.samples }
+
+    /// 某一条的全部信息，不受开关影响——详情页和设置页都要用它。
     func chart(at index: Int) -> TrendChart? {
         return allCharts.indices.contains(index) ? allCharts[index] : nil
     }
@@ -85,6 +103,12 @@ final class PerfTrendPlugin {
 
     /// 哪些指标在检测。**至少保留一个**。
     private(set) var enabled: Set<Int> = Set(0..<PerfTrendPlugin.metricCount)
+
+    /// 内存的测量口径。**持久化**：上次选了堆口径，这次打开就该还是堆口径。
+    private(set) var memoryMetric: PerfMemoryMetric = {
+        let raw = UserDefaults.standard.string(forKey: memoryMetricKey)
+        return raw.flatMap(PerfMemoryMetric.init(rawValue:)) ?? .footprint
+    }()
 
     /// 展示形式。**持久化**：上次选了文字，这次打开就该还是文字。
     private(set) var displayStyle: TrendDisplayStyle = {
@@ -136,7 +160,7 @@ final class PerfTrendPlugin {
         layoutTrend()
         refresh(force: true)
 
-        presentSettings()
+        presentReport()
     }
 
     /// 浮窗开 / 关。设置页底部那颗按钮走这里。
@@ -154,6 +178,15 @@ final class PerfTrendPlugin {
     }
 
     /// 换展示形式。**只动 UI**：数据一条都不碰，两种形式读的是同一批序列。
+    /// 换内存口径。**会清空内存序列**——两个量的量纲都叫 MB，但描述的不是一回事。
+    func setMemoryMetric(_ metric: PerfMemoryMetric) {
+        guard metric != memoryMetric else { return }
+        memoryMetric = metric
+        UserDefaults.standard.set(metric.rawValue, forKey: memoryMetricKey)
+        memory.setMetric(metric)
+        refresh(force: true)
+    }
+
     func setDisplayStyle(_ style: TrendDisplayStyle) {
         guard style != displayStyle else { return }
         displayStyle = style
@@ -166,18 +199,34 @@ final class PerfTrendPlugin {
         refresh(force: true)
     }
 
-    func presentSettings() {
+    /// 工具的内容页。菜单进来先看到它，而不是一堆开关。
+    func presentReport() {
         prepare()
         guard let host = window?.rootViewController, host.presentedViewController == nil else { return }
 
-        let navigator = UINavigationController(rootViewController: PerfViewController())
-        // 禁掉下滑关闭，关闭只走页面那颗按钮——那条路上才有收尾逻辑
+        let navigator = UINavigationController(rootViewController: PerfReportViewController())
+        // 禁掉下滑关闭，关闭只走导航栏那颗按钮——那条路上才有收尾逻辑
         navigator.isModalInPresentation = true
         host.present(navigator, animated: true)
     }
 
+    /// 设置页。由详情页右上角的齿轮推出，浮窗长按也走这里。
+    /// 注意它可能在详情页之上被 present，所以这里是相对详情页而非宿主。
+    func presentSettings() {
+        prepare()
+        guard let presenter = window?.rootViewController?.presentedViewController
+        else { return }
+        guard presenter.presentedViewController == nil else { return }
+
+        let navigator = UINavigationController(rootViewController: PerfViewController())
+        navigator.isModalInPresentation = true
+        presenter.present(navigator, animated: true)
+    }
+
     func settingsDidDismiss() {
         guard !isVisible else { return }
+        // 详情页还开着的时候不能收窗口，那会把它一起带走
+        guard window?.rootViewController?.presentedViewController == nil else { return }
         window?.isHidden = true
     }
 
@@ -206,6 +255,8 @@ final class PerfTrendPlugin {
         // 三个源各起各的时钟，**互不共享**。这里只接通知。
         // 显式挂调用点，不做一层「把所有源塞进数组再遍历」的抽象——
         // 三个源的类型不同，它们的共同点只有「有变化时说一声」。
+        memory.setMetric(memoryMetric)
+
         frames.onChange = { [weak self] in self?.refresh() }
         cpu.onChange = { [weak self] in self?.refresh() }
         memory.onChange = { [weak self] in self?.refresh() }
@@ -327,7 +378,8 @@ extension PerfTrendPlugin: PerfTrendViewDelegate {
         refresh(force: true)
     }
 
+    /// 长按：打开详情页。浮窗在详情页之上会被它盖住，但桌面上的入口只有这一个。
     func perfTrendViewDidLongPress(_ view: PerfTrendView) {
-        presentSettings()
+        presentReport()
     }
 }

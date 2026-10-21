@@ -163,6 +163,17 @@ final class DoSwiftMenuHandle: DraggableView {
         layer.shadowPath = UIBezierPath(ovalIn: bounds).cgPath
     }
 
+    // MARK: - Trait
+
+    /// `borderColor` 是 `CGColor`，在 init 时就被解析成固定值，不像 `backgroundColor`
+    /// 那样跟着动态色走。外观切换后必须重新解析一次，否则边框永远停在旧的那一档。
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        guard traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) else { return }
+        glassView.layer.borderColor = UIColor.separator.resolvedColor(with: traitCollection).cgColor
+    }
+
     // MARK: - DraggableView 钩子
 
     override func dragDidBegin() {
