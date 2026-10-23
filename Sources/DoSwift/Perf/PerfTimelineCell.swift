@@ -10,7 +10,8 @@ import UIKit
 /// 它只负责定位和选择——点一下把「范围」挪到那里。不滑动、不缩放：
 /// 一旦允许滑动或缩放，就会出现「看到的范围」和「统计的范围」两个数。
 ///
-/// 每条 lane 自带纵轴标注（量程上限与峰值）、阈值虚线。横轴在底部给三个时刻。
+/// 每条 lane 自带量程上限与阈值虚线，横轴在底部给三个时刻。
+/// 曲线本身交给 `TrendPlotView`——和浮窗共用同一个绘制实现。
 final class PerfTimelineCell: UITableViewCell {
 
     static let cellHeight: CGFloat = 152
@@ -23,12 +24,16 @@ final class PerfTimelineCell: UITableViewCell {
     private var end: TimeInterval = 1
     private var scope: ClosedRange<TimeInterval>?
 
+    /// 一条 lane 一个绘制视图。曲线本身不在这里画——这里只画「框」：
+    /// 选中带、lane 名、量程上限、基线、底部时刻。
+    private var plots: [TrendPlotView] = []
+
     private enum Metrics {
         static let inset: CGFloat = 14
         static let top: CGFloat = 6
         static let laneHeight: CGFloat = 32
         static let laneGap: CGFloat = 14
-        static let axisHeight: CGFloat = 18
+        static let laneCount = 3
     }
 
     private static let timeFormatter: DateFormatter = {
@@ -44,6 +49,7 @@ final class PerfTimelineCell: UITableViewCell {
         self.start = start
         self.end = max(end, start + 0.001)
         self.scope = scope
+        setNeedsLayout()
         setNeedsDisplay()
     }
 
@@ -58,11 +64,48 @@ final class PerfTimelineCell: UITableViewCell {
         isOpaque = false
 
         contentView.heightAnchor.constraint(equalToConstant: Self.cellHeight).isActive = true
+
+        plots = (0..<Metrics.laneCount).map { _ in
+            let plot = TrendPlotView()
+            contentView.addSubview(plot)
+            return plot
+        }
+
         addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap)))
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Layout
+
+    private func laneFrame(_ index: Int) -> CGRect {
+        CGRect(
+            x: Metrics.inset,
+            y: Metrics.top + CGFloat(index) * (Metrics.laneHeight + Metrics.laneGap),
+            width: max(bounds.width - Metrics.inset * 2, 0),
+            height: Metrics.laneHeight
+        )
+    }
+
+    /// 曲线的像素换算依赖 plot 的真实宽度（抽稀步长由它定），所以渲染放在布局里：
+    /// 宽度一变，步长就要重算。
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        let window = start...end
+        for (index, plot) in plots.enumerated() {
+            plot.frame = laneFrame(index)
+
+            guard index < charts.count else {
+                plot.isHidden = true
+                plot.render(nil)
+                continue
+            }
+            plot.isHidden = false
+            plot.render(charts[index].plotContent(for: plot.bounds.size, window: window))
+        }
     }
 
     // MARK: - Tap
@@ -92,6 +135,7 @@ final class PerfTimelineCell: UITableViewCell {
         ]
     }
 
+    /// 只画框和字。曲线由 `plots` 各自绘制，见 `layoutSubviews`。
     override func draw(_ rect: CGRect) {
         guard !charts.isEmpty else { return }
 
@@ -100,7 +144,7 @@ final class PerfTimelineCell: UITableViewCell {
         let span = end - start
         guard width > 0, span > 0 else { return }
 
-        // 选中范围先铺一层底，压在曲线下面
+        // 选中范围先铺一层底，压在曲线下面（contentView 是子层，画在这之后）
         if let scope = scope {
             let x0 = left + CGFloat((scope.lowerBound - start) / span) * width
             let x1 = left + CGFloat((scope.upperBound - start) / span) * width
@@ -111,16 +155,8 @@ final class PerfTimelineCell: UITableViewCell {
             ).fill()
         }
 
-        for (index, chart) in charts.prefix(3).enumerated() {
-            let top = Metrics.top + CGFloat(index) * (Metrics.laneHeight + Metrics.laneGap)
-            let lane = CGRect(x: left, y: top, width: width, height: Metrics.laneHeight)
-
-            let lower = chart.range.lowerBound
-            let rangeSpan = max(chart.range.upperBound - lower, .ulpOfOne)
-            func y(_ value: Double) -> CGFloat {
-                let ratio = min(max((value - lower) / rangeSpan, 0), 1)
-                return lane.maxY - CGFloat(ratio) * lane.height
-            }
+        for (index, chart) in charts.prefix(Metrics.laneCount).enumerated() {
+            let lane = laneFrame(index)
 
             // 纵轴：量程上限放在 lane 右上，它就是这条线的天花板
             let ceiling = "\(Int(chart.range.upperBound.rounded())) \(chart.unit)"
@@ -136,17 +172,6 @@ final class PerfTimelineCell: UITableViewCell {
                 withAttributes: labelAttributes
             )
 
-            // 阈值虚线
-            if let threshold = chart.threshold, chart.range.contains(threshold.value) {
-                let path = UIBezierPath()
-                path.move(to: CGPoint(x: lane.minX, y: y(threshold.value)))
-                path.addLine(to: CGPoint(x: lane.maxX, y: y(threshold.value)))
-                path.setLineDash([3, 3], count: 2, phase: 0)
-                UIColor.tertiaryLabel.setStroke()
-                path.lineWidth = 1
-                path.stroke()
-            }
-
             // 基线
             let base = UIBezierPath()
             base.move(to: CGPoint(x: lane.minX, y: lane.maxY))
@@ -154,42 +179,10 @@ final class PerfTimelineCell: UITableViewCell {
             UIColor.separator.setStroke()
             base.lineWidth = 0.5
             base.stroke()
-
-            guard chart.points.count > 1 else { continue }
-
-            // 一屏几千个点时按步长抽稀：每像素最多两点
-            let step = max(1, chart.points.count / max(Int(width * 2), 1))
-            // 抽稀之后相邻两个绘制点本来就在时间上隔了 step 个采样，
-            // 断档阈值必须跟着放大，否则每一段都会被当成断档而不连
-            let gapLimit = chart.interval * Double(step) * 2
-            let color: UIColor = index == 0 ? .systemBlue : (index == 1 ? .systemOrange : .systemGreen)
-
-            let line = UIBezierPath()
-            var started = false
-            var previous: TimeInterval = 0
-            var cursor = 0
-            while cursor < chart.points.count {
-                let point = chart.points[cursor]
-                cursor += step
-
-                guard point.t >= start, point.t <= end else { continue }
-                if started, point.t - previous > gapLimit { started = false }
-
-                let x = left + CGFloat((point.t - start) / span) * width
-                let cg = CGPoint(x: x, y: y(point.v))
-                if started { line.addLine(to: cg) } else { line.move(to: cg); started = true }
-                previous = point.t
-            }
-
-            color.setStroke()
-            line.lineWidth = 1.2
-            line.lineJoinStyle = .round
-            line.stroke()
-
         }
 
         // 横轴：三个时刻
-        let axisY = Metrics.top + 3 * (Metrics.laneHeight + Metrics.laneGap) - Metrics.laneGap + 2
+        let axisY = laneFrame(Metrics.laneCount - 1).maxY + 2
         let positions: [(CGFloat, TimeInterval)] = [
             (left, start),
             (left + width / 2, start + span / 2),

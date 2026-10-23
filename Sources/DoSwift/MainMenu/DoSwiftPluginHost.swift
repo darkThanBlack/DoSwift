@@ -65,7 +65,7 @@ public final class DoSwiftPluginHost {
     private func prepare() {
         guard window == nil else { return }
 
-        // Scene 绑定由 OverlayWindow 自己处理（按前台活跃状态过滤）
+        // 场景由 OverlayWindow 初始化时绑定；压在业务窗口之上、弹窗之下
         let overlay = OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
         overlay.isHidden = true
         overlay.rootViewController = navigator

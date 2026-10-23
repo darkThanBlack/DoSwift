@@ -40,15 +40,17 @@ public class DoSwiftCore {
         plugins: [DoSwiftPlugin] = []
     ) {
         self.appWindow = appWindow
-
-        menuGroups = DoSwiftCore.defaultGroups()
-
+        
+        menuGroups = []
+        
         // 插件转成菜单项时会把宿主一起建好，旧的一批先丢掉，免得重复 start 时越积越多
         pluginHosts.removeAll()
         let customItems = items + plugins.map({ makeItem(for: $0) })
         if !customItems.isEmpty {
             menuGroups.append(DoSwiftMenuGroup(title: DoSwiftCore.customGroupTitle, items: customItems))
         }
+        menuGroups += DoSwiftCore.defaultGroups()
+        
         attachActions()
 
         prepare()
@@ -103,8 +105,9 @@ public class DoSwiftCore {
         }
         attachActions()
 
-        // Scene 绑定由 OverlayWindow 自己处理（按前台活跃状态过滤）
-        let overlayWindow = OverlayWindow(frame: UIScreen.main.bounds, level: .normal)
+        // 场景由 OverlayWindow 初始化时绑定；层级取 .statusBar，
+        // 否则业务 App 重建 rootViewController 后会把 .normal 的浮窗压到后面（表现为浮窗消失）。
+        let overlayWindow = OverlayWindow(frame: UIScreen.main.bounds, level: .statusBar)
         overlayWindow.isHidden = true
         overlayWindow.backgroundColor = .clear
 
@@ -176,9 +179,6 @@ public class DoSwiftCore {
             item("js_script",      "JS脚本",        "chevron.left.slash.chevron.right"),
         ])
 
-        // 「性能检测」原本是 14 个独立工具（帧率 / CPU / 内存 / 网络 / Crash / 卡顿 …），
-        // 现在是**一个工具**：一个窗口、一页设置、一块可切换数据源的浮窗。
-        // 其余指标（Crash、卡顿、弱网…）将来落到这一页里，不再各占一个菜单项。
         let performance = DoSwiftMenuGroup(title: "性能", items: [
             item("performance", "性能", "gauge"),
         ])
@@ -187,7 +187,7 @@ public class DoSwiftCore {
             item("ui_hierarchy", "视图结构",   "viewfinder"),
         ])
 
-        return [common, performance, visual]
+        return [visual, performance, common]
     }
     
     private func showUIHierarchy() {

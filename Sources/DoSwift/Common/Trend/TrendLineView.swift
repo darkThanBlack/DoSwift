@@ -23,6 +23,10 @@ final class TrendLineView: UIView {
         static let plotHeight: CGFloat = 20
     }
 
+    /// 展示窗口的长度，单位秒。**UI 层的旋钮**：决定「一秒走多少像素」，
+    /// 和源的采样率无关（横轴按时间戳定位，点稀只是线显得折得硬）。
+    var span: TimeInterval = 30
+
     private let header = TrendHeaderView()
     private let plot = TrendPlotView()
 
@@ -42,7 +46,20 @@ final class TrendLineView: UIView {
 
     func render(_ chart: TrendChart?, now: TimeInterval) {
         header.render(chart, now: now)
-        plot.render(chart, now: now)
+
+        guard let chart = chart else {
+            plot.render(nil)
+            return
+        }
+        // 告警只影响颜色：数值照画，红不红是这一层的事，绘制层不认识「告警」
+        plot.render(chart.plotContent(
+            for: CGSize(
+                width: Metrics.size.width - Metrics.horizontalPadding * 2,
+                height: Metrics.plotHeight
+            ),
+            window: (now - span)...now,
+            tint: chart.isAlarming(at: now) ? .systemRed : .label
+        ))
     }
 
     private func loadViews() {

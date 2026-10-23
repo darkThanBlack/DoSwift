@@ -30,12 +30,25 @@ public class OverlayWindow: UIWindow {
     private var noResponses: [Weaker<UIView>] = []
     
     public init(frame: CGRect, level: UIWindow.Level = .normal) {
-        super.init(frame: frame)
+        // 必须挂到具体场景上：`UIWindow(frame:)` 造出来的是「无场景」窗口，
+        // 业务 App 一旦重建 rootViewController，它可能被顶到后面甚至脱离屏幕。
+        if let scene = Self.activeWindowScene() {
+            super.init(windowScene: scene)
+            self.frame = frame
+        } else {
+            super.init(frame: frame)
+        }
         windowLevel = level
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    /// 当前活跃场景：优先前台活跃的，退化取第一个窗口场景。
+    private static func activeWindowScene() -> UIWindowScene? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+        return scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first
     }
     
     public func show() {

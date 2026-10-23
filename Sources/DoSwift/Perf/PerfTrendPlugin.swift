@@ -47,6 +47,7 @@ final class PerfTrendPlugin {
                 range: 0...frames.nominal,
                 threshold: .below(frames.nominal * 0.75),
                 interval: frames.interval,
+                tint: .systemBlue,
                 points: frames.points
             ),
             TrendChart(
@@ -55,6 +56,7 @@ final class PerfTrendPlugin {
                 range: 0...100,
                 threshold: .above(80),
                 interval: cpu.interval,
+                tint: .systemOrange,
                 points: cpu.points
             ),
             // 量程与阈值都由「总额」推出来：总额是这台设备给这个 App 划的线，
@@ -65,6 +67,7 @@ final class PerfTrendPlugin {
                 range: 0...memoryTotal,
                 threshold: .above(memoryTotal * 0.8),
                 interval: memory.interval,
+                tint: .systemGreen,
                 points: memory.points
             ),
         ]
