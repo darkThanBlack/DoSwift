@@ -2,53 +2,60 @@
 //  HierarchyFormatterTool.swift
 //  DoSwift
 //
-//  Translated from DoraemonHierarchyFormatterTool.m
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
-class HierarchyFormatterTool {
-    static let shared = HierarchyFormatterTool()
+extension DO {
 
-    private lazy var formatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return f
-    }()
+    class HierarchyFormatterTool {
+        static let shared = DO.HierarchyFormatterTool()
 
-    private lazy var numberFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.maximumFractionDigits = 2
-        f.usesGroupingSeparator = false
-        return f
-    }()
+        private lazy var formatter: DateFormatter = {
+            let f = DateFormatter()
+            f.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            return f
+        }()
 
-    func string(from date: Date) -> String? {
-        formatter.string(from: date)
-    }
+        private lazy var numberFormatter: NumberFormatter = {
+            let f = NumberFormatter()
+            f.numberStyle = .decimal
+            f.maximumFractionDigits = 2
+            f.usesGroupingSeparator = false
+            return f
+        }()
 
-    func date(from string: String) -> Date? {
-        formatter.date(from: string)
-    }
+        func string(from date: Date) -> String? {
+            formatter.string(from: date)
+        }
 
-    func format(_ number: NSNumber) -> String {
-        numberFormatter.string(from: number) ?? "\(number)"
-    }
+        func date(from string: String) -> Date? {
+            formatter.date(from: string)
+        }
 
-    static func string(from date: Date) -> String? {
-        shared.string(from: date)
-    }
+        func format(_ number: NSNumber) -> String {
+            numberFormatter.string(from: number) ?? "\(number)"
+        }
 
-    static func date(from string: String) -> Date? {
-        shared.date(from: string)
-    }
+        static func string(from date: Date) -> String? {
+            shared.string(from: date)
+        }
 
-    static func format(_ number: NSNumber) -> String {
-        shared.format(number)
-    }
+        static func date(from string: String) -> Date? {
+            shared.date(from: string)
+        }
 
-    static func string(from frame: CGRect) -> String {
-        "{{\(format(NSNumber(value: frame.origin.x))), \(format(NSNumber(value: frame.origin.y)))}, {\(format(NSNumber(value: frame.size.width))), \(format(NSNumber(value: frame.size.height)))}}"
+        static func format(_ number: NSNumber) -> String {
+            shared.format(number)
+        }
+
+        static func string(from frame: CGRect) -> String {
+            "{{\(format(NSNumber(value: frame.origin.x))), \(format(NSNumber(value: frame.origin.y)))}, {\(format(NSNumber(value: frame.size.width))), \(format(NSNumber(value: frame.size.height)))}}"
+        }
     }
 }

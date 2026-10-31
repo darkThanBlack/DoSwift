@@ -2,10 +2,18 @@
 //  UIColor+Hierarchy.swift
 //  DoSwift
 //
-//  Translated from UIColor+DoraemonHierarchy.m
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
+
+extension DO {
+
+}
 
 extension UIColor {
 
@@ -29,11 +37,6 @@ extension UIColor {
         return rgba
     }
 
-    /// **可编辑形态**：`#RRGGBB`，alpha < 1 时给 `#RRGGBBAA`。
-    ///
-    /// 和 `hierarchy_description` 的分工要说清：那个是给人读的（系统色会带上色名，
-    /// 渲染成 `Red (#FF3B30)`），**它不是合法的输入**；这个是给输入框用的，
-    /// 保证 `hierarchy_color(from:)` 一定能读回来。
     var hierarchy_editableText: String {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 1
         getRed(&r, green: &g, blue: &b, alpha: &a)
@@ -42,7 +45,6 @@ extension UIColor {
         return rgb + String(format: "%02X", Int(a * 255))
     }
 
-    /// 0–1 的 alpha。取不到分量时按 1 处理（不透明是更安全的默认）。
     var hierarchy_alpha: CGFloat {
         var a: CGFloat = 1
         getRed(nil, green: nil, blue: nil, alpha: &a)
@@ -63,13 +65,6 @@ extension UIColor {
         return desc
     }
 
-    /// 从文本造颜色 —— `hierarchy_description` / `hierarchy_hexString` 的反向。
-    ///
-    /// 接受：
-    ///   `#RGB` · `#RRGGBB` · `#RRGGBBAA`
-    ///   `r, g, b` · `r, g, b, a`（分量都 ≤ 1 时按 0–1 处理，否则按 0–255）
-    ///
-    /// 造不出返回 nil —— 调用方据此提示"输入不合法"，而不是悄悄设一个黑。
     static func hierarchy_color(from text: String) -> UIColor? {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return nil }
@@ -101,7 +96,6 @@ extension UIColor {
         let numbers = parts.compactMap { Double($0) }
         guard numbers.count == parts.count else { return nil }
 
-        // 三个分量都不超过 1 就当 0–1，否则当 0–255：两种写法都能一眼看懂
         let scale: Double = numbers.prefix(3).allSatisfy { $0 <= 1 } ? 1 : 255
         return UIColor(red: numbers[0] / scale,
                        green: numbers[1] / scale,

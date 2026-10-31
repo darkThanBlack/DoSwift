@@ -2,13 +2,18 @@
 //  NSObject+Hierarchy.swift
 //  DoSwift
 //
-//  Translated from NSObject+DoraemonHierarchy.m / .h
-//  TODO: Fill in category model generation from UIView properties
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
-// MARK: - NSObject Stub
+extension DO {
+
+}
 
 extension NSObject {
 
@@ -18,7 +23,7 @@ extension NSObject {
         return UIColor(hue: hue, saturation: 0.8, brightness: 0.9, alpha: 1)
     }
 
-    var hierarchy_categoryModels: [HierarchyCategoryModel] {
+    var hierarchy_categoryModels: [DO.HierarchyCategoryModel] {
         // TODO: Translate from doraemon_hierarchyCategoryModels
         []
     }
@@ -30,11 +35,9 @@ extension NSObject {
     @objc func hierarchy_showFontAlertAndAutomicSet(keyPath: String) {}
 }
 
-// MARK: - UIView Stub
-
 extension UIView {
 
-    var hierarchy_sizeCategoryModels: [HierarchyCategoryModel] {
+    var hierarchy_sizeCategoryModels: [DO.HierarchyCategoryModel] {
         // TODO: Translate from doraemon_sizeHierarchyCategoryModels
         []
     }

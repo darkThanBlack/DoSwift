@@ -2,14 +2,21 @@
 //  UIViewController+Hierarchy.swift
 //  DoSwift
 //
-//  Translated from UIViewController+DoraemonHierarchy.m
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
+extension DO {
+
+}
+
 extension UIViewController {
 
-    /// 递归查找当前正在展示的 ViewController
     var hierarchy_currentShowingViewController: UIViewController {
         if let presented = presentedViewController {
             return presented.hierarchy_currentShowingViewController
@@ -23,7 +30,6 @@ extension UIViewController {
         return self
     }
 
-    /// 弹出确认对话框
     func hierarchy_showAlert(message: String, handler: ((Int) -> Void)?) {
         let alert = UIAlertController(title: "Note", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in handler?(0) })
@@ -33,7 +39,6 @@ extension UIViewController {
         }
     }
 
-    /// 弹出 ActionSheet 选择器
     func hierarchy_showActionSheet(title: String, actions: [String], currentAction: String?, completion: ((Int) -> Void)?) {
         let alert = UIAlertController(title: nil, message: title, preferredStyle: .actionSheet)
         for (index, actionTitle) in actions.enumerated() {

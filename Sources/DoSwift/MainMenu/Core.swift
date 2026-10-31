@@ -77,7 +77,7 @@ extension DO {
             ])
 
             let visual = DO.MenuGroup(title: "视觉工具", items: [
-                DO.MenuItem(plugin: HierarchyPlugin.shared),
+                DO.MenuItem(plugin: DO.HierarchyPlugin.shared),
             ])
 
             return [visual, performance, common]

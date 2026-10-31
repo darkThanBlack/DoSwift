@@ -2,53 +2,46 @@
 //  HierarchyCellModel.swift
 //  DoSwift
 //
-//  Translated from DoraemonHierarchyCellModel.m / .h
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
 //
-//  Note: 原版还有 switch / selector / stepper 三种分支，服务于「实时修改属性」。
-//  该功能尚未实现，所以这里只留只读渲染真正需要的字段——留着 `flag` / `block` /
-//  `cellClass` 那几个只会让「它还有人用吗」变成每次读代码都要查一遍的问题。
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
-/// 属性面板一行：主标题 + 副标题
-class HierarchyCellModel {
+extension DO {
 
-    let title: String?
-    let detailTitle: String?
+    class HierarchyCellModel {
 
-    /// 分隔线内边距
-    var separatorInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
+        let title: String?
+        let detailTitle: String?
 
-    /// 编辑入口。由引擎在构造这一行时挂上，**nil 就是只读行**。
-    ///
-    /// 挂的条件在引擎里：JSON 的 `userEditable` 允许，且这一期实现了对应的编辑器。
-    /// 所以「哪些行能改」这件事在这里只是一个 Bool，两边都不用再问一次。
-    var edit: HierarchyEditDescriptor?
+        var separatorInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
 
-    init(title: String?, detailTitle: String?) {
-        self.title = title
-        self.detailTitle = detailTitle
+        var edit: DO.HierarchyEditDescriptor?
+
+        init(title: String?, detailTitle: String?) {
+            self.title = title
+            self.detailTitle = detailTitle
+        }
+
+        @discardableResult
+        func noneInsets() -> DO.HierarchyCellModel {
+            separatorInsets = UIEdgeInsets(top: 0, left: UIScreen.main.bounds.width, bottom: 0, right: 0)
+            return self
+        }
     }
 
-    /// 不显示分隔线。原版靠把 left 顶到屏幕宽度来实现，这里沿用。
-    @discardableResult
-    func noneInsets() -> HierarchyCellModel {
-        separatorInsets = UIEdgeInsets(top: 0, left: UIScreen.main.bounds.width, bottom: 0, right: 0)
-        return self
-    }
 }
 
-// MARK: - Cell Data Source
-
-/// 本身就是一行的数据，直接喂给 cell，不再套一层适配结构
-extension HierarchyCellModel: DO.KeyValueCellDataSource {
+extension DO.HierarchyCellModel: DO.KeyValueCellDataSource {
 
     var detail: String? {
         detailTitle
     }
 
-    /// 只读渲染不出尾部图标；将来做「点击复制 / 跳转」时从这里给
     var rightImage: UIImage? {
         nil
     }
