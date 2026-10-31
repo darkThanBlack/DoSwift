@@ -58,7 +58,6 @@ open class DoSwiftDefaultPlugin: DoSwiftPlugin {
         window?.isHidden = true
     }
     
-    /// 造一个**新的**窗口。缓存由基类负责——这里不要判空，也不要读写 `self.window`。
     open func makeWindow() -> OverlayWindow {
         fatalError("wrong call, you must override it!")
     }

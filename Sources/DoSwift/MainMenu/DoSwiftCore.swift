@@ -94,7 +94,6 @@ public class DoSwiftCore {
         
         window = overlayWindow
         
-        // 重要：必须最后调用
         overlayWindow.addNoResponseView(root.view)
     }
     
