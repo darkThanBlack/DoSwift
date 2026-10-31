@@ -1,14 +1,18 @@
 //
-//  DO.SectionFooterView.swift
+//  SectionFooterView.swift
 //  DoSwift
+//
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
 extension DO {
 
-    /// 分组表的段脚注。与 `DO.SectionHeaderView` 同一套字号 / 颜色 / 复用方式，
-    /// 只是上下留白的比例反过来——脚注贴着它上面那一段，与下一段之间留出间距。
     final class SectionFooterView: UITableViewHeaderFooterView {
 
         let titleLabel: UILabel = {

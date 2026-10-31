@@ -29,9 +29,9 @@ extension DO {
                 guard isFadeEnabled != oldValue else { return }
 
                 if isFadeEnabled {
-                    fadeCounts = fadeDelayTime     // 恢复：从满额重新计数
+                    fadeCounts = fadeDelayTime
                 } else {
-                    showHandle()                   // 暂停：立刻回到不透明
+                    showHandle()
                 }
             }
         }
@@ -166,7 +166,7 @@ extension DO {
             guard fadeCounts <= 0 else { return }
 
             dimHandle()
-            fadeCounts = fadeDelayTime   // 淡完自己填满：空闲淡化是循环，不是一次性
+            fadeCounts = fadeDelayTime
         }
     }
 }

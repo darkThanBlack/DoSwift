@@ -73,7 +73,7 @@ extension UIColor {
             let hex = String(trimmed.dropFirst())
             guard let value = UInt64(hex, radix: 16) else { return nil }
             switch hex.count {
-            case 3:     // #RGB → #RRGGBB（每位重复一次）
+            case 3:
                 let r = (value >> 8) & 0xF, g = (value >> 4) & 0xF, b = value & 0xF
                 return UIColor(red: CGFloat(r * 17) / 255, green: CGFloat(g * 17) / 255,
                                blue: CGFloat(b * 17) / 255, alpha: 1)

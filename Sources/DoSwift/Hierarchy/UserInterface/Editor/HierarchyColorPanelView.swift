@@ -65,7 +65,7 @@ extension DO {
             let slider = UISlider()
             slider.minimumValue = 0
             slider.maximumValue = 1
-            slider.isContinuous = false   // 松手才回报一次，途中不必反复改值
+            slider.isContinuous = false
             slider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
             return slider
         }()

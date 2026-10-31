@@ -137,7 +137,7 @@ extension DO {
             var buffer = [UInt8](repeating: 0, count: chunkSize)
             while true {
                 let count = read(stream.readEnd, &buffer, buffer.count)
-                guard count > 0 else { break }   // 0 = EOF；非阻塞下的 -1 就是 EAGAIN，两种都该收手
+                guard count > 0 else { break }
 
                 stream.pending.append(contentsOf: buffer[0..<count])
                 emitLines(from: stream)

@@ -55,7 +55,7 @@ extension DO {
                     cell.separatorInset = item.separatorInsets
                 }
 
-            default:    // text / int / double / enum / color / font / date / 几何 —— 都要点开卡片
+            default:
                 return Row(
                     cellClass: DO.SelectorCell.self,
                     onTrigger: { [weak self] _ in self?.presentEditor(edit) }

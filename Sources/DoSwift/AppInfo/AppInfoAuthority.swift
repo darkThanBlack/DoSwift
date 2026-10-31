@@ -77,11 +77,11 @@ extension DO {
             case restricted
             case denied
             case granted
-            case always         // 定位特有
-            case whenInUse      // 定位特有
-            case limited        // 相册 / 通讯录特有
-            case writeOnly      // 日历 / 提醒事项特有
-            case unavailable    // 这台设备 / 这个系统版本上就没有这项能力
+            case always
+            case whenInUse
+            case limited
+            case writeOnly
+            case unavailable
             case unknown
 
             var text: String {
@@ -230,8 +230,8 @@ extension DO {
                 case .notDetermined: state = .notDetermined
                 case .denied:        state = .denied
                 case .authorized:    state = .granted
-                case .provisional:   state = .granted   // 临时授权：通知能到，但没弹过窗
-                default:             state = .unknown   // 含 iOS 14 的 .ephemeral（App Clip 专用）
+                case .provisional:   state = .granted
+                default:             state = .unknown
                 }
                 DispatchQueue.main.async { done(state.text) }
             }

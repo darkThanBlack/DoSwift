@@ -1,19 +1,18 @@
 //
-//  DO.TrendLineView.swift
+//  TrendLineView.swift
 //  DoSwift
+//
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
 extension DO {
 
-    /// 折线形式的卡片内容：**上面一行字，下面一条曲线**，两块各自是独立的 view。
-    ///
-    /// 拆开的好处是折线区只认自己的 `bounds`（见 `DO.TrendPlotView`），卡片尺寸与内外边距
-    /// 全部留在这一层。以后换一种图（比如帧率的柱状图）只需要换下面那一块。
-    ///
-    /// **尺寸固定 112 × 66**，所以不接 Dynamic Type：卡片是按最长的一行内容
-    /// （「内存 1204 MB」）量出来的，字号变大就会溢出。字号是设计的一部分。
     final class TrendLineView: UIView {
 
         private enum Metrics {
@@ -25,8 +24,6 @@ extension DO {
             static let plotHeight: CGFloat = 20
         }
 
-        /// 展示窗口的长度，单位秒。**UI 层的旋钮**：决定「一秒走多少像素」，
-        /// 和源的采样率无关（横轴按时间戳定位，点稀只是线显得折得硬）。
         var span: TimeInterval = 30
 
         private let header = DO.TrendHeaderView()
@@ -53,7 +50,6 @@ extension DO {
                 plot.render(nil)
                 return
             }
-            // 告警只影响颜色：数值照画，红不红是这一层的事，绘制层不认识「告警」
             plot.render(chart.plotContent(
                 for: CGSize(
                     width: Metrics.size.width - Metrics.horizontalPadding * 2,
