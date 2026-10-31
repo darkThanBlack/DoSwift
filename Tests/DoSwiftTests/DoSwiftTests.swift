@@ -1,72 +1,31 @@
 //
 //  DoSwiftTests.swift
-//  DoSwiftTests
+//  DoSwift
 //
-//  Created by Claude Code on 2025/09/26.
-//  Copyright © 2025 DoSwift. All rights reserved.
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import XCTest
+
 @testable import DoSwift
 
+/// Placeholder suite, kept so the target stays alive.
+///
+/// The original skeleton tests asserted APIs that were never built — `isEnabled`,
+/// `hasSubMenu`, `addSubMenuItem`, `DoSwiftWindow` — and stopped compiling long ago.
+/// They are dropped rather than repaired: a menu item is a title plus an action, and there
+/// is no sub-menu to test.
+///
+/// The target itself is worth keeping. The network capture work starts with a swizzler, and
+/// Firebase ships a usable set of swizzler tests we intend to port alongside it. They need a
+/// home, and this is it.
 final class DoSwiftTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // 每个测试前的设置代码
-    }
-
-    override func tearDownWithError() throws {
-        // 每个测试后的清理代码
-    }
-
-    func testDoSwiftCoreInitialization() throws {
-        let core = DO.Core.shared
-        XCTAssertNotNil(core)
-    }
-
-    func testMenuItemCreation() throws {
-        let menuItem = DO.MenuItem(
-            identifier: "test",
-            title: "Test Item",
-            icon: nil
-        ) { _ in
-            // 测试动作
-        }
-
-        XCTAssertEqual(menuItem.identifier, "test")
-        XCTAssertEqual(menuItem.title, "Test Item")
-        XCTAssertTrue(menuItem.isEnabled)
-        XCTAssertFalse(menuItem.hasSubMenu)
-    }
-
-    func testMenuItemSubItems() throws {
-        let parentItem = DO.MenuItem(
-            identifier: "parent",
-            title: "Parent Item"
-        )
-
-        let childItem = DO.MenuItem(
-            identifier: "child",
-            title: "Child Item"
-        )
-
-        parentItem.addSubMenuItem(childItem)
-
-        XCTAssertTrue(parentItem.hasSubMenu)
-        XCTAssertEqual(parentItem.subMenuItems.count, 1)
-        XCTAssertEqual(parentItem.subMenuItems.first?.identifier, "child")
-    }
-
-    func testDoSwiftCoreSingleton() throws {
-        let core1 = DO.Core.shared
-        let core2 = DO.Core.shared
-
-        XCTAssertTrue(core1 === core2)
-    }
-
-    func testDoSwiftWindowCreation() throws {
-        let window = DoSwiftWindow(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
-        XCTAssertNotNil(window)
-        XCTAssertEqual(window.backgroundColor, UIColor.clear)
+    func testCoreIsSingleton() {
+        XCTAssertTrue(DO.Core.shared === DO.Core.shared)
     }
 }
