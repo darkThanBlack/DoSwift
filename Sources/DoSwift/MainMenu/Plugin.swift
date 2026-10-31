@@ -1,9 +1,12 @@
 //
-//  DO.Plugin.swift
+//  Plugin.swift
 //  DoSwift
 //
-//  Created by Claude Code on 2026/10/20.
-//  Copyright © 2026 DoSwift. All rights reserved.
+//  Created by moonShadow on 2026/10/20
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit

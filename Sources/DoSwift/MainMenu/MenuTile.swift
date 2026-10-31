@@ -1,9 +1,12 @@
 //
-//  DO.MenuTile.swift
+//  MenuTile.swift
 //  DoSwift
 //
-//  Created by Claude Code on 2026/09/28.
-//  Copyright © 2026 DoSwift. All rights reserved.
+//  Created by moonShadow on 2026/09/28
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
@@ -29,8 +32,6 @@ extension DO {
                 + UIFont.systemFont(ofSize: labelFontSize, weight: .regular).lineHeight
                 + bottomPadding
         )
-
-        // MARK: - Subviews
 
         private let highlightView: UIView = {
             let view = UIView()
@@ -59,8 +60,6 @@ extension DO {
             return label
         }()
 
-        // MARK: - Initializers
-
         override init(frame: CGRect) {
             super.init(frame: frame)
             setup()
@@ -78,13 +77,9 @@ extension DO {
             addTarget(self, action: #selector(handleTap), for: .touchUpInside)
         }
 
-        // MARK: - Size
-
         override func sizeThatFits(_ size: CGSize) -> CGSize {
             return CGSize(width: size.width, height: DO.MenuTile.height)
         }
-
-        // MARK: - Layout
 
         override func layoutSubviews() {
             super.layoutSubviews()
@@ -107,8 +102,6 @@ extension DO {
             )
         }
 
-        // MARK: - Highlight
-
         override var isHighlighted: Bool {
             didSet {
                 UIView.animate(withDuration: 0.12) {
@@ -116,8 +109,6 @@ extension DO {
                 }
             }
         }
-
-        // MARK: - Configuration
 
         func configure(with item: DO.MenuItem) {
             self.item = item

@@ -1,22 +1,25 @@
 //
-//  DO.MenuGroup.swift
+//  MenuGroup.swift
 //  DoSwift
 //
-//  Created by Claude Code on 2026/09/28.
-//  Copyright © 2026 DoSwift. All rights reserved.
+//  Created by moonShadow on 2026/09/28
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
 extension DO {
 
-    public struct MenuGroup {
+    struct MenuGroup {
 
-        public let title: String
+        let title: String
 
-        public var items: [DO.MenuItem]
+        var items: [DO.MenuItem]
 
-        public init(title: String, items: [DO.MenuItem]) {
+        init(title: String, items: [DO.MenuItem]) {
             self.title = title
             self.items = items
         }

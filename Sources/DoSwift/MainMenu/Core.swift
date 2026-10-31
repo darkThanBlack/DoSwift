@@ -1,22 +1,25 @@
 //
-//  DO.Core.swift
+//  Core.swift
 //  DoSwift
 //
-//  Created by Claude Code on 2025/09/26.
-//  Copyright © 2025 DoSwift. All rights reserved.
+//  Created by moonShadow on 2025/09/26
+//  Copyright © 2025 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
 extension DO {
 
-    public class Core {
+    public final class Core {
 
         public static let shared = DO.Core()
         private init() {}
 
         /// Your APP's window
-        public private(set) weak var appWindow: UIWindow?
+        private(set) weak var appWindow: UIWindow?
 
         /// DoSwift main menu drift handle
         public private(set) var window: DO.OverlayWindow?
@@ -47,8 +50,6 @@ extension DO {
         public func hide() {
             window?.isHidden = true
         }
-
-        // MARK: - Private
 
         private lazy var menuGroups: [DO.MenuGroup] = []
 

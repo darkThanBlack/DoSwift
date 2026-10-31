@@ -1,9 +1,12 @@
 //
-//  DO.MenuItem.swift
+//  MenuItem.swift
 //  DoSwift
 //
-//  Created by Claude Code on 2025/09/26.
-//  Copyright © 2025 DoSwift. All rights reserved.
+//  Created by moonShadow on 2025/09/26
+//  Copyright © 2025 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
@@ -16,7 +19,7 @@ extension DO {
 
         public let title: String
 
-        public var icon: UIImage?
+        public let icon: UIImage?
 
         public var actionHandler: (() -> ())?
 
@@ -27,7 +30,7 @@ extension DO {
             self.actionHandler = actionHandler
         }
 
-        public convenience init(plugin: any DO.Plugin) {
+        convenience init(plugin: any DO.Plugin) {
             self.init(identifier: plugin.identifier, title: plugin.title, icon: plugin.icon, actionHandler: plugin.actionHandler)
         }
     }

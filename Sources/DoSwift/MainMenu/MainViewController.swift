@@ -1,9 +1,12 @@
 //
-//  DO.MainViewController.swift
+//  MainViewController.swift
 //  DoSwift
 //
-//  Created by Claude Code on 2025/09/26.
-//  Copyright © 2025 DoSwift. All rights reserved.
+//  Created by moonShadow on 2025/09/26
+//  Copyright © 2025 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
@@ -11,8 +14,6 @@ import UIKit
 extension DO {
 
     class MainViewController: UIViewController {
-
-        // MARK: - Properties
 
         var menuGroups: [DO.MenuGroup] = [] {
             didSet {
@@ -33,8 +34,6 @@ extension DO {
         }()
 
         private var lastLayoutSize: CGSize = .zero
-
-        // MARK: - Lifecycle
 
         override func viewDidLoad() {
             super.viewDidLoad()
@@ -58,8 +57,6 @@ extension DO {
                 relayoutPanel()
             }
         }
-
-        // MARK: - Private Methods
 
         private func setupDoSwiftMenuHandle() {
             view.addSubview(handleView)
@@ -120,8 +117,6 @@ extension DO.MainViewController: DO.MenuHandleDelegate {
         toggleMenu()
     }
 }
-
-// MARK: - DO.MenuPanelDelegate
 
 extension DO.MainViewController: DO.MenuPanelDelegate {
 

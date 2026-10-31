@@ -19,7 +19,7 @@ for debugging tools.
                        DESC
 
   s.homepage         = 'https://github.com/darkThanBlack/DoSwift'
-  s.license          = { :type => 'MIT', :file => 'LICENSE' }
+  s.license          = { :type => 'WTFPL', :file => 'LICENSE' }
   s.author           = { 'darkThanBlack' => 'darkthanblack@example.com' }
   s.source           = { :git => 'https://github.com/darkThanBlack/DoSwift.git', :tag => s.version.to_s }
 

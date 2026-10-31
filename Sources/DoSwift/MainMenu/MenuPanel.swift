@@ -1,9 +1,12 @@
 //
-//  DO.MenuPanel.swift
+//  MenuPanel.swift
 //  DoSwift
 //
-//  Created by Claude Code on 2026/09/28.
-//  Copyright © 2026 DoSwift. All rights reserved.
+//  Created by moonShadow on 2026/09/28
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
@@ -17,8 +20,6 @@ extension DO {
     }
 
     final class MenuPanel: UIView {
-
-        // MARK: - Metrics
 
         private enum Metrics {
 
@@ -39,21 +40,15 @@ extension DO {
             static let shadowMargin: CGFloat = 32
         }
 
-        // MARK: - Public State
-
         weak var delegate: DO.MenuPanelDelegate?
 
         private(set) var isOpen: Bool = false
-
-        // MARK: - Private State
 
         private var menuGroups: [DO.MenuGroup] = []
         private var headerViews: [DO.MenuGroupHeaderView] = []
         private var tilesByGroup: [[DO.MenuTile]] = []
 
         private var handleCenter: CGPoint = .zero
-
-        // MARK: - Subviews
 
         private let contentContainer: UIView = {
             let view = UIView()
@@ -78,8 +73,6 @@ extension DO {
             view.backgroundColor = .clear
             return view
         }()
-
-        // MARK: - Lifecycle
 
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -106,8 +99,6 @@ extension DO {
             box.isHidden = true
             box.alpha = 0
         }
-
-        // MARK: - Layout
 
         override func layoutSubviews() {
             super.layoutSubviews()
@@ -174,8 +165,6 @@ extension DO {
                 height: y + Metrics.verticalPadding
             )
         }
-
-        // MARK: - Public Interface
 
         func setMenuGroups(_ groups: [DO.MenuGroup]) {
             menuGroups = groups
@@ -275,8 +264,6 @@ extension DO {
                 finish()
             }
         }
-
-        // MARK: - Private
 
         private func rebuildItems() {
             headerViews.forEach { $0.removeFromSuperview() }

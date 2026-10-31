@@ -1,9 +1,9 @@
 //
-//  DO.MenuGroupHeaderView.swift
+//  MenuGroupHeaderView.swift
 //  DoSwift
 //
-//  Created by moonShadow on 2026/10/9
-//  
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
 //
 //  LICENSE: SAME AS REPOSITORY
 //  Contact me: [GitHub](https://github.com/darkThanBlack)
@@ -15,8 +15,6 @@ import UIKit
 extension DO {
 
     final class MenuGroupHeaderView: UIView {
-
-        // MARK: - Metrics
 
         private static let headerHeight: CGFloat = 28
 

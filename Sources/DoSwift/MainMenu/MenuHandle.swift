@@ -1,31 +1,26 @@
 //
-//  DO.MenuHandle.swift
+//  MenuHandle.swift
 //  DoSwift
 //
-//  Created by Claude Code on 2025/09/26.
-//  Copyright © 2025 DoSwift. All rights reserved.
+//  Created by moonShadow on 2025/09/26
+//  Copyright © 2025 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
 
 extension DO {
 
-    // MARK: - Delegate Protocol
-
     protocol MenuHandleDelegate: AnyObject {
         func menuHandleDidTap(_ handleView: DO.MenuHandle)
         func menuHandleDidBeginDrag(_ handleView: DO.MenuHandle)
     }
 
-    // MARK: - DO.MenuHandle
-
     final class MenuHandle: DO.DraggableView {
 
-        // MARK: - Constants
-
         static let handleFrameKey = "kMenuHandleFrameKey"
-
-        // MARK: - Properties
 
         weak var delegate: DO.MenuHandleDelegate?
 
@@ -41,13 +36,9 @@ extension DO {
             }
         }
 
-        // MARK: - Fade Properties
-
         private var fadeTimer: Timer?
         private var fadeCounts: Int = 0
         private let fadeDelayTime: Int = 3
-
-        // MARK: - Subviews
 
         private let glassView: UIView = {
             let view = UIView()
@@ -71,8 +62,6 @@ extension DO {
             let gesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
             return gesture
         }()
-
-        // MARK: - Initializers
 
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -118,8 +107,6 @@ extension DO {
             return CGSize(width: 44, height: 44)
         }
 
-        // MARK: - Layout
-
         override func layoutSubviews() {
             super.layoutSubviews()
 
@@ -137,8 +124,6 @@ extension DO {
 
             layer.shadowPath = UIBezierPath(ovalIn: bounds).cgPath
         }
-
-        // MARK: - Trait
 
         override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
             super.traitCollectionDidChange(previousTraitCollection)
@@ -160,8 +145,6 @@ extension DO {
         @objc private func handleTap() {
             delegate?.menuHandleDidTap(self)
         }
-
-        // MARK: - Fade
 
         private func showHandle() {
             UIView.animate(withDuration: 0.3) {

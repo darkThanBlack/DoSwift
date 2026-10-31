@@ -1,9 +1,9 @@
 //
-//  DO.MenuNavigationBar.swift
+//  MenuNavigationBar.swift
 //  DoSwift
 //
-//  Created by moonShadow on 2026/10/9
-//  
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
 //
 //  LICENSE: SAME AS REPOSITORY
 //  Contact me: [GitHub](https://github.com/darkThanBlack)
@@ -17,8 +17,6 @@ extension DO {
     final class MenuNavigationBar: UIView {
 
         var onClose: (() -> Void)?
-
-        // MARK: - Metrics
 
         private static let barHeight: CGFloat = 44
         private static let closeButtonSize: CGFloat = 32
