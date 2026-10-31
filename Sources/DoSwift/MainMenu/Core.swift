@@ -66,7 +66,7 @@ extension DO {
                 item("mock_gps",       "Mock GPS",      "location"),
                 item("h5",             "H5任意门",      "safari"),
                 item("clean_cache",    "清理缓存",      "trash"),
-                DO.MenuItem(plugin: ConsolePlugin.shared),
+                DO.MenuItem(plugin: DO.ConsolePlugin.shared),
                 item("db_view",        "DBView",        "archivebox"),
                 DO.MenuItem(plugin: DO.UserDefaultsPlugin.shared),
                 item("js_script",      "JS脚本",        "chevron.left.slash.chevron.right"),
