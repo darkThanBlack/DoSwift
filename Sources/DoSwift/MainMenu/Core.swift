@@ -73,7 +73,7 @@ extension DO {
             ])
 
             let performance = DO.MenuGroup(title: "性能", items: [
-                DO.MenuItem(plugin: PerfTrendPlugin.shared),
+                DO.MenuItem(plugin: DO.PerfTrendPlugin.shared),
             ])
 
             let visual = DO.MenuGroup(title: "视觉工具", items: [
