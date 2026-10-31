@@ -61,14 +61,14 @@ extension DO {
 
             let common = DO.MenuGroup(title: "常用工具", items: [
                 item("app_setting",    "应用设置",      "gear"),
-                DO.MenuItem(plugin: AppInfoPlugin.shared),
+                DO.MenuItem(plugin: DO.AppInfoPlugin.shared),
                 item("sandbox",        "沙盒浏览器",    "folder"),
                 item("mock_gps",       "Mock GPS",      "location"),
                 item("h5",             "H5任意门",      "safari"),
                 item("clean_cache",    "清理缓存",      "trash"),
                 DO.MenuItem(plugin: ConsolePlugin.shared),
                 item("db_view",        "DBView",        "archivebox"),
-                DO.MenuItem(plugin: UserDefaultsPlugin.shared),
+                DO.MenuItem(plugin: DO.UserDefaultsPlugin.shared),
                 item("js_script",      "JS脚本",        "chevron.left.slash.chevron.right"),
             ])
 
