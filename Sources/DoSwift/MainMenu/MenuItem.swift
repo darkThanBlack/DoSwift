@@ -13,17 +13,17 @@ import UIKit
 
 extension DO {
 
-    public final class MenuItem: DO.Plugin {
+    final class MenuItem: DO.Plugin {
 
-        public let identifier: String
+        let identifier: String
 
-        public let title: String
+        let title: String
 
-        public let icon: UIImage?
+        let icon: UIImage?
 
-        public var actionHandler: (() -> ())?
+        let actionHandler: (() -> ())?
 
-        public init(identifier: String, title: String, icon: UIImage? = nil, actionHandler: (() -> Void)? = nil) {
+        init(identifier: String, title: String, icon: UIImage? = nil, actionHandler: (() -> Void)? = nil) {
             self.identifier = identifier
             self.title = title
             self.icon = icon
