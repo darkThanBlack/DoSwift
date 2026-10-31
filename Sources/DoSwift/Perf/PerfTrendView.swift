@@ -7,11 +7,11 @@ import UIKit
 
 /// 浮窗卡片的容器：**外观 + 拖动 + 手势**，内容由两种展示形式之一来画。
 ///
-/// 拖动与吸边全部来自 `DraggableView`（基类不碰任何视觉），这里只加卡片自己的东西
-/// ——材质、圆角、阴影、位置记忆、两个手势。与 `DoSwiftMenuHandle` 同一套写法。
+/// 拖动与吸边全部来自 `DO.DraggableView`（基类不碰任何视觉），这里只加卡片自己的东西
+/// ——材质、圆角、阴影、位置记忆、两个手势。与 `DO.MenuHandle` 同一套写法。
 ///
 /// **不做空闲淡化**：它显示的是实时值，淡下去就没法读了。让开的方式是把位置交给用户。
-final class PerfTrendView: DraggableView {
+final class PerfTrendView: DO.DraggableView {
 
     /// 位置记忆在 UserDefaults 里的 key
     static let frameKey = "kPerfTrendFrameKey"
@@ -138,7 +138,7 @@ final class PerfTrendView: DraggableView {
         invalidateIntrinsicContentSize()
     }
 
-    // MARK: - DraggableView 钩子
+    // MARK: - DO.DraggableView 钩子
 
     override func dragDidBegin() {
         // 拖动期间不需要额外动作。长按那条路自己会看 `isDragging`——

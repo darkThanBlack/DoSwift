@@ -6,7 +6,7 @@
 import UIKit
 
 ///
-public class ConsolePlugin: DoSwiftDefaultPlugin {
+public class ConsolePlugin: DO.DefaultPlugin {
     
     public static let shared = ConsolePlugin()
     
@@ -32,8 +32,8 @@ public class ConsolePlugin: DoSwiftDefaultPlugin {
         ConsoleStore.shared.unifiedLog.refresh()
     }
     
-    public override func makeWindow() -> OverlayWindow {
-        let w = OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+    public override func makeWindow() -> DO.OverlayWindow {
+        let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
         w.rootViewController = UINavigationController(rootViewController: list)
         return w
     }

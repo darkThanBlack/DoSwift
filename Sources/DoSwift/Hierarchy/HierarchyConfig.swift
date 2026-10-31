@@ -69,7 +69,7 @@ struct HierarchyConfig: Codable, Equatable {
 
     // MARK: - 存取
 
-    /// key 前缀 `k...` 与 `DoSwiftMenuHandle.handleFrameKey` 一致
+    /// key 前缀 `k...` 与 `DO.MenuHandle.handleFrameKey` 一致
     private static let defaultsKey = "kHierarchyConfig"
 
     static func load() -> HierarchyConfig {

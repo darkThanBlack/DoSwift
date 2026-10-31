@@ -39,11 +39,11 @@ final class AppInfoRuntime {
 
     /// 业务 App 此刻最顶上那个控制器。
     ///
-    /// 从 `DoSwiftCore.appWindow` 往下找，而**不是**从 `UIApplication` 找：后者会把
+    /// 从 `DO.Core.appWindow` 往下找，而**不是**从 `UIApplication` 找：后者会把
     /// DoSwift 自己的浮窗和本面板一并算进去，答出来的就成了「调试工具停在哪一页」
     /// ——那正是这个字段要回答的反面。
     private static func topViewController() -> String? {
-        guard let root = DoSwiftCore.shared.appWindow?.rootViewController else { return nil }
+        guard let root = DO.Core.shared.appWindow?.rootViewController else { return nil }
         return String(describing: topmost(in: root))
     }
 

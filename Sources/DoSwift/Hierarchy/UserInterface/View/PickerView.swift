@@ -20,9 +20,9 @@ protocol PickerViewDelegate: AnyObject {
 
 /// 圆形拾取器基类。
 ///
-/// 定位、拖动、归位全部交给 `DraggableView`；本类只回答两件事：**自己多大**、
+/// 定位、拖动、归位全部交给 `DO.DraggableView`；本类只回答两件事：**自己多大**、
 /// **拖动时把事件转出去**。
-class PickerView: DraggableView {
+class PickerView: DO.DraggableView {
 
     /// 拖动事件出口
     weak var delegate: PickerViewDelegate?
@@ -42,7 +42,7 @@ class PickerView: DraggableView {
         addSubview(icon)
     }
 
-    // MARK: - DraggableView 钩子
+    // MARK: - DO.DraggableView 钩子
 
     /// pan 手势真正成立时才会走到——轻点不会，所以可以直接当作「开始拖动」用。
     override func dragDidBegin() {

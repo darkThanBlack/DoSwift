@@ -53,7 +53,7 @@ final class PerfFrameSource {
     private var frozenFrames = 0
 
     init() {
-        let screen = DoSwiftCore.shared.appWindow?.windowScene?.screen ?? UIScreen.main
+        let screen = DO.Core.shared.appWindow?.windowScene?.screen ?? UIScreen.main
         nominal = Double(max(screen.maximumFramesPerSecond, 60))
     }
 

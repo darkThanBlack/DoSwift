@@ -9,7 +9,7 @@
 import UIKit
 
 /// 按照规范，如果业务容器内部使用 AutoLayout 布局，需要确保约束满足 self sizing 和一层转换
-final class DraggableLayoutView: DraggableView {
+final class DraggableLayoutView: DO.DraggableView {
     
     /// 被托管的内容视图。大小完全由这里决定，内部排版归它自己。
     let contentView: UIView

@@ -33,7 +33,7 @@ class HierarchyPickerView: PickerView {
         }
     }
 
-    /// 业务 window 已由 `DoSwiftCore.start(appWindow:)` 注入，无需再遍历所有 window 猜目标。
+    /// 业务 window 已由 `DO.Core.start(appWindow:)` 注入，无需再遍历所有 window 猜目标。
     ///
     /// 原版（DoKit-iOS）无注入，故遍历所有 window 逐个 hitTest 定位目标：
     ///   var windowForSelection: UIWindow? = keyWindow

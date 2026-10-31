@@ -200,7 +200,7 @@ class HierarchyViewController: UIViewController {
     /// 只按当前配置与拖动状态更新浮层显隐，**不动位置**。
     ///
     /// 松手时用它而不是 `refreshAll()`：归位动画会把手柄弹回界内，位置已经变了，
-    /// 而按约定标尺停在原处（要跟手得让 `DraggableView` 在归位动画期间持续发事件）。
+    /// 而按约定标尺停在原处（要跟手得让 `DO.DraggableView` 在归位动画期间持续发事件）。
     private func refreshChromeVisibility() {
         alignRulerView.isHidden = !shouldShowRulerLines
 
@@ -259,7 +259,7 @@ class HierarchyViewController: UIViewController {
     ///
     /// `vc.view` 放行之后，这一层只剩拾取器、信息面板会消费触摸，其余一律穿透到业务 App；
     /// 标尺本身已经 `isUserInteractionEnabled = false`，登记它是把意图写明。
-    func registerNoResponseViews(on window: OverlayWindow) {
+    func registerNoResponseViews(on window: DO.OverlayWindow) {
         window.addNoResponseView(view)
         window.addNoResponseView(alignRulerView)
         window.addNoResponseView(colorLoupeView)

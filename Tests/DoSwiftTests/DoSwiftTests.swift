@@ -20,12 +20,12 @@ final class DoSwiftTests: XCTestCase {
     }
 
     func testDoSwiftCoreInitialization() throws {
-        let core = DoSwiftCore.shared
+        let core = DO.Core.shared
         XCTAssertNotNil(core)
     }
 
     func testMenuItemCreation() throws {
-        let menuItem = DoSwiftMenuItem(
+        let menuItem = DO.MenuItem(
             identifier: "test",
             title: "Test Item",
             icon: nil
@@ -40,12 +40,12 @@ final class DoSwiftTests: XCTestCase {
     }
 
     func testMenuItemSubItems() throws {
-        let parentItem = DoSwiftMenuItem(
+        let parentItem = DO.MenuItem(
             identifier: "parent",
             title: "Parent Item"
         )
 
-        let childItem = DoSwiftMenuItem(
+        let childItem = DO.MenuItem(
             identifier: "child",
             title: "Child Item"
         )
@@ -58,8 +58,8 @@ final class DoSwiftTests: XCTestCase {
     }
 
     func testDoSwiftCoreSingleton() throws {
-        let core1 = DoSwiftCore.shared
-        let core2 = DoSwiftCore.shared
+        let core1 = DO.Core.shared
+        let core2 = DO.Core.shared
 
         XCTAssertTrue(core1 === core2)
     }

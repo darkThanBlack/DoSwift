@@ -34,7 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func setupDoSwift() {
         // 示例：追加一个自定义工具分组
-        let customItem = DoSwiftMenuItem(
+        let customItem = DO.MenuItem(
             identifier: "custom_example",
             title: "示例功能",
             icon: UIImage(systemName: "star.fill")
@@ -43,7 +43,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         #if DEBUG
         // 唯一入口：业务 window + 自定义菜单项，一次给全
-        DoSwiftCore.shared.start(appWindow: window, items: [customItem])
+        DO.Core.shared.start(appWindow: window, items: [customItem])
         #endif
     }
 

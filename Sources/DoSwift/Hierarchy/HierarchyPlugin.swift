@@ -8,7 +8,7 @@
 import UIKit
 
 ///
-public class HierarchyPlugin: DoSwiftDefaultPlugin {
+public class HierarchyPlugin: DO.DefaultPlugin {
     
     public static let shared = HierarchyPlugin()
     
@@ -17,13 +17,13 @@ public class HierarchyPlugin: DoSwiftDefaultPlugin {
     }
     
     var appWindow: UIWindow? {
-        DoSwiftCore.shared.appWindow
+        DO.Core.shared.appWindow
     }
     
     var config: HierarchyConfig = .load()
     
-    public override func makeWindow() -> OverlayWindow {
-        let w = OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+    public override func makeWindow() -> DO.OverlayWindow {
+        let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
         let root = HierarchyViewController()
         w.rootViewController = root
         w.addNoResponseView(root.view)

@@ -93,7 +93,7 @@ final class AppInfoDevice {
     /// `windowScene.screen`，分屏 iPad 上也只有它答得对。后两级兜底分别给
     /// 「窗口还没上屏」和「没上 Scene 的老 App」。
     private static func screen() -> String {
-        let screen = DoSwiftCore.shared.appWindow?.windowScene?.screen
+        let screen = DO.Core.shared.appWindow?.windowScene?.screen
             ?? UIApplication.shared.connectedScenes
                 .compactMap { $0 as? UIWindowScene }
                 .first?.screen

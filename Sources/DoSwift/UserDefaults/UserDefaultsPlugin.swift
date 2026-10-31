@@ -6,7 +6,7 @@
 import UIKit
 
 ///
-public class UserDefaultsPlugin: DoSwiftDefaultPlugin {
+public class UserDefaultsPlugin: DO.DefaultPlugin {
     
     public static let shared = UserDefaultsPlugin()
     
@@ -27,8 +27,8 @@ public class UserDefaultsPlugin: DoSwiftDefaultPlugin {
         list.refresh()
     }
     
-    public override func makeWindow() -> OverlayWindow {
-        let w = OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+    public override func makeWindow() -> DO.OverlayWindow {
+        let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
         w.rootViewController = UINavigationController(rootViewController: list)
         return w
     }

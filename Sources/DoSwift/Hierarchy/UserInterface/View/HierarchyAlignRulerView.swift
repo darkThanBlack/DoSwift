@@ -10,7 +10,7 @@ import UIKit
 /// 对齐标尺覆盖层：由拾取器中心引出水平/垂直两条标线，并标出中心点到四条屏幕边缘的绝对距离。
 ///
 /// **全屏、非交互。** DoKit 原版是全屏 view 加在 key window 上，靠重写 `pointInside:` 只对
-/// 拾取器图标返回 YES 来放行其余触摸；我们这边 `OverlayWindow.hitTest` 是**同一性判断**——
+/// 拾取器图标返回 YES 来放行其余触摸；我们这边 `DO.OverlayWindow.hitTest` 是**同一性判断**——
 /// `root.view` 内任何被命中的子视图都会拦下触摸，所以全屏覆盖层必须整体
 /// `isUserInteractionEnabled = false`，否则整个 App 点不动。
 ///

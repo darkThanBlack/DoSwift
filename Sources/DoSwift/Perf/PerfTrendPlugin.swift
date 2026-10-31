@@ -11,7 +11,7 @@ private let trendStyleKey = "kPerfTrendStyleKey"
 /// 内存口径在 UserDefaults 里的 key
 private let memoryMetricKey = "kPerfMemoryMetricKey"
 
-final class PerfTrendPlugin: DoSwiftDefaultPlugin {
+final class PerfTrendPlugin: DO.DefaultPlugin {
 
     static let shared = PerfTrendPlugin()
 
@@ -217,8 +217,8 @@ final class PerfTrendPlugin: DoSwiftDefaultPlugin {
 
     // MARK: - Private
 
-    override func makeWindow() -> OverlayWindow {
-        let overlay = OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+    override func makeWindow() -> DO.OverlayWindow {
+        let overlay = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
         overlay.backgroundColor = .clear
 
         let host = UIViewController()
