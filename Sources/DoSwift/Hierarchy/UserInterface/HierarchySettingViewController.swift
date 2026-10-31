@@ -145,7 +145,7 @@ class HierarchySettingViewController: SectionTableViewController {
         mutate(&config)
 
         HierarchyPlugin.shared.config = config
-        HierarchyPlugin.shared.persistConfig()
+        HierarchyPlugin.shared.config.save()
 
         reloadSections()
         onChange?()

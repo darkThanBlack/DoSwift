@@ -57,7 +57,7 @@ final class PerfReportViewController: SectionTableViewController {
     /// 关闭详情页 = 收起整个工具
     override func close() {
         dismiss(animated: true) {
-            PerfTrendPlugin.shared.settingsDidDismiss()
+            PerfTrendPlugin.shared.reportDidDismiss()
         }
     }
 

@@ -123,7 +123,7 @@ final class PerfViewController: SectionTableViewController {
     private func closeSection() -> Section {
         return Section(rows: [
             Row(cellClass: ActionCell.self, onTrigger: { _ in
-                PerfTrendPlugin.shared.setVisible(false)
+                PerfTrendPlugin.shared.hide()
             }) { cell in
                 cell.update(title: "关闭浮窗", isDestructive: true)
             }

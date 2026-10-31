@@ -11,17 +11,13 @@ private let trendStyleKey = "kPerfTrendStyleKey"
 /// 内存口径在 UserDefaults 里的 key
 private let memoryMetricKey = "kPerfMemoryMetricKey"
 
-/// 「性能」工具的入口：一个窗口，装浮窗卡片与设置页。
-///
-/// **一个工具，三个指标**——三个指标各自是一个独立的数据源，各带自己的时钟
-/// （见 `PerfCpuSource` / `PerfMemorySource` / `PerfFrameSource`），互相完全不知道
-/// 对方存在。这里只负责三件事：把它们的产出组装成 `TrendChart`、决定哪些在检测、
-/// 以及把结果交给同一个视图。
-final class PerfTrendPlugin {
+final class PerfTrendPlugin: DoSwiftDefaultPlugin {
 
     static let shared = PerfTrendPlugin()
 
-    private init() {}
+    private init() {
+        super.init(identifier: "performance", title: "性能", icon: UIImage(systemName: "gauge"))
+    }
 
     /// 指标个数，顺序即默认顺序（与下面 `allCharts` 一致）
     static let metricCount = 3
@@ -101,6 +97,9 @@ final class PerfTrendPlugin {
 
     private(set) var isVisible = false
 
+    /// 自己 present 的详情页。**自己记着**，不去 `presentedViewController` 里反推。
+    private weak var report: UINavigationController?
+
     /// 折线模式下显示第几个指标。**稳定下标**（0/1/2），不随开关变化而重排。
     private(set) var currentIndex = 0
 
@@ -118,9 +117,7 @@ final class PerfTrendPlugin {
         let raw = UserDefaults.standard.string(forKey: trendStyleKey)
         return raw.flatMap(TrendDisplayStyle.init(rawValue:)) ?? .line
     }()
-
-    private(set) var window: OverlayWindow?
-
+    
     private let trend = PerfTrendView()
     private var didLayout = false
     private var lastRefresh: TimeInterval = 0
@@ -134,7 +131,6 @@ final class PerfTrendPlugin {
     /// 开关某个指标的检测。**返回是否被接受**——最后一个不允许关。
     @discardableResult
     func setEnabled(_ isOn: Bool, for index: Int) -> Bool {
-        prepare()
         guard index >= 0, index < PerfTrendPlugin.metricCount else { return false }
 
         if isOn {
@@ -156,28 +152,33 @@ final class PerfTrendPlugin {
         return true
     }
 
-    func show() {
-        prepare()
+    override func show() {
+        super.show()
+
         isVisible = true
-        window?.isHidden = false
         layoutTrend()
         refresh(force: true)
 
-        presentReport()
+        // 打开工具的落点是详情页，浮窗只是常驻的附属件。
+        // 已经开着就不重复 present——`report` 是自己 present 的，不用去视图树里反推
+        guard report == nil, let host = window?.rootViewController else { return }
+
+        let navigator = UINavigationController(rootViewController: PerfReportViewController())
+        // 禁掉下滑关闭，关闭只走导航栏那颗按钮——那条路上才有收尾逻辑
+        navigator.isModalInPresentation = true
+        host.present(navigator, animated: true)
+        report = navigator
     }
 
-    /// 浮窗开 / 关。设置页底部那颗按钮走这里。
-    func setVisible(_ visible: Bool) {
-        prepare()
-        isVisible = visible
-
-        if visible {
-            window?.isHidden = false
-            if !didLayout { layoutTrend() }
-        } else if window?.rootViewController?.presentedViewController == nil {
-            window?.isHidden = true
-        }
+    /// 关闭浮窗。设置页底部那颗按钮走这里。
+    ///
+    /// 与基类的差别只有一条：详情页开着时不能直接收窗口，否则会把用户正在看的页面一起带走。
+    override func hide() {
+        isVisible = false
         refresh(force: true)
+
+        guard report == nil else { return }
+        window?.isHidden = true
     }
 
     /// 换展示形式。**只动 UI**：数据一条都不碰，两种形式读的是同一批序列。
@@ -202,44 +203,22 @@ final class PerfTrendPlugin {
         refresh(force: true)
     }
 
-    /// 工具的内容页。菜单进来先看到它，而不是一堆开关。
-    func presentReport() {
-        prepare()
-        guard let host = window?.rootViewController, host.presentedViewController == nil else { return }
-
-        let navigator = UINavigationController(rootViewController: PerfReportViewController())
-        // 禁掉下滑关闭，关闭只走导航栏那颗按钮——那条路上才有收尾逻辑
-        navigator.isModalInPresentation = true
-        host.present(navigator, animated: true)
-    }
-
-    /// 设置页。由详情页右上角的齿轮推出，浮窗长按也走这里。
-    /// 注意它可能在详情页之上被 present，所以这里是相对详情页而非宿主。
-    func presentSettings() {
-        prepare()
-        guard let presenter = window?.rootViewController?.presentedViewController
-        else { return }
-        guard presenter.presentedViewController == nil else { return }
-
-        let navigator = UINavigationController(rootViewController: PerfViewController())
-        navigator.isModalInPresentation = true
-        presenter.present(navigator, animated: true)
+    /// 详情页关掉了。**显式清掉引用**，不等 weak 自动变 nil——
+    /// `dismiss` 的 completion 里对象往往还没释放，那时判空会判错。
+    func reportDidDismiss() {
+        report = nil
+        settingsDidDismiss()
     }
 
     func settingsDidDismiss() {
-        guard !isVisible else { return }
-        // 详情页还开着的时候不能收窗口，那会把它一起带走
-        guard window?.rootViewController?.presentedViewController == nil else { return }
+        guard !isVisible, report == nil else { return }
         window?.isHidden = true
     }
 
     // MARK: - Private
 
-    private func prepare() {
-        guard window == nil else { return }
-
+    override func makeWindow() -> OverlayWindow {
         let overlay = OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
-        overlay.isHidden = true
         overlay.backgroundColor = .clear
 
         let host = UIViewController()
@@ -250,9 +229,6 @@ final class PerfTrendPlugin {
         trend.delegate = self
         host.view.addSubview(trend)
 
-        window = overlay
-
-        // 面板之外的触摸穿透到业务 App——浮窗只有卡片本身那一块是可交互的
         overlay.addNoResponseView(host.view)
 
         // 三个源各起各的时钟，**互不共享**。这里只接通知。
@@ -281,9 +257,11 @@ final class PerfTrendPlugin {
         didLayout = false
 
         // 一次性基准：给「内存 / CPU 该走哪条采样路径」提供真机数据。
-        // 只打印，不改任何状态；进程内只跑一次（`prepare()` 有 `window == nil` 的闸）。
+        // 只打印，不改任何状态；进程内只跑一次（`show()` 有 `window == nil` 的闸）。
         // 结论定下来之后，这一行和 `PerfBenchmark.swift` 可以一起删掉。
         PerfBenchmark.run()
+
+        return overlay
     }
 
     /// 按顺序找下一个**还在检测**的指标，循环。
@@ -383,6 +361,6 @@ extension PerfTrendPlugin: PerfTrendViewDelegate {
 
     /// 长按：打开详情页。浮窗在详情页之上会被它盖住，但桌面上的入口只有这一个。
     func perfTrendViewDidLongPress(_ view: PerfTrendView) {
-        presentReport()
+        show()
     }
 }

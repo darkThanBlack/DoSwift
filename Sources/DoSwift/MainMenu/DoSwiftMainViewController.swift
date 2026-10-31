@@ -148,7 +148,7 @@ extension DoSwiftMainViewController: DoSwiftMenuPanelDelegate {
         // 先收起再执行：工具的页面/弹窗是从业务 window 呈现的，
         // 面板留在屏幕上会盖住它的一侧。
         setPanelOpen(false)
-        item.performAction()
+        item.actionHandler?()
     }
 
     func menuPanelDidSelectClose(_ panel: DoSwiftMenuPanel) {
