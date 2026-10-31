@@ -33,7 +33,7 @@ class HierarchyViewController: UIViewController {
     }()
 
     /// 承载 `infoView` 的可拖拽容器。位置由拖动决定，高度由内容决定。
-    private lazy var infoContainer = DraggableLayoutView(contentView: infoView)
+    private lazy var infoContainer = DO.DraggableLayoutView(contentView: infoView)
 
     /// 对齐标尺：常驻。只认一个点，不认识拾取器。
     private lazy var alignRulerView = HierarchyAlignRulerView(frame: .zero)

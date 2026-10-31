@@ -47,7 +47,7 @@ final class PerfMemorySource {
     private(set) var metric: PerfMemoryMetric = .footprint
 
     /// 序列**只在主线程写、只在主线程读**
-    private(set) var points: [TrendPoint] = []
+    private(set) var points: [DO.TrendPoint] = []
     private(set) var samples: [Sample] = []
 
     /// **总额只确定一次**：预算 = footprint + 系统还能给多少。之后不再刷新——
@@ -98,7 +98,7 @@ final class PerfMemorySource {
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.points.append(TrendPoint(t: now, v: sample.value))
+            self.points.append(DO.TrendPoint(t: now, v: sample.value))
             self.samples.append(sample)
             if self.totalMB == nil {
                 self.totalMB = sample.budget

@@ -9,12 +9,12 @@ import UIKit
 ///
 /// 只做一件事：**把每个开关的写操作导向 `ConsoleStore.filter`**。页面自己不缓存状态，
 /// 于是不可能出现「界面显示开、列表按关筛」这种两份状态打架的情况。
-final class ConsoleSettingViewController: SectionTableViewController {
+final class ConsoleSettingViewController: DO.SectionTableViewController {
 
     // MARK: - Model
 
-    /// 一个开关项。顺带实现 `ToggleCellDataSource`——开关行要的三样正好都在它身上。
-    private struct Item: ToggleCellDataSource {
+    /// 一个开关项。顺带实现 `DO.ToggleCellDataSource`——开关行要的三样正好都在它身上。
+    private struct Item: DO.ToggleCellDataSource {
 
         enum Kind {
             case source(ConsoleLine.Source)
@@ -106,7 +106,7 @@ final class ConsoleSettingViewController: SectionTableViewController {
     /// 闭包直接捕获 `item`，不必靠 `indexPath` 反查回去。
     private func makeRow(_ item: Item) -> Row {
         Row(
-            cellClass: ToggleCell.self,
+            cellClass: DO.ToggleCell.self,
             onTrigger: { [weak self] cell in
                 // 事件不带值，值此刻就在 cell 上
                 self?.update(item.kind, isOn: cell.isOn)

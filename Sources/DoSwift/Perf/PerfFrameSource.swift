@@ -34,7 +34,7 @@ final class PerfFrameSource {
     let interval: TimeInterval = 1
 
     /// 序列**只在主线程写、只在主线程读**（display link 本来就在主线程）
-    private(set) var points: [TrendPoint] = []
+    private(set) var points: [DO.TrendPoint] = []
 
     /// 带慢帧计数的原始记录
     private(set) var samples: [Sample] = []
@@ -42,7 +42,7 @@ final class PerfFrameSource {
     var onChange: (() -> Void)?
 
     /// 屏幕的额定刷新率，创建时读一次。**对外可见**：量程和阈值都按它算，
-    /// 而那是展示参数，由 plugin 构造 `TrendChart` 时用。
+    /// 而那是展示参数，由 plugin 构造 `DO.TrendChart` 时用。
     let nominal: Double
 
     private var link: CADisplayLink?
@@ -118,7 +118,7 @@ final class PerfFrameSource {
         // 没有慢帧就报额定值——见文件头第 2 条
         let value = slowFrames == 0 ? nominal : measured
 
-        points.append(TrendPoint(t: now, v: value))
+        points.append(DO.TrendPoint(t: now, v: value))
         samples.append(Sample(t: now, fps: value, slow: slowFrames, frozen: frozenFrames, frames: frames))
 
         frames = 0

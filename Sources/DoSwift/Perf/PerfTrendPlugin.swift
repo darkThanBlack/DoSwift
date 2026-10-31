@@ -32,12 +32,12 @@ final class PerfTrendPlugin: DO.DefaultPlugin {
     ///
     /// 标题、单位、量程、阈值都是展示参数，在这里字面量写死；源只提供它自己真正
     /// 用得上的 `interval` 和 `points`。加一个指标：加一个源类 + 在这里加一项。
-    private var allCharts: [TrendChart] {
+    private var allCharts: [DO.TrendChart] {
         // 总额拿到之前用一个占位，拿到之后量程和阈值一起换成真实的
         let memoryTotal = memory.totalMB ?? 512
 
         return [
-            TrendChart(
+            DO.TrendChart(
                 title: "FPS",
                 unit: "fps",
                 range: 0...frames.nominal,
@@ -46,7 +46,7 @@ final class PerfTrendPlugin: DO.DefaultPlugin {
                 tint: .systemBlue,
                 points: frames.points
             ),
-            TrendChart(
+            DO.TrendChart(
                 title: "CPU",
                 unit: "%",
                 range: 0...100,
@@ -57,7 +57,7 @@ final class PerfTrendPlugin: DO.DefaultPlugin {
             ),
             // 量程与阈值都由「总额」推出来：总额是这台设备给这个 App 划的线，
             // 阈值取它的 80%
-            TrendChart(
+            DO.TrendChart(
                 title: "内存",
                 unit: "MB",
                 range: 0...memoryTotal,
@@ -70,7 +70,7 @@ final class PerfTrendPlugin: DO.DefaultPlugin {
     }
 
     /// **已开启检测的**那几条，顺序不变。浮窗只认这个。
-    var charts: [TrendChart] {
+    var charts: [DO.TrendChart] {
         return allCharts.enumerated()
             .filter { enabled.contains($0.offset) }
             .map(\.element)
@@ -89,7 +89,7 @@ final class PerfTrendPlugin: DO.DefaultPlugin {
     var frameSamples: [PerfFrameSource.Sample] { frames.samples }
 
     /// 某一条的全部信息，不受开关影响——详情页和设置页都要用它。
-    func chart(at index: Int) -> TrendChart? {
+    func chart(at index: Int) -> DO.TrendChart? {
         return allCharts.indices.contains(index) ? allCharts[index] : nil
     }
 
@@ -113,9 +113,9 @@ final class PerfTrendPlugin: DO.DefaultPlugin {
     }()
 
     /// 展示形式。**持久化**：上次选了文字，这次打开就该还是文字。
-    private(set) var displayStyle: TrendDisplayStyle = {
+    private(set) var displayStyle: DO.TrendDisplayStyle = {
         let raw = UserDefaults.standard.string(forKey: trendStyleKey)
-        return raw.flatMap(TrendDisplayStyle.init(rawValue:)) ?? .line
+        return raw.flatMap(DO.TrendDisplayStyle.init(rawValue:)) ?? .line
     }()
     
     private let trend = PerfTrendView()
@@ -191,7 +191,7 @@ final class PerfTrendPlugin: DO.DefaultPlugin {
         refresh(force: true)
     }
 
-    func setDisplayStyle(_ style: TrendDisplayStyle) {
+    func setDisplayStyle(_ style: DO.TrendDisplayStyle) {
         guard style != displayStyle else { return }
         displayStyle = style
         UserDefaults.standard.set(style.rawValue, forKey: trendStyleKey)

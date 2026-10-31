@@ -15,7 +15,7 @@ import UIKit
 /// - **单删**：`trailingSwipeActionsConfigurationForRowAt`。
 ///
 /// 本页只做三件事：把快照翻成分组、处理交互、把值页推出去。
-final class UserDefaultsViewController: SectionTableViewController {
+final class UserDefaultsViewController: DO.SectionTableViewController {
 
     // MARK: - State
 
@@ -101,10 +101,10 @@ final class UserDefaultsViewController: SectionTableViewController {
         sections = filtered.domains.map { domain in
             Section(title: domain.title, rows: domain.items.map { item in
                 Row(
-                    cellClass: SelectorCell.self,
+                    cellClass: DO.SelectorCell.self,
                     onTrigger: { [weak self] _ in
                         // 编辑态里点行的语义是「选中」，但它和普通点击走的是**同一条**
-                        // `setSelected` → trigger 链路（`SelectorCell` 发事件、基类路由），
+                        // `setSelected` → trigger 链路（`DO.SelectorCell` 发事件、基类路由），
                         // 少了这道闸就会一边勾选一边弹出详情页
                         guard let self = self, !self.isEditing else { return }
                         self.showDetail(item)
@@ -123,7 +123,7 @@ final class UserDefaultsViewController: SectionTableViewController {
     private func showDetail(_ item: UserDefaultsSnapshot.Item) {
         // 全文在**推页面这一步**才拼：列表是滚动时逐行拼一次（`summary` 已经绕开了
         // Data 那个大头），详情页则是用户明确要看的这一次
-        let detail = PlainTextViewController(title: item.key, text: item.fullText)
+        let detail = DO.PlainTextViewController(title: item.key, text: item.fullText)
         navigationController?.pushViewController(detail, animated: true)
     }
 

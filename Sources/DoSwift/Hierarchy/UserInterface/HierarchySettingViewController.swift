@@ -14,11 +14,11 @@ import UIKit
 /// 由 `HierarchyConfig` 负责，页面自己不缓存任何状态——于是不可能出现
 /// 「界面显示开、工具按关执行」这种两份状态打架的情况。
 ///
-/// 表的骨架来自 `SectionTableViewController`，本页只负责「哪一段有哪几行」
+/// 表的骨架来自 `DO.SectionTableViewController`，本页只负责「哪一段有哪几行」
 /// 和「改哪一项」——事件在哪一行上就地写掉，本页连 `UITableView` 的协议都不实现。
 /// 每次改动都即时落盘（`persistConfig()`）并回调 `onChange`，
 /// 所以没有「保存」按钮，也不会出现改完忘了确认就退出。
-class HierarchySettingViewController: SectionTableViewController {
+class HierarchySettingViewController: DO.SectionTableViewController {
 
     /// 任一项变化后回调，让主界面立刻反映（关掉标线就收线、关掉取色就收放大镜）
     var onChange: (() -> Void)?
@@ -27,12 +27,12 @@ class HierarchySettingViewController: SectionTableViewController {
 
     /// 一个配置项。
     ///
-    /// 顺带实现 `ToggleCellDataSource`：开关行要的三样正好都在它身上，
+    /// 顺带实现 `DO.ToggleCellDataSource`：开关行要的三样正好都在它身上，
     /// 于是 cell 直接吃这一项（`cell.update(item)`），不必再造适配对象。
     ///
     /// 选择行不适合这么做——它的副标题要放**当前取值**，而这里的 `detail` 是那段说明，
     /// 所以那一行的副标题走传参入口。
-    private struct Item: ToggleCellDataSource {
+    private struct Item: DO.ToggleCellDataSource {
 
         enum Kind {
             case toggle(WritableKeyPath<HierarchyConfig, Bool>)
@@ -112,7 +112,7 @@ class HierarchySettingViewController: SectionTableViewController {
         switch item.kind {
         case .toggle(let keyPath):
             return Row(
-                cellClass: ToggleCell.self,
+                cellClass: DO.ToggleCell.self,
                 onTrigger: { [weak self] cell in
                     // 事件不带值，值此刻就在 cell 上
                     self?.update { $0[keyPath: keyPath] = cell.isOn }
@@ -123,7 +123,7 @@ class HierarchySettingViewController: SectionTableViewController {
 
         case .selector(let keyPath):
             return Row(
-                cellClass: SelectorCell.self,
+                cellClass: DO.SelectorCell.self,
                 onTrigger: { [weak self] _ in self?.pick(item, keyPath: keyPath) }
             ) { cell in
                 // 副标题放「当前值」：一眼看到状态，比再写一遍说明有用

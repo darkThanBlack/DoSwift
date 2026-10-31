@@ -42,7 +42,7 @@ class HierarchyCellModel {
 // MARK: - Cell Data Source
 
 /// 本身就是一行的数据，直接喂给 cell，不再套一层适配结构
-extension HierarchyCellModel: KeyValueCellDataSource {
+extension HierarchyCellModel: DO.KeyValueCellDataSource {
 
     var detail: String? {
         detailTitle

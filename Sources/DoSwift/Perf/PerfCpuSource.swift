@@ -41,7 +41,7 @@ final class PerfCpuSource {
     let interval: TimeInterval = 0.1
 
     /// 序列**只在主线程写、只在主线程读**。采样在私有队列上，采完投回主线程再写。
-    private(set) var points: [TrendPoint] = []
+    private(set) var points: [DO.TrendPoint] = []
 
     /// 每一次采样的累计时间，含第一跳（它只立基准，不产出占比点）
     private(set) var samples: [Sample] = []
@@ -102,7 +102,7 @@ final class PerfCpuSource {
             guard let self = self else { return }
             self.samples.append(Sample(t: now, user: times.user, system: times.system))
             if let percent = percent {
-                self.points.append(TrendPoint(t: now, v: percent))
+                self.points.append(DO.TrendPoint(t: now, v: percent))
             }
             self.onChange?()
         }

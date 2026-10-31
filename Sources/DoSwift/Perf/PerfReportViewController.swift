@@ -12,7 +12,7 @@ import UIKit
 /// 它的职责只是"点哪儿看哪儿"。
 ///
 /// 所有数字都随范围变：换一段，四张卡的数就换成那一段的。整段只是默认范围。
-final class PerfReportViewController: SectionTableViewController {
+final class PerfReportViewController: DO.SectionTableViewController {
 
     /// nil = 整段会话
     private var scope: ClosedRange<TimeInterval>?
@@ -72,7 +72,7 @@ final class PerfReportViewController: SectionTableViewController {
     private var now: TimeInterval { CACurrentMediaTime() }
 
     /// 0 = 帧率，1 = CPU，2 = 内存（与 `PerfTrendPlugin.allCharts` 同序）
-    private func chart(at index: Int) -> TrendChart? {
+    private func chart(at index: Int) -> DO.TrendChart? {
         return PerfTrendPlugin.shared.chart(at: index)
     }
 
@@ -127,7 +127,7 @@ final class PerfReportViewController: SectionTableViewController {
 
     private func card(title: String, rows: [(String, String)]) -> Section {
         return Section(title: title, rows: rows.map { pair in
-            Row(cellClass: KeyValueCell.self) { cell in
+            Row(cellClass: DO.KeyValueCell.self) { cell in
                 cell.update(title: pair.0, detail: pair.1)
             }
         })

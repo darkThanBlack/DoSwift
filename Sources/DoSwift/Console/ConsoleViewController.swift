@@ -17,7 +17,7 @@ import UIKit
 /// - **设置**：筛哪几条链路，是这一页唯一需要「记住」的东西。
 ///
 /// 倒序显示（最新在最上面）：日志一直在来，跟用户抢滚动条是打不完的架。
-final class ConsoleViewController: SectionTableViewController {
+final class ConsoleViewController: DO.SectionTableViewController {
 
     // MARK: - State
 
@@ -136,7 +136,7 @@ final class ConsoleViewController: SectionTableViewController {
         sections = [
             Section(footer: statusText, rows: lines.map { line in
                 Row(
-                    cellClass: SelectorCell.self,
+                    cellClass: DO.SelectorCell.self,
                     onTrigger: { [weak self] _ in
                         self?.showDetail(line)
                     }
@@ -194,7 +194,7 @@ final class ConsoleViewController: SectionTableViewController {
 
     private func showDetail(_ line: ConsoleLine) {
         // 全文在这一步才拼：列表是滚动时逐行拼一次，详情页是用户明确要看的这一次
-        let detail = PlainTextViewController(title: line.timeText, text: line.fullText)
+        let detail = DO.PlainTextViewController(title: line.timeText, text: line.fullText)
         navigationController?.pushViewController(detail, animated: true)
     }
 

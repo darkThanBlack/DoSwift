@@ -1,52 +1,57 @@
 //
-//  TrendChart.swift
+//  DO.TrendChart.swift
 //  DoSwift
 //
 
 import UIKit
 
-/// 阈值线的位置**和方向**。
-///
-/// 方向不是装饰：CPU、内存是「超过就坏」，帧率是「低于就坏」。只给一个数的话，
-/// 判方向的那一处一定会写死成 `>`，然后在帧率上悄悄判反。
-enum TrendThreshold {
-    case above(Double)
-    case below(Double)
+extension DO {
 
-    var value: Double {
-        switch self {
-        case .above(let value), .below(let value): return value
+    /// 阈值线的位置**和方向**。
+    ///
+    /// 方向不是装饰：CPU、内存是「超过就坏」，帧率是「低于就坏」。只给一个数的话，
+    /// 判方向的那一处一定会写死成 `>`，然后在帧率上悄悄判反。
+    enum TrendThreshold {
+        case above(Double)
+        case below(Double)
+
+        var value: Double {
+            switch self {
+            case .above(let value), .below(let value): return value
+            }
         }
     }
+
+    /// **给 view 的唯一输入**：一条曲线要知道的全部东西。
+    ///
+    /// 由 plugin 直接字面量构造——标题、单位、量程、阈值都是展示参数，归 UI 层；
+    /// 数据层只提供 `interval` 和 `points` 这两样它自己真正用得上的东西。
+    struct TrendChart {
+
+        let title: String
+        let unit: String
+        let range: ClosedRange<Double>
+        let threshold: DO.TrendThreshold?
+
+        /// 采样间隔。view 用它推断档（1.5 倍）与陈旧（3 倍）两条判据，
+        /// 各源间隔不同，所以这两个数不能是全局常量。
+        let interval: TimeInterval
+
+        /// 这条曲线的身份色。**跟着指标走，不跟位置走**——视图顺序一变颜色就该不变。
+        let tint: UIColor
+
+        let points: [DO.TrendPoint]
+
+        var latest: DO.TrendPoint? { points.last }
+    }
+
+    // MARK: - 读法
+
+    /// 「这个值现在还能不能代表现在」这类判断只有一份，header 和 plot 共用。
 }
 
-/// **给 view 的唯一输入**：一条曲线要知道的全部东西。
-///
-/// 由 plugin 直接字面量构造——标题、单位、量程、阈值都是展示参数，归 UI 层；
-/// 数据层只提供 `interval` 和 `points` 这两样它自己真正用得上的东西。
-struct TrendChart {
 
-    let title: String
-    let unit: String
-    let range: ClosedRange<Double>
-    let threshold: TrendThreshold?
-
-    /// 采样间隔。view 用它推断档（1.5 倍）与陈旧（3 倍）两条判据，
-    /// 各源间隔不同，所以这两个数不能是全局常量。
-    let interval: TimeInterval
-
-    /// 这条曲线的身份色。**跟着指标走，不跟位置走**——视图顺序一变颜色就该不变。
-    let tint: UIColor
-
-    let points: [TrendPoint]
-
-    var latest: TrendPoint? { points.last }
-}
-
-// MARK: - 读法
-
-/// 「这个值现在还能不能代表现在」这类判断只有一份，header 和 plot 共用。
-extension TrendChart {
+extension DO.TrendChart {
 
     /// 最后一点比现在老过三个采样间隔，就当数据陈旧。
     ///
@@ -75,9 +80,9 @@ extension TrendChart {
 
 /// 把一条曲线换算成**绘制层认识的东西**：归一化坐标 + 归一化阈值。
 ///
-/// 工作全在业务层，`TrendPlotView` 只负责把 0…1 乘上自己的宽高。这条线划在这儿，
+/// 工作全在业务层，`DO.TrendPlotView` 只负责把 0…1 乘上自己的宽高。这条线划在这儿，
 /// 是因为抽稀要知道画多宽、切段要知道采样间隔——都是绘制层拿不到的信息。
-extension TrendChart {
+extension DO.TrendChart {
 
     /// - Parameters:
     ///   - size: 只用来定抽稀步长（一个绘制点至少占 1pt）
@@ -87,7 +92,7 @@ extension TrendChart {
         for size: CGSize,
         window: ClosedRange<TimeInterval>,
         tint: UIColor? = nil
-    ) -> TrendPlotContent {
+    ) -> DO.TrendPlotContent {
         let lower = window.lowerBound
         let length = max(window.upperBound - lower, .ulpOfOne)
 
@@ -109,7 +114,7 @@ extension TrendChart {
 
         var segments: [[CGPoint]] = []
         for slice in inWindow {
-            var sampled: [TrendPoint] = []
+            var sampled: [DO.TrendPoint] = []
             var cursor = slice.startIndex
             while cursor < slice.endIndex {
                 sampled.append(slice[cursor])
@@ -141,7 +146,7 @@ extension TrendChart {
             normalizedThreshold = min(max((threshold.value - valueLower) / valueSpan, 0), 1)
         }
 
-        return TrendPlotContent(
+        return DO.TrendPlotContent(
             segments: segments,
             threshold: normalizedThreshold,
             tint: tint ?? self.tint

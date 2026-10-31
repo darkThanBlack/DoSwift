@@ -12,7 +12,7 @@ import UIKit
 ///
 /// 交互两种：**点任意一行复制该行的值**；导航栏「复制 JSON」把整页序列化成 JSON 进剪贴板
 /// （贴 issue 用，不必为此再开一个页面）。
-final class AppInfoViewController: SectionTableViewController {
+final class AppInfoViewController: DO.SectionTableViewController {
 
     // MARK: - State
 
@@ -57,13 +57,13 @@ final class AppInfoViewController: SectionTableViewController {
     private func reload() {
         sections = displaySections.map { section in
             Section(title: section.title, rows: section.rows.map { row in
-                Row(cellClass: KeyValueCell.self, onTrigger: { _ in
+                Row(cellClass: DO.KeyValueCell.self, onTrigger: { _ in
                     UIPasteboard.general.string = row.value
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 }) { cell in
                     cell.update(title: row.title, detail: row.value)
                     // 本页唯一一种交互是「点一下复制」，得让系统那圈高亮出来当反馈
-                    // （`KeyValueCell` 默认 `.none`，那是给只读行留的）
+                    // （`DO.KeyValueCell` 默认 `.none`，那是给只读行留的）
                     cell.selectionStyle = .default
                 }
             })

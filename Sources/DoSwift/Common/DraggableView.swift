@@ -30,10 +30,10 @@ extension DO {
     /// **淡化、位置记忆、外观**一律由子类通过重写 `dragDidBegin` / `dragDidUpdate` /
     /// `dragDidEnd` 挂上去。基类不含任何视觉效果。需要复用某个封装好的子类时，
     /// 继续往下继承，而不是往这里加开关。
-    open class DraggableView: UIView {
+    class DraggableView: UIView {
 
         /// 松手后的表现
-        public enum ReleasePolicy {
+        enum ReleasePolicy {
             /// 完全不动——停在松手的位置，允许越界
             case stay
             /// 仅当越界时回弹到边界内，允许停在页面中间
@@ -45,10 +45,10 @@ extension DO {
         // MARK: - Configuration
 
         /// 松手后的表现。由子类在初始化时指定。
-        open var releasePolicy: ReleasePolicy = .bounceBack
+        var releasePolicy: ReleasePolicy = .bounceBack
 
         /// 是否可拖动
-        open var isDraggable: Bool {
+        var isDraggable: Bool {
             get { panGesture.isEnabled }
             set { panGesture.isEnabled = newValue }
         }
@@ -56,10 +56,10 @@ extension DO {
         // MARK: - State
 
         /// 是否正在被拖动
-        public private(set) var isDragging: Bool = false
+        private(set) var isDragging: Bool = false
 
         /// 用户是否已经手动拖动过。子类可用它判断「是否该继续自动摆位」。
-        public private(set) var hasDragged: Bool = false
+        private(set) var hasDragged: Bool = false
 
         /// 拖动开始时的 frame.origin。用绝对式换算位置，避免增量累加在夹取处产生粘滞。
         private var frameOriginAtDragBegin: CGPoint = .zero
@@ -67,38 +67,38 @@ extension DO {
         // MARK: - Gesture
 
         /// 对外可见，便于子类与自己的手势做互斥（如 `tapGesture.require(toFail: panGesture)`）
-        public private(set) lazy var panGesture: UIPanGestureRecognizer = {
+        private(set) lazy var panGesture: UIPanGestureRecognizer = {
             let gesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
             return gesture
         }()
 
         // MARK: - Initializers
 
-        public override init(frame: CGRect) {
+        override init(frame: CGRect) {
             super.init(frame: frame)
             addGestureRecognizer(panGesture)
         }
 
-        public required init?(coder: NSCoder) {
+        required init?(coder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
 
         // MARK: - 子类重写
 
         /// 拖动开始
-        open func dragDidBegin() {}
+        func dragDidBegin() {}
 
         /// 拖动进行中
-        open func dragDidUpdate(offset: CGPoint) {}
+        func dragDidUpdate(offset: CGPoint) {}
 
         /// 位置已定。拖动结束（含被系统取消）之后会走这里，**显式调用 `settle()` 也会**
         /// ——首次布局、旋转归位时同样需要重算位置，位置记忆接在这里正好。
-        open func dragDidEnd() {}
+        func dragDidEnd() {}
 
         // MARK: - Public Methods
 
         /// 立即按当前 `releasePolicy` 归位。用于首次布局、旋转等时机。
-        open func settle(animated: Bool = true) {
+        func settle(animated: Bool = true) {
             guard let barrier = superview?.bounds else { return }
 
             var target = frame

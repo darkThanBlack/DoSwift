@@ -11,7 +11,7 @@ import UIKit
 /// 一旦允许滑动或缩放，就会出现「看到的范围」和「统计的范围」两个数。
 ///
 /// 每条 lane 自带量程上限与阈值虚线，横轴在底部给三个时刻。
-/// 曲线本身交给 `TrendPlotView`——和浮窗共用同一个绘制实现。
+/// 曲线本身交给 `DO.TrendPlotView`——和浮窗共用同一个绘制实现。
 final class PerfTimelineCell: UITableViewCell {
 
     static let cellHeight: CGFloat = 152
@@ -19,14 +19,14 @@ final class PerfTimelineCell: UITableViewCell {
     /// 点了一下，回调点中的时刻
     var onSelect: ((TimeInterval) -> Void)?
 
-    private var charts: [TrendChart] = []
+    private var charts: [DO.TrendChart] = []
     private var start: TimeInterval = 0
     private var end: TimeInterval = 1
     private var scope: ClosedRange<TimeInterval>?
 
     /// 一条 lane 一个绘制视图。曲线本身不在这里画——这里只画「框」：
     /// 选中带、lane 名、量程上限、基线、底部时刻。
-    private var plots: [TrendPlotView] = []
+    private var plots: [DO.TrendPlotView] = []
 
     private enum Metrics {
         static let inset: CGFloat = 14
@@ -44,7 +44,7 @@ final class PerfTimelineCell: UITableViewCell {
 
     // MARK: - Configure
 
-    func configure(charts: [TrendChart], start: TimeInterval, end: TimeInterval, scope: ClosedRange<TimeInterval>?) {
+    func configure(charts: [DO.TrendChart], start: TimeInterval, end: TimeInterval, scope: ClosedRange<TimeInterval>?) {
         self.charts = charts
         self.start = start
         self.end = max(end, start + 0.001)
@@ -66,7 +66,7 @@ final class PerfTimelineCell: UITableViewCell {
         contentView.heightAnchor.constraint(equalToConstant: Self.cellHeight).isActive = true
 
         plots = (0..<Metrics.laneCount).map { _ in
-            let plot = TrendPlotView()
+            let plot = DO.TrendPlotView()
             contentView.addSubview(plot)
             return plot
         }

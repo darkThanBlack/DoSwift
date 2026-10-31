@@ -19,7 +19,7 @@ final class PerfTrendView: DO.DraggableView {
     weak var delegate: PerfTrendViewDelegate?
 
     /// 用哪一种展示形式。换样式只换内容和外壳的观感，数据一条都不动。
-    var style: TrendDisplayStyle = .line {
+    var style: DO.TrendDisplayStyle = .line {
         didSet {
             guard style != oldValue else { return }
             applyStyle()
@@ -31,8 +31,8 @@ final class PerfTrendView: DO.DraggableView {
     /// 长按的时长，手感明显发钝。
     private var didLongPress = false
 
-    private let lineView = TrendLineView()
-    private let textView = TrendTextView()
+    private let lineView = DO.TrendLineView()
+    private let textView = DO.TrendTextView()
 
     // MARK: - Init
 
@@ -73,7 +73,7 @@ final class PerfTrendView: DO.DraggableView {
     /// - Parameters:
     ///   - current: 折线模式要画的那一条
     ///   - all: 文字模式要列的全部（只有已开启检测的指标）
-    func render(current: TrendChart?, all: [TrendChart], now: TimeInterval) {
+    func render(current: DO.TrendChart?, all: [DO.TrendChart], now: TimeInterval) {
         switch style {
         case .line:
             lineView.render(current, now: now)

@@ -12,7 +12,7 @@ import UIKit
 ///
 /// 这一页不持有任何状态，开关、当前指标、样式全在 `PerfTrendPlugin`，
 /// 每次出现时回填。
-final class PerfViewController: SectionTableViewController {
+final class PerfViewController: DO.SectionTableViewController {
 
     // MARK: - Life Cycle
 
@@ -55,7 +55,7 @@ final class PerfViewController: SectionTableViewController {
         guard let chart = PerfTrendPlugin.shared.chart(at: index) else { return nil }
 
         var rows: [Row] = [
-            Row(cellClass: ToggleCell.self, onTrigger: { [weak self] cell in
+            Row(cellClass: DO.ToggleCell.self, onTrigger: { [weak self] cell in
                 guard let self = self else { return }
                 if !PerfTrendPlugin.shared.setEnabled(cell.isOn, for: index) {
                     self.presentCannotDisableLast()
@@ -72,7 +72,7 @@ final class PerfViewController: SectionTableViewController {
 
         // 内存有两种口径：进程占用（jetsam 口径）和 malloc 堆。换口径会清空已采的数据。
         if index == 2 {
-            rows.append(Row(cellClass: SelectorCell.self, onTrigger: { [weak self] _ in
+            rows.append(Row(cellClass: DO.SelectorCell.self, onTrigger: { [weak self] _ in
                 self?.chooseMemoryMetric()
             }) { cell in
                 cell.update(title: "测量方式", detail: PerfTrendPlugin.shared.memoryMetric.title)
@@ -111,7 +111,7 @@ final class PerfViewController: SectionTableViewController {
             title: "显示",
             footer: "两种样式读的是同一批数据，换样式不会清空任何历史。",
             rows: [
-                Row(cellClass: SelectorCell.self, onTrigger: { [weak self] _ in
+                Row(cellClass: DO.SelectorCell.self, onTrigger: { [weak self] _ in
                     self?.chooseStyle()
                 }) { cell in
                     cell.update(title: "浮窗样式", detail: plugin.displayStyle.title)
@@ -122,7 +122,7 @@ final class PerfViewController: SectionTableViewController {
 
     private func closeSection() -> Section {
         return Section(rows: [
-            Row(cellClass: ActionCell.self, onTrigger: { _ in
+            Row(cellClass: DO.ActionCell.self, onTrigger: { _ in
                 PerfTrendPlugin.shared.hide()
             }) { cell in
                 cell.update(title: "关闭浮窗", isDestructive: true)
@@ -141,7 +141,7 @@ final class PerfViewController: SectionTableViewController {
     }
 
     private func chooseStyle() {
-        let styles = TrendDisplayStyle.allCases
+        let styles = DO.TrendDisplayStyle.allCases
         let current = PerfTrendPlugin.shared.displayStyle
 
         let alert = UIAlertController(
@@ -161,7 +161,7 @@ final class PerfViewController: SectionTableViewController {
 
     /// 副标题把这条源的两个关键参数写出来：量程和阈值。
     /// 阈值的方向写进文案里，免得看到「50」不知道是高了坏还是低了坏。
-    private static func detail(for chart: TrendChart) -> String {
+    private static func detail(for chart: DO.TrendChart) -> String {
         let lower = Int(chart.range.lowerBound.rounded())
         let upper = Int(chart.range.upperBound.rounded())
         let range = "\(lower)–\(upper) \(chart.unit)"

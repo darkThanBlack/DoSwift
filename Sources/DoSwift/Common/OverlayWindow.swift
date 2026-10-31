@@ -53,23 +53,23 @@ extension DO {
             return scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first
         }
 
-        public func show() {
+        func show() {
             isHidden = false
         }
 
-        public func hide() {
+        func hide() {
             isHidden = true
         }
 
         /// 登记一个「不响应事件」的视图：命中它时本窗口返回 nil，触摸穿透到下层 window。
-        public func addNoResponseView(_ value: UIView) {
+        func addNoResponseView(_ value: UIView) {
             // 清理已释放的弱引用
             noResponses.removeAll(where: { $0.me == nil })
             noResponses.append(Weaker(value))
         }
 
         /// 取消登记
-        public func removeNoResponseView(_ value: UIView) {
+        func removeNoResponseView(_ value: UIView) {
             noResponses.removeAll(where: { $0.me == nil || $0.me === value })
         }
 

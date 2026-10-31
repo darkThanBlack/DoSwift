@@ -7,9 +7,9 @@
 
 import UIKit
 
-/// 一个 view 的属性面板。表的骨架来自 `SectionTableViewController`，
+/// 一个 view 的属性面板。表的骨架来自 `DO.SectionTableViewController`，
 /// 本页只负责**内容**：把引擎给的模型翻成段和行。
-class HierarchyDetailViewController: SectionTableViewController {
+class HierarchyDetailViewController: DO.SectionTableViewController {
 
     var selectView: UIView?
 
@@ -45,17 +45,17 @@ class HierarchyDetailViewController: SectionTableViewController {
 
     /// 一行用哪种 cell，由引擎给的可编辑信息定：
     ///
-    ///   只读          → `KeyValueCell`
-    ///   可切换        → `ToggleCell`（开关拨动即写）
-    ///   点开编辑器    → `SelectorCell`（弹出编辑卡片）
+    ///   只读          → `DO.KeyValueCell`
+    ///   可切换        → `DO.ToggleCell`（开关拨动即写）
+    ///   点开编辑器    → `DO.SelectorCell`（弹出编辑卡片）
     ///
-    /// 三种 cell、每行的动作、事件回流这一整套在 `SectionTableViewController` 里已经就位，
+    /// 三种 cell、每行的动作、事件回流这一整套在 `DO.SectionTableViewController` 里已经就位，
     /// 这里只是选一下。
     private func row(for item: HierarchyCellModel) -> Row {
         guard let edit = item.edit else {
-            // `HierarchyCellModel` 本身就是一行的数据（实现了 `KeyValueCellDataSource`），
+            // `HierarchyCellModel` 本身就是一行的数据（实现了 `DO.KeyValueCellDataSource`），
             // 不必再套一层适配对象
-            return Row(cellClass: KeyValueCell.self) { cell in
+            return Row(cellClass: DO.KeyValueCell.self) { cell in
                 cell.update(item)
                 // 分隔线的显隐是**按行**定的（组与组之间才留线）
                 cell.separatorInset = item.separatorInsets
@@ -65,7 +65,7 @@ class HierarchyDetailViewController: SectionTableViewController {
         switch edit.kind {
         case .bool(let isOn):
             return Row(
-                cellClass: ToggleCell.self,
+                cellClass: DO.ToggleCell.self,
                 onTrigger: { [weak self] cell in self?.writeToggle(edit, isOn: cell.isOn) }
             ) { cell in
                 // 开关自带状态，副标题仍旧显示字面值，两处对得上就说明写成功了
@@ -75,7 +75,7 @@ class HierarchyDetailViewController: SectionTableViewController {
 
         default:    // text / int / double / enum / color / font / date / 几何 —— 都要点开卡片
             return Row(
-                cellClass: SelectorCell.self,
+                cellClass: DO.SelectorCell.self,
                 onTrigger: { [weak self] _ in self?.presentEditor(edit) }
             ) { cell in
                 cell.update(title: item.title, detail: item.detailTitle)
@@ -113,7 +113,7 @@ class HierarchyDetailViewController: SectionTableViewController {
             // 写完重读：那一行自己会显示真实值，这就是写入的验证
             self?.loadData()
         }
-        // 转场由 `BasePresentFitViewController` + `PresentAnimation` 提供，
+        // 转场由 `DO.BasePresentFitViewController` + `DO.PresentAnimation` 提供，
         // 所以这里是普通的 `animated: true`
         present(card, animated: true)
     }
