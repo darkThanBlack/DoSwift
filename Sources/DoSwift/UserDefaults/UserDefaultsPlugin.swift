@@ -2,34 +2,39 @@
 //  UserDefaultsPlugin.swift
 //  DoSwift
 //
+//  Created by moonShadow on 2026/10/31
+//  Copyright © 2026 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
+//
 
 import UIKit
 
-///
-public class UserDefaultsPlugin: DO.DefaultPlugin {
-    
-    public static let shared = UserDefaultsPlugin()
-    
-    private init() {
-        super.init(identifier: "user_defaults", title: "UserDefaults", icon: UIImage(systemName: "rectangle.grid.2x2"))
-    }
-    
-    private let list = UserDefaultsViewController()
-    
-    /// 显示浏览器
-    ///
-    /// 窗口是复用的，上一次退出时的局面（停在详情页、还在编辑态、搜索框里还有字）
-    /// 不该带到这一次来：先回根页，再重读一次数据。
-    public override func show() {
-        super.show()
+extension DO {
 
-        list.navigationController?.popToRootViewController(animated: false)
-        list.refresh()
-    }
-    
-    public override func makeWindow() -> DO.OverlayWindow {
-        let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
-        w.rootViewController = UINavigationController(rootViewController: list)
-        return w
+    ///
+    class UserDefaultsPlugin: DO.DefaultPlugin {
+
+        static let shared = DO.UserDefaultsPlugin()
+
+        private init() {
+            super.init(identifier: "user_defaults", title: "UserDefaults", icon: UIImage(systemName: "rectangle.grid.2x2"))
+        }
+
+        private let list = DO.UserDefaultsViewController()
+
+        override func show() {
+            super.show()
+
+            list.navigationController?.popToRootViewController(animated: false)
+            list.refresh()
+        }
+
+        override func makeWindow() -> DO.OverlayWindow {
+            let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+            w.rootViewController = UINavigationController(rootViewController: list)
+            return w
+        }
     }
 }
