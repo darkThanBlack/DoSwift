@@ -1,12 +1,16 @@
 //
 //  AppDelegate.swift
-//  DoSwift_Example
+//  DoSwift
 //
-//  Created by Claude Code on 2025/09/26.
-//  Copyright © 2025 DoSwift. All rights reserved.
+//  Created by moonShadow on 2025/09/26
+//  Copyright © 2025 darkThanBlack. All rights reserved.
+//
+//  LICENSE: SAME AS REPOSITORY
+//  Contact me: [GitHub](https://github.com/darkThanBlack)
 //
 
 import UIKit
+
 import DoSwift
 
 @UIApplicationMain
@@ -14,70 +18,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+    ) -> Bool {
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.backgroundColor = .systemBackground
 
-        // Setup main window
-        window = UIWindow(frame: UIScreen.main.bounds)
-        window?.backgroundColor = UIColor.systemBackground
+        let root = UIViewController()
+        root.view.backgroundColor = .systemBackground
+        window.rootViewController = root
 
-        let mainViewController = ViewController()
-        let navigationController = UINavigationController(rootViewController: mainViewController)
+        window.makeKeyAndVisible()
+        self.window = window
 
-        window?.rootViewController = navigationController
-        window?.makeKeyAndVisible()
-
-        // Initialize DoSwift with custom menu items
-        setupDoSwift()
+        #if DEBUG
+        DO.Core.shared.start(appWindow: window)
+        #endif
 
         return true
-    }
-
-    private func setupDoSwift() {
-        // 示例：追加一个自定义工具分组
-        let customItem = DO.MenuItem(
-            identifier: "custom_example",
-            title: "示例功能",
-            icon: UIImage(systemName: "star.fill")
-        ) { _ in
-            self.showCustomFeature()
-        }
-        #if DEBUG
-        // 唯一入口：业务 window + 自定义菜单项，一次给全
-        DO.Core.shared.start(appWindow: window, items: [customItem])
-        #endif
-    }
-
-    private func showCustomFeature() {
-        let alertController = UIAlertController(
-            title: "自定义功能",
-            message: "这是 Example 项目添加的自定义功能示例",
-            preferredStyle: .alert
-        )
-
-        alertController.addAction(UIAlertAction(title: "确定", style: .default))
-        window?.rootViewController?.present(alertController, animated: true)
-    }
-
-    // MARK: - Helper Methods
-
-    private func getMemoryUsage() -> (used: Double, free: Double, total: Double) {
-        var info = mach_task_basic_info()
-        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size) / 4
-
-        let kerr: kern_return_t = withUnsafeMutablePointer(to: &info) {
-            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
-                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
-            }
-        }
-
-        if kerr == KERN_SUCCESS {
-            let usedMemory = Double(info.resident_size) / 1024.0 / 1024.0
-            // Approximate values for demo
-            let totalMemory = 4096.0 // 4GB for example
-            let freeMemory = totalMemory - usedMemory
-            return (used: usedMemory, free: freeMemory, total: totalMemory)
-        } else {
-            return (used: 0.0, free: 0.0, total: 0.0)
-        }
     }
 }
