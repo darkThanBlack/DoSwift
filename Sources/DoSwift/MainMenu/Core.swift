@@ -56,9 +56,7 @@ extension DO {
             return w
         }
         
-        /// Current scene in general.
-        ///
-        /// [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
+        /// Current scene in general — [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
         /// [refer](https://stackoverflow.com/questions/57134259)
         @available(iOS 13.0, *)
         private func keyWindowScene() -> UIWindowScene? {
@@ -69,9 +67,7 @@ extension DO {
                 .first
         }
         
-        /// Current window in general for nonscene-based app.
-        ///
-        /// [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
+        /// Current window in general for nonscene-based app — [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
         /// [refer](https://stackoverflow.com/questions/57134259)
         private func keyWindow() -> UIWindow? {
             
@@ -109,13 +105,6 @@ extension DO {
                 DO.MenuItem(plugin: DO.SandboxPlugin.shared),
             ])
             
-//            item("app_setting",    "应用设置",      "gear"),
-//            item("mock_gps",       "Mock GPS",      "location"),
-//            item("h5",             "H5任意门",      "safari"),
-//            item("clean_cache",    "清理缓存",      "trash"),
-//            item("db_view",        "DBView",        "archivebox"),
-//            item("js_script",      "JS脚本",        "chevron.left.slash.chevron.right"),
-
             let performance = DO.MenuGroup(title: "Performance", items: [
                 DO.MenuItem(plugin: DO.PerfTrendPlugin.shared),
             ])

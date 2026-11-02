@@ -23,8 +23,7 @@ private final class Greeter: NSObject {
     }
 }
 
-/// Every test needs its own fixture: swizzling is process-wide state and the swizzler is
-/// deliberately idempotent, so a class already hooked by an earlier test stays hooked.
+/// Each test needs its own fixture class: swizzling is process-wide and never undone.
 private final class Repeatable: NSObject {
     @objc dynamic func greet(_ name: String) -> String { "real" }
 }
