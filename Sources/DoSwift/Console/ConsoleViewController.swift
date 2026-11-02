@@ -190,8 +190,8 @@ extension DO {
 
             if store.capturedCount == 0 {
                 emptyLabel.text = "Nothing captured yet.\n"
-                    + "print() and NSLog are picked up once this page is open;\n"
-                    + "os_log entries arrive after a unified log read."
+                    + "print() and NSLog are only picked up once this page is open —\n"
+                    + "call DO.ConsolePlugin.shared.startCapture() at launch to keep the whole session."
             } else {
                 emptyLabel.text = "All \(store.capturedCount) captured lines are hidden by the filter.\n"
                     + "Check Settings → Sources."

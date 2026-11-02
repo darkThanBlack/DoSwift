@@ -13,10 +13,15 @@ import UIKit
 
 extension DO {
 
+    /// The NSLog panel.
     ///
-    class ConsolePlugin: DO.DefaultPlugin {
+    /// Capture starts when the panel is opened. Everything logged before that moment is
+    /// invisible — a pipe only sees what is written after it is attached. Call
+    /// `startCapture()` from `application(_:didFinishLaunchingWithOptions:)` if the panel
+    /// should show the whole session instead.
+    public final class ConsolePlugin: DO.DefaultPlugin {
 
-        static let shared = DO.ConsolePlugin()
+        public static let shared = DO.ConsolePlugin()
 
         private init() {
             super.init(identifier: "nslog", title: "NSLog", icon: UIImage(systemName: "doc.text"))
@@ -24,7 +29,15 @@ extension DO {
 
         private let list = DO.ConsoleViewController()
 
-        override func show() {
+        /// Starts capturing stdout and stderr now, before the panel is ever opened.
+        ///
+        /// Opt-in on purpose: attaching the pipe takes over fd 1 and fd 2, so output stops
+        /// going wherever it went before. Call it early in debug builds if you want history.
+        public func startCapture() {
+            DO.ConsoleStore.shared.startCollecting()
+        }
+
+        public override func show() {
             super.show()
 
             list.navigationController?.popToRootViewController(animated: false)
@@ -35,7 +48,7 @@ extension DO {
             DO.ConsoleStore.shared.unifiedLog.refresh()
         }
 
-        override func makeWindow() -> DO.OverlayWindow {
+        public override func makeWindow() -> DO.OverlayWindow {
             let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
             w.rootViewController = UINavigationController(rootViewController: list)
             return w
