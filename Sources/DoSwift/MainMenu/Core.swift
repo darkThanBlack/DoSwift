@@ -13,91 +13,118 @@ import UIKit
 
 extension DO {
 
-    public final class Core {
+    public final class Core: DefaultPlugin {
 
         public static let shared = DO.Core()
-        private init() {}
-
-        /// Your APP's window
+        private init() {
+            super.init(identifier: "main", title: "", icon: nil)  // Meaningless
+        }
+        
+        /// Your APP's window.
         private(set) weak var appWindow: UIWindow?
-
-        /// DoSwift main menu drift handle
-        public private(set) var window: DO.OverlayWindow?
-
-        public func start(
+        
+        /// It is strongly recommended to pass in an accurate window. Automated get app window can never be guaranteed to be 100% accurate.
+        public func setup(
             appWindow: UIWindow?,
             plugins: [DO.Plugin] = []
         ) {
-            self.appWindow = appWindow
-
+            guard let w = appWindow ?? keyWindow() else {
+                assertionFailure("appWindow is nil")
+                return
+            }
+            
+            self.appWindow = w
+            
             self.menuGroups = defMenuGroups
             let customGroup = DO.MenuGroup(
-                title: "自定义",
+                title: "Custom",
                 items: plugins.map({ DO.MenuItem(plugin: $0) })
             )
             if customGroup.items.isEmpty == false {
-                menuGroups.append(customGroup)
+                menuGroups.insert(customGroup, at: 0)
             }
-
+            
             show()
         }
-
-        public func show() {
-            prepare()
-            window?.isHidden = false
+        
+        public override func makeWindow() -> DO.OverlayWindow {
+            let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .statusBar)
+            let root = DO.MainViewController()
+            root.menuGroups = menuGroups
+            w.rootViewController = root
+            w.addNoResponseView(root.view)
+            return w
         }
-
-        public func hide() {
-            window?.isHidden = true
+        
+        /// Current scene in general.
+        ///
+        /// [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
+        /// [refer](https://stackoverflow.com/questions/57134259)
+        @available(iOS 13.0, *)
+        private func keyWindowScene() -> UIWindowScene? {
+            return UIApplication
+                .shared
+                .connectedScenes
+                .compactMap({ ($0 as? UIWindowScene) })
+                .first
         }
+        
+        /// Current window in general for nonscene-based app.
+        ///
+        /// [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
+        /// [refer](https://stackoverflow.com/questions/57134259)
+        private func keyWindow() -> UIWindow? {
+            
+            func style3() -> UIWindow? {
+                if #available(iOS 15.0, *) {
+                    return keyWindowScene()?.keyWindow
+                }
+                return nil
+            }
 
+            func style2() -> UIWindow? {
+                if #available(iOS 13.0, *) {
+                    return keyWindowScene()?
+                        .windows
+                        .first(where: { $0.isKeyWindow })
+                }
+                return nil
+            }
+
+            func style1() -> UIWindow? {
+                return UIApplication.shared.keyWindow
+            }
+            return style3() ?? style2() ?? style1()
+        }
+        
         private lazy var menuGroups: [DO.MenuGroup] = []
 
         private lazy var defMenuGroups: [DO.MenuGroup] = {
-
-            func item(_ id: String, _ title: String, _ symbol: String) -> DO.MenuItem {
-                return DO.MenuItem(identifier: id, title: title, icon: UIImage(systemName: symbol))
-            }
-
-            let common = DO.MenuGroup(title: "常用工具", items: [
-                item("app_setting",    "应用设置",      "gear"),
+            
+            let common = DO.MenuGroup(title: "Info", items: [
                 DO.MenuItem(plugin: DO.AppInfoPlugin.shared),
-                item("sandbox",        "沙盒浏览器",    "folder"),
-                item("mock_gps",       "Mock GPS",      "location"),
-                item("h5",             "H5任意门",      "safari"),
-                item("clean_cache",    "清理缓存",      "trash"),
                 DO.MenuItem(plugin: DO.ConsolePlugin.shared),
-                item("db_view",        "DBView",        "archivebox"),
                 DO.MenuItem(plugin: DO.UserDefaultsPlugin.shared),
-                item("js_script",      "JS脚本",        "chevron.left.slash.chevron.right"),
             ])
+            
+//            item("app_setting",    "应用设置",      "gear"),
+//            item("sandbox",        "沙盒浏览器",    "folder"),
+//            item("mock_gps",       "Mock GPS",      "location"),
+//            item("h5",             "H5任意门",      "safari"),
+//            item("clean_cache",    "清理缓存",      "trash"),
+//            item("db_view",        "DBView",        "archivebox"),
+//            item("js_script",      "JS脚本",        "chevron.left.slash.chevron.right"),
 
-            let performance = DO.MenuGroup(title: "性能", items: [
+            let performance = DO.MenuGroup(title: "Performance", items: [
                 DO.MenuItem(plugin: DO.PerfTrendPlugin.shared),
             ])
 
-            let visual = DO.MenuGroup(title: "视觉工具", items: [
+            let visual = DO.MenuGroup(title: "Visual", items: [
                 DO.MenuItem(plugin: DO.HierarchyPlugin.shared),
             ])
-
-            return [visual, performance, common]
+            
+            return [common, visual, performance]
         }()
-
-        private func prepare() {
-            guard window == nil else { return }
-
-            let overlayWindow = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .statusBar)
-            overlayWindow.isHidden = true
-            overlayWindow.backgroundColor = .clear
-
-            let root = DO.MainViewController()
-            root.menuGroups = menuGroups
-            overlayWindow.rootViewController = root
-
-            window = overlayWindow
-
-            overlayWindow.addNoResponseView(root.view)
-        }
-
+        
     }
 }

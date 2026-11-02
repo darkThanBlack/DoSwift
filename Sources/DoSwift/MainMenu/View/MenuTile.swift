@@ -12,7 +12,8 @@
 import UIKit
 
 extension DO {
-
+    
+    @objc(DOMenuTile)
     final class MenuTile: UIControl {
 
         var onTap: ((DO.MenuItem) -> Void)?

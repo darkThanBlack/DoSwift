@@ -18,7 +18,8 @@ extension DO {
         func pickerDidMove(_ picker: DO.PickerView)
         func pickerDidEndDrag(_ picker: DO.PickerView)
     }
-
+    
+    @objc(DOPickerView)
     class PickerView: DO.DraggableView {
 
         weak var delegate: DO.PickerViewDelegate?

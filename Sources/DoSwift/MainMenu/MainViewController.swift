@@ -12,7 +12,8 @@
 import UIKit
 
 extension DO {
-
+    
+    @objc(DOMainViewController)
     class MainViewController: UIViewController {
 
         var menuGroups: [DO.MenuGroup] = [] {

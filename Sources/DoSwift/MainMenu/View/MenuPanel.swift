@@ -18,7 +18,8 @@ extension DO {
 
         func menuPanelDidSelectClose(_ panel: DO.MenuPanel)
     }
-
+    
+    @objc(DOMenuPanel)
     final class MenuPanel: UIView {
 
         private enum Metrics {
@@ -272,10 +273,7 @@ extension DO {
             tilesByGroup = []
 
             for group in menuGroups {
-                let header = DO.MenuGroupHeaderView(
-                    title: group.title,
-                    showsTopHairline: !headerViews.isEmpty
-                )
+                let header = DO.MenuGroupHeaderView(title: group.title)
                 scrollView.addSubview(header)
                 headerViews.append(header)
 

@@ -12,23 +12,25 @@
 import UIKit
 
 extension DO {
+    
+    /// Pan gesture logic for drift and drag.
+    @objc(DODraggableView)
+    public class DraggableView: UIView {
 
-    class DraggableView: UIView {
-
-        enum ReleasePolicy {
+        public enum ReleasePolicy {
             case stay
             case bounceBack
             case absorbEdge
         }
 
-        var releasePolicy: ReleasePolicy = .bounceBack
+        public var releasePolicy: ReleasePolicy = .bounceBack
 
-        var isDraggable: Bool {
+        public var isDraggable: Bool {
             get { panGesture.isEnabled }
             set { panGesture.isEnabled = newValue }
         }
 
-        private(set) var isDragging: Bool = false
+        public private(set) var isDragging: Bool = false
 
         private(set) var hasDragged: Bool = false
 
@@ -39,22 +41,22 @@ extension DO {
             return gesture
         }()
 
-        override init(frame: CGRect) {
+        public override init(frame: CGRect) {
             super.init(frame: frame)
             addGestureRecognizer(panGesture)
         }
 
-        required init?(coder: NSCoder) {
+        public required init?(coder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
 
-        func dragDidBegin() {}
+        open func dragDidBegin() {}
 
-        func dragDidUpdate(offset: CGPoint) {}
+        open func dragDidUpdate(offset: CGPoint) {}
 
-        func dragDidEnd() {}
+        open func dragDidEnd() {}
 
-        func settle(animated: Bool = true) {
+        public func settle(animated: Bool = true) {
             guard let barrier = superview?.bounds else { return }
 
             var target = frame

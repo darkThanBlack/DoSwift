@@ -17,7 +17,9 @@ extension DO {
         func menuHandleDidTap(_ handleView: DO.MenuHandle)
         func menuHandleDidBeginDrag(_ handleView: DO.MenuHandle)
     }
-
+    
+    /// Mainly drift handle.
+    @objc(DOMenuHandle)
     final class MenuHandle: DO.DraggableView {
 
         static let handleFrameKey = "kMenuHandleFrameKey"
