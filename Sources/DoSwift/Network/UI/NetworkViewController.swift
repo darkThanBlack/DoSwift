@@ -19,6 +19,11 @@ extension DO {
 
         private var timer: Timer?
 
+        /// Cheap fingerprint of what is on screen. Rebuilding the table on every tick would
+        /// drop a tap that lands between touch down and touch up, and it would also reset the
+        /// scroll position once the list gets long.
+        private var signature: String = ""
+
         override func viewDidLoad() {
             super.viewDidLoad()
 
@@ -53,8 +58,13 @@ extension DO {
             timer = nil
         }
 
-        func reload() {
+        func reload(force: Bool = false) {
             let capture = DO.NetworkCapture.shared
+            let records = Array(capture.snapshot().reversed())
+
+            let current = "\(capture.isEnabled)|\(records.count)|\(records.first?.id ?? -1)|\(records.last?.id ?? -1)"
+            guard force || current != signature else { return }
+            signature = current
 
             var sections: [Section] = [
                 Section(rows: [
@@ -64,7 +74,7 @@ extension DO {
                         } else {
                             capture.start()
                         }
-                        self?.reload()
+                        self?.reload(force: true)
                     }) { cell in
                         cell.update(
                             title: capture.isEnabled ? "停止采集" : "开始采集",
@@ -74,7 +84,6 @@ extension DO {
                 ])
             ]
 
-            let records = Array(capture.snapshot().reversed())
             if records.isEmpty {
                 sections.append(Section(
                     footer: "没有捕获到请求。采集只覆盖 URLSession —— WKWebView、WebSocket 和裸 socket 都不在其中；开启采集之前创建的 session 也要等下一个 session 建出来才会被覆盖。",
@@ -105,7 +114,7 @@ extension DO {
 
         @objc private func handleClear() {
             DO.NetworkCapture.shared.clear()
-            reload()
+            reload(force: true)
         }
 
         private static func path(of url: URL?) -> String {

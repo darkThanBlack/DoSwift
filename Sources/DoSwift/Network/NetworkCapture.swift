@@ -37,9 +37,9 @@ extension DO {
     ///
     /// Not covered: `WKWebView`, `URLSessionWebSocketTask`, uploads whose body is an
     /// `InputStream`, and any traffic that does not go through `URLSession`.
-    final class NetworkCapture {
+    public final class NetworkCapture {
 
-        static let shared = DO.NetworkCapture()
+        public static let shared = DO.NetworkCapture()
 
         /// Oldest records are dropped beyond this.
         static let capacity = 200
@@ -68,7 +68,7 @@ extension DO {
 
         // MARK: - Public
 
-        func start() {
+        public func start() {
             isEnabled = true
             installSessionHooks()
         }
