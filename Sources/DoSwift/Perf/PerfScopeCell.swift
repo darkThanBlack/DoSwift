@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOPerfScopeCell)
     final class PerfScopeCell: UITableViewCell {
 
         var onSelectAll: (() -> Void)?

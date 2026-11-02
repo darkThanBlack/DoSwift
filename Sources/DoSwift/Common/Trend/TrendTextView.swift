@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOTrendTextView)
     final class TrendTextView: UIView {
 
         private enum Metrics {

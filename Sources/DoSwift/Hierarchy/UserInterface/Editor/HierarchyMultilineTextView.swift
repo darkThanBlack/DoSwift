@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyMultilineTextView)
     final class HierarchyMultilineTextView: UIView, DO.HierarchyValueInput {
 
         var onValidityChange: ((Bool) -> Void)?

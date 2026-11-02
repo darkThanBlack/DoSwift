@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOOverlayWindow)
     public class OverlayWindow: UIWindow {
 
         private class Weaker<T: AnyObject> {

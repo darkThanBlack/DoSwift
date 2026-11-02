@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOActionCell)
     final class ActionCell: UITableViewCell, DO.SectionCell {
 
         weak var sectionDelegate: DO.SectionCellDelegate?

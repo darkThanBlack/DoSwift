@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchySettingViewController)
     class HierarchySettingViewController: DO.SectionTableViewController {
 
         var onChange: (() -> Void)?

@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyPickerView)
     class HierarchyPickerView: DO.PickerView {
 
         enum SearchStrategy {

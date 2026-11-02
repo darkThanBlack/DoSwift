@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DODraggableLayoutView)
     final class DraggableLayoutView: DO.DraggableView {
 
         let contentView: UIView

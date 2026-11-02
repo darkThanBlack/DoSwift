@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyDetailViewController)
     class HierarchyDetailViewController: DO.SectionTableViewController {
 
         var selectView: UIView?

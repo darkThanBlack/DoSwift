@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyFontInputView)
     final class HierarchyFontInputView: UIView, DO.HierarchyValueInput {
 
         var onValidityChange: ((Bool) -> Void)? {

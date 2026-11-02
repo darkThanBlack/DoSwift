@@ -33,7 +33,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = window
 
         #if DEBUG
-        DO.Core.shared.start(appWindow: window)
+        DO.Core.shared.setup(appWindow: window)
         #endif
 
         return true

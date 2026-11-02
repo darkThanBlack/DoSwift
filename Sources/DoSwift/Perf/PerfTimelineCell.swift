@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOPerfTimelineCell)
     final class PerfTimelineCell: UITableViewCell {
 
         static let cellHeight: CGFloat = 152

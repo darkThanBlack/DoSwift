@@ -12,6 +12,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOAlertTransitioningHandler)
     final class AlertTransitioningHandler: NSObject, UIViewControllerTransitioningDelegate {
 
         private let animation = DO.AlertAnimation()
@@ -31,6 +32,7 @@ extension DO {
         }
     }
 
+    @objc(DOAlertPresentationController)
     final class AlertPresentationController: UIPresentationController {
 
         private lazy var scrimView: UIView = {
@@ -68,6 +70,7 @@ extension DO {
         }
     }
 
+    @objc(DOAlertAnimation)
     final class AlertAnimation: NSObject, UIViewControllerAnimatedTransitioning {
 
         enum Kind { case centerShow, centerHide }
@@ -115,6 +118,7 @@ extension DO {
         }
     }
 
+    @objc(DOBaseAlertViewController)
     class BaseAlertViewController: UIViewController {
 
         lazy var contentView: UIView = {
@@ -167,6 +171,7 @@ extension DO {
         @objc private func maskTapped() { maskTapEventHandler?() }
     }
 
+    @objc(DOHierarchyEditorCard)
     final class HierarchyEditorCard: DO.BaseAlertViewController {
 
         private let key: String

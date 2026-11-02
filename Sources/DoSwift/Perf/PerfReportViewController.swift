@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOPerfReportViewController)
     final class PerfReportViewController: DO.SectionTableViewController {
 
         private var scope: ClosedRange<TimeInterval>?

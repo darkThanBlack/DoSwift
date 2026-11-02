@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyColorPanelView)
     final class HierarchyColorPanelView: UIView, DO.HierarchyValueInput {
 
         var onValidityChange: ((Bool) -> Void)?

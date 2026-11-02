@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOPerfViewController)
     final class PerfViewController: DO.SectionTableViewController {
 
         override func viewDidLoad() {

@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyColorLoupeView)
     final class HierarchyColorLoupeView: UIView {
 
         private static let sampleCount: CGFloat = 11

@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOPerfTrendView)
     final class PerfTrendView: DO.DraggableView {
 
         static let frameKey = "kPerfTrendFrameKey"

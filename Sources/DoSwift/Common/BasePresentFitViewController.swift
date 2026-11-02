@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOBasePresentFitViewController)
     class BasePresentFitViewController: UIViewController {
 
         lazy var contentView: UIView = {

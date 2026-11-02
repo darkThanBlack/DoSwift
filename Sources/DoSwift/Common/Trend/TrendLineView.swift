@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOTrendLineView)
     final class TrendLineView: UIView {
 
         private enum Metrics {

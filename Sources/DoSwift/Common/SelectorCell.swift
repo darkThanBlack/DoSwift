@@ -20,6 +20,7 @@ extension DO {
         var detail: String { get }
     }
 
+    @objc(DOSelectorCell)
     final class SelectorCell: UITableViewCell, DO.SectionCell {
 
         weak var sectionDelegate: DO.SectionCellDelegate?

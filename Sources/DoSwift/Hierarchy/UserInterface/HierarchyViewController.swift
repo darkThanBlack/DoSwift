@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyViewController)
     class HierarchyViewController: UIViewController {
 
         private lazy var borderView: UIView = {

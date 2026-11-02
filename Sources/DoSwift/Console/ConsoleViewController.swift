@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOConsoleViewController)
     final class ConsoleViewController: DO.SectionTableViewController {
 
         private var lines: [DO.ConsoleLine] = []

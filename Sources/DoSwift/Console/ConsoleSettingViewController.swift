@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOConsoleSettingViewController)
     final class ConsoleSettingViewController: DO.SectionTableViewController {
 
         private struct Item: DO.ToggleCellDataSource {

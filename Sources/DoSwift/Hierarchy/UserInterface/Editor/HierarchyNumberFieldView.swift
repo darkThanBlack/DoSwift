@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyNumberFieldView)
     final class HierarchyNumberFieldView: UIView, DO.HierarchyValueInput {
 
         var onValidityChange: ((Bool) -> Void)? {

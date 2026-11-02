@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOPresentTransitioningHandler)
     final class PresentTransitioningHandler: NSObject, UIViewControllerTransitioningDelegate {
 
         private let animation = DO.PresentAnimation()
@@ -34,6 +35,7 @@ extension DO {
         }
     }
 
+    @objc(DOPresentPresentationController)
     final class PresentPresentationController: UIPresentationController {
 
         private lazy var scrimView: UIView = {
@@ -71,6 +73,7 @@ extension DO {
         }
     }
 
+    @objc(DOPresentAnimation)
     final class PresentAnimation: NSObject, UIViewControllerAnimatedTransitioning {
 
         enum Kind {

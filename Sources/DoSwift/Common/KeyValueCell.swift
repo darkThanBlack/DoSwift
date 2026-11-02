@@ -22,6 +22,7 @@ extension DO {
         var rightImage: UIImage? { get }
     }
 
+    @objc(DOKeyValueCell)
     final class KeyValueCell: UITableViewCell, DO.SectionCell {
 
         weak var sectionDelegate: DO.SectionCellDelegate?

@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOPlainTextViewController)
     final class PlainTextViewController: UIViewController {
 
         private let text: String

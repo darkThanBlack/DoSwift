@@ -22,6 +22,7 @@ extension DO {
         let tint: UIColor
     }
 
+    @objc(DOTrendPlotView)
     final class TrendPlotView: UIView {
 
         private var content: DO.TrendPlotContent?

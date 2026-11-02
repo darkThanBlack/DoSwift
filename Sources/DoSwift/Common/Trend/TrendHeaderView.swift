@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOTrendHeaderView)
     final class TrendHeaderView: UIView {
 
         func render(_ chart: DO.TrendChart?, now: TimeInterval) {

@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOSectionTableViewController)
     class SectionTableViewController: UIViewController, DO.SectionCellDelegate {
 
         struct Row {

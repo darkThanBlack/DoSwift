@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyEnumListView)
     final class HierarchyEnumListView: UIView, DO.HierarchyValueInput {
 
         var onValidityChange: ((Bool) -> Void)? {
@@ -127,6 +128,7 @@ extension DO {
         }
     }
 
+    @objc(DOEnumRowView)
     private final class EnumRowView: UIControl {
 
         override var isHighlighted: Bool {

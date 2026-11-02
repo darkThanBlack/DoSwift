@@ -21,6 +21,7 @@ extension DO {
         func hierarchyInfoViewDidSelectClose(_ view: DO.HierarchyInfoView)
     }
 
+    @objc(DOHierarchyInfoView)
     final class HierarchyInfoView: UIView {
 
         weak var delegate: DO.HierarchyInfoViewDelegate?
@@ -210,6 +211,7 @@ extension DO {
         }
     }
 
+    @objc(DOHierarchyInfoRowView)
     private final class HierarchyInfoRowView: UIView {
 
         var key: String? {

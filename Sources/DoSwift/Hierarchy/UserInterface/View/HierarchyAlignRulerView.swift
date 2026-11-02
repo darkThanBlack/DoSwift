@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyAlignRulerView)
     final class HierarchyAlignRulerView: UIView {
 
         static let alignColor = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 1.0)

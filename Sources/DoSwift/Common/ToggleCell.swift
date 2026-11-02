@@ -22,6 +22,7 @@ extension DO {
         var isOn: Bool { get }
     }
 
+    @objc(DOToggleCell)
     final class ToggleCell: UITableViewCell, DO.SectionCell {
 
         weak var sectionDelegate: DO.SectionCellDelegate?

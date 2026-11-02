@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOSectionFooterView)
     final class SectionFooterView: UITableViewHeaderFooterView {
 
         let titleLabel: UILabel = {

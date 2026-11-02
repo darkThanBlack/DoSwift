@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOAppInfoViewController)
     final class AppInfoViewController: DO.SectionTableViewController {
 
         var customRows: [DO.AppInfoRow] = []

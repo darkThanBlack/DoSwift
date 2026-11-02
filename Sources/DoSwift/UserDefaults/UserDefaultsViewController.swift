@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOUserDefaultsViewController)
     final class UserDefaultsViewController: DO.SectionTableViewController {
 
         private var snapshot: DO.UserDefaultsSnapshot = .capture()

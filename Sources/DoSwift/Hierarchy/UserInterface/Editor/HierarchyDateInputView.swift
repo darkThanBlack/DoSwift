@@ -13,6 +13,7 @@ import UIKit
 
 extension DO {
 
+    @objc(DOHierarchyDateInputView)
     final class HierarchyDateInputView: UIView, DO.HierarchyValueInput {
 
         var onValidityChange: ((Bool) -> Void)?
