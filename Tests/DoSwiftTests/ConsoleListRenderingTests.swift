@@ -56,6 +56,24 @@ final class ConsoleListRenderingTests: XCTestCase {
     }
 }
 
+final class ConsoleStoreCountTests: XCTestCase {
+
+    func testCountsFollowEachSource() {
+        let store = DO.ConsoleStore.shared
+        store.clear()
+
+        let date = Date()
+        store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "a"))
+        store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "b"))
+        store.append(DO.ConsoleLine(date: date, source: .standardError, text: "c"))
+
+        XCTAssertEqual(store.capturedCount, 3)
+        XCTAssertEqual(store.capturedCount(of: .standardOutput), 2)
+        XCTAssertEqual(store.capturedCount(of: .standardError), 1)
+        XCTAssertEqual(store.capturedCount(of: .unifiedLog), 0)
+    }
+}
+
 final class ConsoleMergeTests: XCTestCase {
 
     override func setUp() {

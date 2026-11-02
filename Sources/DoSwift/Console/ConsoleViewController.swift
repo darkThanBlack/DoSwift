@@ -55,6 +55,8 @@ extension DO {
             label.font = .monospacedSystemFont(ofSize: 10, weight: .regular)
             label.textColor = .secondaryLabel
             label.numberOfLines = 1
+            label.adjustsFontSizeToFitWidth = true
+            label.minimumScaleFactor = 0.8
             return label
         }()
 
@@ -214,26 +216,33 @@ extension DO {
 
         private var statusText: String {
             let store = DO.ConsoleStore.shared
-            var parts = ["\(lines.count) of \(store.capturedCount) lines"]
 
-            let total = DO.ConsoleLine.Source.allCases.filter {
+            let sources = DO.ConsoleLine.Source.allCases.filter {
                 $0 != .unifiedLog || DO.ConsoleUnifiedLog.isAvailable
-            }.count
-            if store.filter.sources.count < total {
-                parts.append("\(store.filter.sources.count)/\(total) sources")
+            }
+
+            var counts = ["total \(store.capturedCount)"]
+            for source in sources {
+                counts.append("\(source.shortTitle) \(store.capturedCount(of: source))")
+            }
+
+            var parts = [counts.joined(separator: "  ")]
+
+            if store.filter.sources.count < sources.count {
+                parts.append("\(store.filter.sources.count)/\(sources.count) sources")
             }
 
             if store.isPaused { parts.append("paused") }
 
             if !DO.ConsoleUnifiedLog.isAvailable {
-                parts.append("Unified Log needs iOS 15")
+                parts.append("unified log needs iOS 15")
             } else if store.unifiedLog.isRefreshing {
                 parts.append("reading unified log…")
             } else if store.unifiedLog.lastDuration > 0 {
-                parts.append(String(format: "unified log read in %.1fs", store.unifiedLog.lastDuration))
+                parts.append(String(format: "read in %.1fs", store.unifiedLog.lastDuration))
             }
 
-            return parts.joined(separator: " · ")
+            return parts.joined(separator: "  ·  ")
         }
 
         @objc private func showSettings() {

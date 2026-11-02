@@ -86,6 +86,10 @@ extension DO {
 
         private var buffer: [DO.ConsoleLine] = []
 
+        /// Captured line count per source, kept in step with `buffer` so the status bar does
+        /// not have to walk two thousand entries on every refresh.
+        private var sourceCounts: [DO.ConsoleLine.Source: Int] = [:]
+
         func append(_ line: DO.ConsoleLine) {
             lock.lock()
             guard !pausedStorage else {
@@ -96,8 +100,14 @@ extension DO {
             var line = line
             line.setText(line.text, limit: maxTextLength)
             buffer.append(line)
+            sourceCounts[line.source, default: 0] += 1
+
             if buffer.count > limit {
-                buffer.removeFirst(buffer.count - limit)
+                let overflow = buffer.count - limit
+                for evicted in buffer.prefix(overflow) {
+                    sourceCounts[evicted.source, default: 0] -= 1
+                }
+                buffer.removeFirst(overflow)
             }
             lock.unlock()
 
@@ -124,6 +134,13 @@ extension DO {
             lock.lock()
             defer { lock.unlock() }
             return buffer.count
+        }
+
+        /// How many lines of this source are currently kept.
+        func capturedCount(of source: DO.ConsoleLine.Source) -> Int {
+            lock.lock()
+            defer { lock.unlock() }
+            return sourceCounts[source] ?? 0
         }
 
         func visibleLines() -> [DO.ConsoleLine] {
@@ -197,6 +214,7 @@ extension DO {
         func clear() {
             lock.lock()
             buffer.removeAll()
+            sourceCounts.removeAll()
             lock.unlock()
 
             notify()
