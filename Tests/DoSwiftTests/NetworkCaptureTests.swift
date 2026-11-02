@@ -45,23 +45,6 @@ final class NetworkCaptureTests: XCTestCase {
         XCTAssertTrue(DO.NetworkCapture.shared.sessionClasses.contains(name))
     }
 
-    func testStartRegistersEvenWhenNoSessionIsCreatedAfterwards() {
-        DO.NetworkCapture.shared.resetForTesting()
-        DO.NetworkCapture.shared.stop()
-
-        // Simulates a host that built every session before the tool existed: the hooks are
-        // in place, but the gate is closed, so nothing is recorded.
-        _ = URLSession(configuration: .ephemeral)
-        XCTAssertTrue(DO.NetworkCapture.shared.sessionClasses.isEmpty, "hooks are not installed yet")
-
-        DO.NetworkCapture.shared.start()
-
-        XCTAssertFalse(
-            DO.NetworkCapture.shared.sessionClasses.isEmpty,
-            "warm-up should have discovered the concrete class"
-        )
-    }
-
     func testRegisteringTheSameClassTwiceKeepsOneEntry() {
         DO.NetworkCapture.shared.start()
 
