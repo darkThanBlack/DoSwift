@@ -99,6 +99,29 @@ final class NetworkCaptureRecordTests: XCTestCase {
         XCTAssertEqual(records.first?.responseBody?.text, #"{"ok":true}"#)
     }
 
+    func testUploadRequestBodyIsCaptured() {
+        var request = URLRequest(url: URL(string: "https://example.test/upload")!)
+        request.httpMethod = "POST"
+        let body = Data(#"{"name":"x"}"#.utf8)
+
+        let done = expectation(description: "request finished")
+        session().uploadTask(with: request, from: body) { _, _, _ in done.fulfill() }.resume()
+        wait(for: [done], timeout: 5)
+
+        let record = DO.NetworkCapture.shared.snapshot().first
+        XCTAssertEqual(record?.method, "POST")
+        XCTAssertEqual(record?.requestBody?.text, #"{"name":"x"}"#)
+        XCTAssertEqual(record?.status, 201)
+    }
+
+    func testBodyIsCapped() {
+        let body = Data(repeating: 1, count: DO.NetworkBody.maxBytes + 10)
+        let capped = DO.NetworkBody.capped(body)
+
+        XCTAssertEqual(capped.byteCount, DO.NetworkBody.maxBytes)
+        XCTAssertTrue(capped.truncated)
+    }
+
     func testCaptureStopsWhenDisabled() {
         DO.NetworkCapture.shared.stop()
 

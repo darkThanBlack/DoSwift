@@ -29,6 +29,12 @@ extension DO {
     /// stacked a hook on top of ours keeps working. `start()` must be called by the host; the
     /// library never swizzles on its own.
     ///
+    /// Consequence worth knowing: instrumentation is discovered, not enforced. A session
+    /// created *before* `start()` was never seen by a factory hook, so its concrete class is
+    /// unknown and its tasks are invisible — until some other session is created after
+    /// `start()`, which registers the shared class and retroactively covers the old one. Call
+    /// `start()` early; every request made afterwards is captured.
+    ///
     /// Not covered: `WKWebView`, `URLSessionWebSocketTask`, uploads whose body is an
     /// `InputStream`, and any traffic that does not go through `URLSession`.
     final class NetworkCapture {
@@ -158,7 +164,9 @@ extension DO {
             hookDataTaskWithRequest(cls)
             hookDataTaskWithCompletion(cls)
             hookUploadWithData(cls)
+            hookUploadWithDataCompletion(cls)
             hookUploadWithFile(cls)
+            hookUploadWithFileCompletion(cls)
         }
 
         private func installSessionHooks() {
@@ -316,6 +324,62 @@ extension DO {
                 let task = DO.Swizzler.cast(original!, to: Original.self)(object, selector, request, data)
                 DO.NetworkCapture.shared.attach(to: task, request: task.originalRequest ?? request)
                 DO.NetworkTaskBox.box(for: task)?.setRequestBody(data)
+                return task
+            }
+
+            original = DO.Swizzler.replaceInstanceMethod(of: cls, selector, with: hook)
+        }
+
+        private func hookUploadWithDataCompletion(_ cls: AnyClass) {
+            let selector = NSSelectorFromString("uploadTaskWithRequest:fromData:completionHandler:")
+            var original: IMP?
+
+            let hook: @convention(block) (AnyObject, URLRequest, Data, DataCompletion?) -> URLSessionUploadTask = { object, request, data, completion in
+                typealias Original = @convention(c) (AnyObject, Selector, URLRequest, Data, DataCompletion?) -> URLSessionUploadTask
+
+                var box: DO.NetworkTaskBox?
+                let wrapped = completion.map { handler -> DataCompletion in
+                    return { received, response, error in
+                        if let box = box {
+                            if let received = received { box.append(received) }
+                            DO.NetworkCapture.shared.commit(box, response: response, error: error)
+                        }
+                        handler(received, response, error)
+                    }
+                }
+
+                let task = DO.Swizzler.cast(original!, to: Original.self)(object, selector, request, data, wrapped)
+                box = DO.NetworkCapture.shared.begin(request: task.originalRequest ?? request)
+                box?.setRequestBody(data)
+                if let box = box { DO.NetworkTaskBox.attach(box, to: task) }
+                return task
+            }
+
+            original = DO.Swizzler.replaceInstanceMethod(of: cls, selector, with: hook)
+        }
+
+        private func hookUploadWithFileCompletion(_ cls: AnyClass) {
+            let selector = NSSelectorFromString("uploadTaskWithRequest:fromFile:completionHandler:")
+            var original: IMP?
+
+            let hook: @convention(block) (AnyObject, URLRequest, URL, DataCompletion?) -> URLSessionUploadTask = { object, request, url, completion in
+                typealias Original = @convention(c) (AnyObject, Selector, URLRequest, URL, DataCompletion?) -> URLSessionUploadTask
+
+                var box: DO.NetworkTaskBox?
+                let wrapped = completion.map { handler -> DataCompletion in
+                    return { received, response, error in
+                        if let box = box {
+                            if let received = received { box.append(received) }
+                            DO.NetworkCapture.shared.commit(box, response: response, error: error)
+                        }
+                        handler(received, response, error)
+                    }
+                }
+
+                let task = DO.Swizzler.cast(original!, to: Original.self)(object, selector, request, url, wrapped)
+                box = DO.NetworkCapture.shared.begin(request: task.originalRequest ?? request)
+                if let body = Self.prefix(of: url) { box?.setRequestBody(body) }
+                if let box = box { DO.NetworkTaskBox.attach(box, to: task) }
                 return task
             }
 

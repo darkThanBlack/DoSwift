@@ -77,11 +77,11 @@ extension DO {
             let records = Array(capture.snapshot().reversed())
             if records.isEmpty {
                 sections.append(Section(
-                    footer: "没有捕获到请求。采集只覆盖 URLSession —— WKWebView、WebSocket 和裸 socket 都不在其中。",
+                    footer: "没有捕获到请求。采集只覆盖 URLSession —— WKWebView、WebSocket 和裸 socket 都不在其中；开启采集之前创建的 session 也要等下一个 session 建出来才会被覆盖。",
                     rows: []
                 ))
             } else {
-                sections.append(Section(title: "请求", rows: records.map { row(for: $0) }))
+                sections.append(Section(title: "请求（\(records.count)）", rows: records.map { row(for: $0) }))
             }
 
             self.sections = sections
