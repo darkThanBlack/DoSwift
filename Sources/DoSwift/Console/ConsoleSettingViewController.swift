@@ -77,8 +77,7 @@ extension DO {
                     )),
                     makeRow(Item(
                         title: "Merge same timestamp",
-                        detail: "Consecutive lines sharing a timestamp become one block. "
-                              + "Applies to lines that arrive from now on.",
+                        detail: "Consecutive lines sharing a timestamp become one block.",
                         kind: .merge(source)
                     )),
                 ]

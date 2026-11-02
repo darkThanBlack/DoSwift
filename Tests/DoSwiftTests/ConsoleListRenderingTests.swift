@@ -60,49 +60,31 @@ final class ConsoleMergeTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        DO.ConsoleStore.shared.mergesSameTimestamp = [.standardError]
+        DO.ConsoleStore.shared.mergesSameTimestamp = []
+        DO.ConsoleStore.shared.clear()
     }
 
-    func testSameTimestampMergesForStandardError() {
+    func testTogglingMergeAppliesToExistingLines() {
         let store = DO.ConsoleStore.shared
-        store.clear()
 
         let date = Date()
         for index in 0..<3 {
             store.append(DO.ConsoleLine(date: date, source: .standardError, text: "line \(index)"))
         }
 
-        XCTAssertEqual(store.visibleLines().count, 1)
+        XCTAssertEqual(store.visibleLines().count, 3, "off by default in this test")
+
+        store.mergesSameTimestamp = [.standardError]
+        XCTAssertEqual(store.visibleLines().count, 1, "turning it on must regroup what is already here")
         XCTAssertEqual(store.visibleLines().first?.text, "line 0\nline 1\nline 2")
-    }
 
-    func testStandardOutputDoesNotMergeByDefault() {
-        let store = DO.ConsoleStore.shared
-        store.clear()
-
-        let date = Date()
-        for index in 0..<3 {
-            store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "line \(index)"))
-        }
-
-        XCTAssertEqual(store.visibleLines().count, 3)
-    }
-
-    func testMergingCanBeTurnedOnPerSource() {
-        let store = DO.ConsoleStore.shared
-        store.mergesSameTimestamp = [.standardOutput]
-        store.clear()
-
-        let date = Date()
-        store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "a"))
-        store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "b"))
-
-        XCTAssertEqual(store.visibleLines().count, 1)
+        store.mergesSameTimestamp = []
+        XCTAssertEqual(store.visibleLines().count, 3, "turning it off must split them again")
     }
 
     func testDifferentTimestampsDoNotMerge() {
         let store = DO.ConsoleStore.shared
-        store.clear()
+        store.mergesSameTimestamp = [.standardError]
 
         let start = Date()
         for index in 0..<3 {
@@ -118,7 +100,7 @@ final class ConsoleMergeTests: XCTestCase {
 
     func testDifferentSourcesDoNotMerge() {
         let store = DO.ConsoleStore.shared
-        store.clear()
+        store.mergesSameTimestamp = [.standardOutput, .standardError]
 
         let date = Date()
         store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "out"))

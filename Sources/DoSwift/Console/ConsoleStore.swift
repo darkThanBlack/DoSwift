@@ -55,7 +55,9 @@ extension DO {
         /// message, while `print` output is more often a sequence of distinct statements —
         /// folding those together would hide individual lines. Unified log entries already
         /// carry their own boundaries, so they are left alone.
-        var mergesSameTimestamp: Set<DO.ConsoleLine.Source> = [.standardError]
+        var mergesSameTimestamp: Set<DO.ConsoleLine.Source> = [.standardError] {
+            didSet { notify() }
+        }
 
         private var pausedStorage = false
 
@@ -93,22 +95,9 @@ extension DO {
 
             var line = line
             line.setText(line.text, limit: maxTextLength)
-
-            // Same timestamp and same source means one write that happened to contain several
-            // lines: keep them as one block instead of a dozen near-identical rows.
-            if mergesSameTimestamp.contains(line.source),
-               let last = buffer.last,
-               last.source == line.source,
-               last.level == line.level,
-               last.timeText == line.timeText {
-                var merged = last
-                merged.appendContinuation(line.text, limit: maxTextLength)
-                buffer[buffer.count - 1] = merged
-            } else {
-                buffer.append(line)
-                if buffer.count > limit {
-                    buffer.removeFirst(buffer.count - limit)
-                }
+            buffer.append(line)
+            if buffer.count > limit {
+                buffer.removeFirst(buffer.count - limit)
             }
             lock.unlock()
 
@@ -142,8 +131,10 @@ extension DO {
             let snapshot = buffer
             lock.unlock()
 
-            let keyword = filter.keyword.trimmingCharacters(in: .whitespaces).lowercased()
-            let filtered = snapshot.filter { line in
+            let filter = self.filter
+            let mergeable = mergesSameTimestamp
+
+            let shown = snapshot.filter { line in
                 guard filter.sources.contains(line.source) else { return false }
                 // Unified log entries without a subsystem cannot be attributed to anyone;
                 // this is the only thing that hides them.
@@ -152,10 +143,45 @@ extension DO {
                    (line.subsystem ?? "").isEmpty {
                     return false
                 }
-                guard !keyword.isEmpty else { return true }
-                return line.text.lowercased().contains(keyword)
+                return true
             }
+
+            // Merging happens here, not on append, so flipping the switch re-groups what is
+            // already captured instead of only affecting lines that arrive later.
+            let merged = merge(shown, sources: mergeable)
+
+            let keyword = filter.keyword.trimmingCharacters(in: .whitespaces).lowercased()
+            let filtered = keyword.isEmpty
+                ? merged
+                : merged.filter { $0.text.lowercased().contains(keyword) }
             return filtered.reversed()
+        }
+
+        /// Folds consecutive lines that share a timestamp, a source and a level.
+        private func merge(
+            _ lines: [DO.ConsoleLine],
+            sources: Set<DO.ConsoleLine.Source>
+        ) -> [DO.ConsoleLine] {
+            guard !sources.isEmpty else { return lines }
+
+            var result: [DO.ConsoleLine] = []
+            result.reserveCapacity(lines.count)
+
+            for line in lines {
+                guard sources.contains(line.source),
+                      let last = result.last,
+                      last.source == line.source,
+                      last.level == line.level,
+                      last.timeText == line.timeText else {
+                    result.append(line)
+                    continue
+                }
+
+                var merged = last
+                merged.appendContinuation(line.text, limit: maxTextLength)
+                result[result.count - 1] = merged
+            }
+            return result
         }
 
         func exportText() -> String {
