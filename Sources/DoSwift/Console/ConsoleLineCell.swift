@@ -13,13 +13,8 @@ import UIKit
 
 extension DO {
 
-    /// One block of log output: a small meta line on top, the message below it, and a hairline
-    /// at the bottom.
-    ///
-    /// The meta line is deliberately not inline with the message. Inline keeps rows compact,
-    /// but it makes a wrapped message hard to scan — the eye cannot tell where one entry ends
-    /// and the next begins. A separate line plus a rule restores that boundary without
-    /// bringing back the card look.
+    /// One log block: meta line, message, hairline. Meta is not inline because a wrapped message
+    /// then has no visible boundary; the rule restores it without bringing back the card look.
     @objc(DOConsoleLineCell)
     final class ConsoleLineCell: UITableViewCell, DO.SectionCell {
 

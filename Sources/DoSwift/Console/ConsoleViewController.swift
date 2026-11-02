@@ -13,12 +13,8 @@ import UIKit
 
 extension DO {
 
-    /// The log list.
-    ///
-    /// Deliberately not a `SectionTableViewController`: this screen has one homogeneous kind of
-    /// row and wants a flat, card-less look, while the base class exists for grouped settings
-    /// panels. A plain table with no separators and 3pt row spacing reads as one continuous
-    /// block of text.
+    /// The log list. Not a `SectionTableViewController`: one homogeneous row type, and a flat
+    /// separator-less table reads as one continuous block of text.
     @objc(DOConsoleViewController)
     final class ConsoleViewController: UIViewController {
 

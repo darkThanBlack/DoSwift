@@ -13,11 +13,8 @@ import UIKit
 
 extension DO {
 
-    /// One section per source, each carrying its own show / merge switches.
-    ///
-    /// Grouping by source instead of by switch kind matters here: the two fd streams behave
-    /// differently in practice (`NSLog` dumps multi-line objects, `print` does not), so the
-    /// merge decision has to be made per stream rather than once for everything.
+    /// One section per source: `NSLog` dumps a multi-line object, `print` does not, so merging is
+    /// a per-stream decision rather than one for everything.
     @objc(DOConsoleSettingViewController)
     final class ConsoleSettingViewController: DO.SectionTableViewController {
 

@@ -71,8 +71,7 @@ extension DO {
             var lines: [DO.ConsoleLine] = []
             for entry in entries {
                 guard let log = entry as? OSLogEntryLog else { continue }
-                // Empty subsystem means a bare `Logger()` — could be ours, could be a
-                // framework's. Read them all; the display filter decides what to show.
+                // Empty subsystem = a bare `Logger()`, ours or a framework's; read all, let the filter decide.
                 guard log.subsystem == subsystem || log.subsystem.isEmpty else { continue }
 
                 guard entry.date > last else { continue }

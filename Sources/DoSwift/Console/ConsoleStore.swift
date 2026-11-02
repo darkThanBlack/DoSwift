@@ -49,12 +49,8 @@ extension DO {
             didSet { notify() }
         }
 
-        /// Sources whose consecutive same-timestamp lines are folded into one block.
-        ///
-        /// Default: stderr only. `NSLog` tends to emit a multi-line object dump as one logical
-        /// message, while `print` output is more often a sequence of distinct statements —
-        /// folding those together would hide individual lines. Unified log entries already
-        /// carry their own boundaries, so they are left alone.
+        /// Sources whose consecutive same-timestamp lines fold into one block. Default: stderr —
+        /// `NSLog` dumps a whole object as one message. Not `print`, not the unified log.
         var mergesSameTimestamp: Set<DO.ConsoleLine.Source> = [.standardError] {
             didSet { notify() }
         }
@@ -86,8 +82,7 @@ extension DO {
 
         private var buffer: [DO.ConsoleLine] = []
 
-        /// Captured line count per source, kept in step with `buffer` so the status bar does
-        /// not have to walk two thousand entries on every refresh.
+        /// Per-source counts kept in step with `buffer`, so the status bar does not walk the buffer.
         private var sourceCounts: [DO.ConsoleLine.Source: Int] = [:]
 
         func append(_ line: DO.ConsoleLine) {
@@ -153,8 +148,7 @@ extension DO {
 
             let shown = snapshot.filter { line in
                 guard filter.sources.contains(line.source) else { return false }
-                // Unified log entries without a subsystem cannot be attributed to anyone;
-                // this is the only thing that hides them.
+                // Empty subsystem belongs to nobody; this toggle is the only thing that hides them.
                 if !filter.includesEmptySubsystem,
                    line.source == .unifiedLog,
                    (line.subsystem ?? "").isEmpty {
@@ -163,8 +157,7 @@ extension DO {
                 return true
             }
 
-            // Merging happens here, not on append, so flipping the switch re-groups what is
-            // already captured instead of only affecting lines that arrive later.
+            // Merged at read time, so flipping the switch re-groups what is already captured.
             let merged = merge(shown, sources: mergeable)
 
             let keyword = filter.keyword.trimmingCharacters(in: .whitespaces).lowercased()

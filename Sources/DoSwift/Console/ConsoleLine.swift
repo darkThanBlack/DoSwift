@@ -105,8 +105,7 @@ extension DO {
             return timeFormatter.string(from: date)
         }
 
-        /// What sits in front of the message: the source, plus the category when the line came
-        /// from the unified log. This is the closest thing we have to Xcode's metadata column.
+        /// Xcode's metadata column, near enough: the source, plus the category for unified log lines.
         var metaTag: String {
             switch source {
             case .standardOutput: return source.shortTitle

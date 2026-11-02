@@ -13,12 +13,8 @@ import UIKit
 
 extension DO {
 
-    /// The NSLog panel.
-    ///
-    /// Capture starts when the panel is opened. Everything logged before that moment is
-    /// invisible — a pipe only sees what is written after it is attached. Call
-    /// `start()` from `application(_:didFinishLaunchingWithOptions:)` if the panel
-    /// should show the whole session instead.
+    /// The console panel. The pipe only sees what is written after it attaches, so call `start()`
+    /// at launch if the panel should carry the whole session.
     public final class ConsolePlugin: DO.DefaultPlugin {
 
         public static let shared = DO.ConsolePlugin()
@@ -29,10 +25,8 @@ extension DO {
 
         private let list = DO.ConsoleViewController()
 
-        /// Starts capturing stdout and stderr now, before the panel is ever opened.
-        ///
-        /// Opt-in on purpose: attaching the pipe takes over fd 1 and fd 2, so output stops
-        /// going wherever it went before. Call it early in debug builds if you want history.
+        /// Attaches the pipe now. Opt-in: it takes over fd 1 and fd 2, so output stops going wherever
+        /// it went before.
         public func start() {
             DO.ConsoleStore.shared.startCollecting()
         }
