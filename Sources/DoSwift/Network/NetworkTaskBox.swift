@@ -15,11 +15,9 @@ import QuartzCore
 
 extension DO {
 
-    /// The mutable half of a capture: attached to a task while it runs, turned into a
-    /// `NetworkRecord` once it finishes.
-    ///
-    /// `didReceiveData` and the completion handler can both report the same task on some
-    /// paths, so finishing is guarded — the first caller wins, and the record is emitted once.
+    /// Mutable half of a capture: attached to a task while it runs, folded into a
+    /// `NetworkRecord` on finish. `didReceiveData` and the completion handler may both report
+    /// the same task, so the first caller wins and the record is emitted once.
     final class NetworkTaskBox {
 
         private static var associationKey: UInt8 = 0

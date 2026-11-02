@@ -15,28 +15,16 @@ import QuartzCore
 
 extension DO {
 
-    /// Captures HTTP traffic made through `URLSession`.
+    /// Captures `URLSession` traffic. `NSURLSession` is a class cluster, so instance hooks have
+    /// to land on the concrete class (`__NSURLSessionLocal`): the three factory methods are
+    /// hooked first, and the first time a concrete class is seen the task hooks go on it.
     ///
-    /// `NSURLSession` is a class cluster: the class you get back from a factory method is a
-    /// private subclass (`__NSURLSessionLocal` on current iOS), and instance methods have to
-    /// be hooked on *that* class. So the work happens in two stages:
+    /// Nothing is un-swizzled — `stop()` only closes the gate, so a framework that stacked a
+    /// hook on top of ours keeps working. Discovery, not enforcement: a session created before
+    /// `start()` stays invisible until some later session registers the shared class.
     ///
-    /// 1. Hook the three factory methods. Every session that flows through them is inspected,
-    ///    its concrete class registered, and its delegate — if any — hooked as well.
-    /// 2. The first time a concrete class is seen, install the four task-creation hooks on it.
-    ///
-    /// Nothing is ever un-swizzled. `stop()` only closes the gate, so a second framework that
-    /// stacked a hook on top of ours keeps working. `start()` must be called by the host; the
-    /// library never swizzles on its own.
-    ///
-    /// Consequence worth knowing: instrumentation is discovered, not enforced. A session
-    /// created *before* `start()` was never seen by a factory hook, so its concrete class is
-    /// unknown and its tasks are invisible — until some other session is created after
-    /// `start()`, which registers the shared class and retroactively covers the old one. Call
-    /// `start()` early; every request made afterwards is captured.
-    ///
-    /// Not covered: `WKWebView`, `URLSessionWebSocketTask`, uploads whose body is an
-    /// `InputStream`, and any traffic that does not go through `URLSession`.
+    /// Not covered: `WKWebView`, `URLSessionWebSocketTask`, `InputStream` upload bodies, and any
+    /// traffic that does not go through `URLSession`.
     public final class NetworkCapture {
 
         public static let shared = DO.NetworkCapture()
@@ -437,11 +425,9 @@ extension DO {
             original = install(hook, on: cls, selector: selector, source: DO.NetworkSessionDelegate.self)
         }
 
-        /// Replaces the method when the class already has it; otherwise copies our
-        /// implementation in so the callback starts being delivered at all.
-        ///
-        /// Without the second branch a delegate that never implemented `didReceiveData:`
-        /// would simply never be asked for data — the runtime checks `respondsToSelector`.
+        /// Replace when the class already has it, else add — the runtime only calls
+        /// `didReceiveData:` when the delegate responds to it, so a delegate that skipped the
+        /// selector would never be asked for data.
         private func install(_ hook: Any, on cls: AnyClass, selector: Selector, source: AnyClass) -> IMP? {
             if class_getInstanceMethod(cls, selector) != nil {
                 return DO.Swizzler.replaceInstanceMethod(of: cls, selector, with: hook)

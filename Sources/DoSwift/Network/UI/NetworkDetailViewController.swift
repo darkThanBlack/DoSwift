@@ -13,8 +13,7 @@ import UIKit
 
 extension DO {
 
-    /// One request, read-only. Long payloads open in `DO.PlainTextViewController` so the list
-    /// stays scannable.
+    /// One request, read-only. Long payloads open in `DO.PlainTextViewController`.
     @objc(DONetworkDetailViewController)
     final class NetworkDetailViewController: DO.SectionTableViewController {
 
@@ -32,8 +31,7 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            // This page is pushed, so the close button the base class installs would replace
-            // the back button and do nothing when tapped.
+            // Pushed, not presented: the base class's close button would replace the back button.
             navigationItem.leftBarButtonItem = nil
 
             title = record.url?.host ?? "网络"

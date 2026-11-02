@@ -13,12 +13,9 @@ import Foundation
 
 extension DO {
 
-    /// The delegate handed to sessions that were created without one.
-    ///
-    /// A session built with `delegate: nil` still has to report its body somewhere, and the
-    /// completion handler path is not always taken. Standing in as the delegate is the only
-    /// way to see those responses. The methods here also serve as the source of the type
-    /// encodings used when a real delegate does not implement them itself.
+    /// Stands in for sessions created with `delegate: nil` — the completion handler path is not
+    /// always taken, so this is the only way to see those bodies. The methods here also supply
+    /// the type encodings used when a real delegate does not implement them.
     @objc(DONetworkSessionDelegate)
     final class NetworkSessionDelegate: NSObject, URLSessionDataDelegate {
 

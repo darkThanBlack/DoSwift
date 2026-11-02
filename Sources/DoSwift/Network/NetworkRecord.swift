@@ -13,10 +13,7 @@ import Foundation
 
 extension DO {
 
-    /// A payload kept for the detail page.
-    ///
-    /// Bytes are capped at capture time, not at display time: a debug panel should never be
-    /// the reason a process runs out of memory, and `truncated` says so out loud.
+    /// A payload kept for the detail page. Capped at capture time, so `truncated` says so out loud.
     struct NetworkBody {
 
         static let maxBytes = 64 * 1024
@@ -37,10 +34,7 @@ extension DO {
         }
     }
 
-    /// One request, as it will be shown in the list and the detail page.
-    ///
-    /// Immutable, and only produced once the task finishes. Everything still moving lives in
-    /// `DO.NetworkTaskBox`.
+    /// One finished request. Immutable; anything still moving lives in `DO.NetworkTaskBox`.
     struct NetworkRecord {
 
         let id: Int

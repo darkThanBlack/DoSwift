@@ -13,8 +13,7 @@ import UIKit
 
 extension DO {
 
-    /// The "Network" tool. Capture itself is owned by `DO.NetworkCapture`; this only puts a
-    /// window around the list.
+    /// The "Network" tool. Capture is owned by `DO.NetworkCapture`; this only wraps a window.
     final class NetworkPlugin: DO.DefaultPlugin {
 
         static let shared = DO.NetworkPlugin()

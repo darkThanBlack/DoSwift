@@ -19,9 +19,8 @@ extension DO {
 
         private var timer: Timer?
 
-        /// Cheap fingerprint of what is on screen. Rebuilding the table on every tick would
-        /// drop a tap that lands between touch down and touch up, and it would also reset the
-        /// scroll position once the list gets long.
+        /// Fingerprint of what is on screen: rebuilding on every tick drops a tap that spans a
+        /// tick and resets the scroll position.
         private var signature: String = ""
 
         override func viewDidLoad() {

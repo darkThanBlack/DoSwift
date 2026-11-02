@@ -14,23 +14,15 @@ import ObjectiveC
 
 extension DO {
 
-    /// The only place in this library that touches the Objective-C runtime.
+    /// Hooks Objective-C methods. `class_replaceMethod`, never exchange — for an inherited
+    /// method the exchange rewrites the superclass and every sibling picks up the hook.
     ///
-    /// Replacing an implementation is easy; keeping it correct is not. Three rules are baked in:
+    /// The previous IMP is captured before the swap and handed back: Swift cannot call
+    /// `objc_msgSend`, so a forwarding hook has to hold that IMP itself. One swap per
+    /// (class, selector, kind), so a repeat install cannot stack our own hook on itself.
     ///
-    /// 1. **The previous implementation is captured before the swap and handed back.** Swift
-    ///    cannot go through `objc_msgSend`, so a hook that wants to forward has to hold that
-    ///    `IMP` itself and invoke it through `cast(_:to:)`.
-    /// 2. **Replacement goes through `class_replaceMethod`, never `method_exchangeImplementations`.**
-    ///    When the method is inherited, exchange mutates the *superclass* and every sibling
-    ///    subclass silently picks up the hook. Replace adds the method to the receiver instead,
-    ///    which is exactly what "hook this class only" means.
-    /// 3. **One swap per (class, selector, kind).** Calling again returns the implementation
-    ///    captured the first time, so a second install cannot stack our own hook on itself.
-    ///
-    /// Everything runs on one serial queue. That only serializes callers inside this library;
-    /// another framework replacing the same selector is outside anyone's control. Use
-    /// `currentImplementation(of:_:isClassMethod:)` if you need to notice that it happened.
+    /// The serial queue only orders callers inside this library; another framework racing on
+    /// the same selector is outside anyone's control.
     enum Swizzler {
 
         private struct Key: Hashable {
@@ -44,18 +36,9 @@ extension DO {
 
         // MARK: - Replace
 
-        /// Hooks an instance method.
+        /// `block` has the original signature **without `_cmd`** — receiver, then arguments. A
+        /// mismatch does not fail to compile; it corrupts the stack at call time.
         ///
-        /// - Parameter block: a `@convention(block)` closure whose signature is the original
-        ///   method's **without `_cmd`** — receiver first, then the arguments in order:
-        ///
-        ///   ```swift
-        ///   // -[NSURLSession dataTaskWithRequest:]
-        ///   let hook: @convention(block) (AnyObject, URLRequest) -> URLSessionDataTask = { object, request in ... }
-        ///   ```
-        ///
-        ///   A mismatched signature does not fail to compile; it corrupts the stack at call time.
-        ///   Declare the closure's type explicitly so the compiler checks it once.
         /// - Returns: the implementation that was in place before the swap.
         @discardableResult
         static func replaceInstanceMethod(
@@ -78,10 +61,8 @@ extension DO {
 
         // MARK: - Inspect
 
-        /// The implementation that would run right now for this class and selector.
-        ///
-        /// Compare it with the hook you installed to tell whether somebody replaced the method
-        /// after you. Doing that on a timer is unnecessary; once when the tool opens is enough.
+        /// The IMP that would run right now — compare it with our own hook to notice a later
+        /// replacement. Once when the tool opens is enough; no need for a timer.
         static func currentImplementation(
             of cls: AnyClass,
             _ selector: Selector,
@@ -93,17 +74,8 @@ extension DO {
             return method.map(method_getImplementation)
         }
 
-        /// Reinterprets an `IMP` as a callable function.
-        ///
-        /// The type must be the original method's signature **including `_cmd`**, because the
-        /// runtime does not pass a selector to a block:
-        ///
-        /// ```swift
-        /// typealias Original = @convention(c) (AnyObject, Selector, URLRequest) -> URLSessionDataTask
-        /// let original = DO.Swizzler.cast(implementation, to: Original.self)
-        /// ```
-        ///
-        /// `unsafeBitCast` is the only route: Swift forbids calling `objc_msgSend`.
+        /// The type is the original signature **including `_cmd`** — the runtime passes a selector
+        /// to an IMP but not to a block. `unsafeBitCast` is the only route; Swift has no `objc_msgSend`.
         @inline(__always)
         static func cast<F>(_ implementation: IMP, to type: F.Type) -> F {
             unsafeBitCast(implementation, to: F.self)
