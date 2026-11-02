@@ -39,6 +39,17 @@ extension DO {
             return tableView
         }()
 
+        /// Shown over the table when nothing is listed, so "empty" never has to be guessed at.
+        private let emptyLabel: UILabel = {
+            let label = UILabel()
+            label.font = .systemFont(ofSize: 12)
+            label.textColor = .secondaryLabel
+            label.textAlignment = .center
+            label.numberOfLines = 0
+            label.isHidden = true
+            return label
+        }()
+
         private let statusLabel: UILabel = {
             let label = UILabel()
             label.font = .monospacedSystemFont(ofSize: 10, weight: .regular)
@@ -117,7 +128,15 @@ extension DO {
             view.addSubview(tableView)
             view.addSubview(statusLabel)
 
+            emptyLabel.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(emptyLabel)
+
             NSLayoutConstraint.activate([
+                emptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                emptyLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+                emptyLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 24),
+                emptyLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -24),
+
                 tableView.topAnchor.constraint(equalTo: view.topAnchor),
                 tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -156,10 +175,27 @@ extension DO {
         }
 
         private func reload() {
-            lines = DO.ConsoleStore.shared.visibleLines()
+            let store = DO.ConsoleStore.shared
+            lines = store.visibleLines()
+
             tableView.reloadData()
+            updateEmptyState()
             statusLabel.text = statusText
             updateToolbarItems()
+        }
+
+        private func updateEmptyState() {
+            let store = DO.ConsoleStore.shared
+            emptyLabel.isHidden = !lines.isEmpty
+
+            if store.capturedCount == 0 {
+                emptyLabel.text = "Nothing captured yet.\n"
+                    + "print() and NSLog are picked up once this page is open;\n"
+                    + "os_log entries arrive after a unified log read."
+            } else {
+                emptyLabel.text = "All \(store.capturedCount) captured lines are hidden by the filter.\n"
+                    + "Check Settings → Sources."
+            }
         }
 
         private func updateToolbarItems() {
@@ -179,6 +215,13 @@ extension DO {
         private var statusText: String {
             let store = DO.ConsoleStore.shared
             var parts = ["\(lines.count) of \(store.capturedCount) lines"]
+
+            let total = DO.ConsoleLine.Source.allCases.filter {
+                $0 != .unifiedLog || DO.ConsoleUnifiedLog.isAvailable
+            }.count
+            if store.filter.sources.count < total {
+                parts.append("\(store.filter.sources.count)/\(total) sources")
+            }
 
             if store.isPaused { parts.append("paused") }
 
