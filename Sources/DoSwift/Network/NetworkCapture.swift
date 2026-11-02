@@ -49,10 +49,20 @@ extension DO {
         func start() {
             isEnabled = true
             installSessionHooks()
+            warmUp()
         }
 
         func stop() {
             isEnabled = false
+        }
+
+        /// Clears recorded state. Test support only — the hooks themselves stay installed.
+        func resetForTesting() {
+            lock.lock()
+            defer { lock.unlock() }
+            seenClasses.removeAll()
+            sessionClasses.removeAll()
+            installed = false
         }
 
         /// Records a concrete session class. Called from the factory hooks.
@@ -68,6 +78,19 @@ extension DO {
         }
 
         // MARK: - Hooks
+
+        /// Calls the factories once, for their side effect only.
+        ///
+        /// Without this, a host that built every session before `start()` ran would never
+        /// see a factory call again, the concrete class would stay unregistered, and the task
+        /// level hooks would never be installed. Requests made from those sessions would be
+        /// invisible even though they happen after `start()`.
+        ///
+        /// The sessions created here have no delegate and no tasks; they are released at once.
+        private func warmUp() {
+            _ = URLSession.shared
+            _ = URLSession(configuration: .ephemeral)
+        }
 
         private func installSessionHooks() {
             lock.lock()
