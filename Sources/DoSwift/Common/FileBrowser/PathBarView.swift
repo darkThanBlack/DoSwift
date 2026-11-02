@@ -29,7 +29,7 @@ extension DO {
         /// 返回 false 阻止这次点击（不上报）
         func pathBar(_ bar: DO.PathBarView, canSelectAt index: Int) -> Bool
 
-        /// 已经点了某一层（当前层不会触发回调）
+        /// 已经点了某一项（当前层是否算数由 ``canSelectAt`` 决定）
         func pathBar(_ bar: DO.PathBarView, didSelectAt index: Int)
     }
 
@@ -69,14 +69,10 @@ extension DO {
         }
 
         @objc private func handleTap(gesture: UITapGestureRecognizer) {
-            guard let ds = dataSource else { return }
-
             /// 命中判定只看自己造出来的 item（分隔符 / 间距不在里面，点了自然没反应）
             guard let index = itemViews.firstIndex(where: { $0.bounds.contains(gesture.location(in: $0)) }) else { return }
 
-            /// 当前层（末项）点了也是原地不动，不回调
-            guard index != ds.pathBarItemNumbers(self) - 1 else { return }
-
+            /// 点哪一项算不算数（包括「当前层点了要做什么」）是上层策略：这里只问、只报
             guard (delegate?.pathBar(self, canSelectAt: index) ?? true) else { return }
 
             delegate?.pathBar(self, didSelectAt: index)

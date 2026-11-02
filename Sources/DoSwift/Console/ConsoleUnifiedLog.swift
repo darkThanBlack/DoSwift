@@ -23,8 +23,6 @@ extension DO {
 
         var subsystem = Bundle.main.bundleIdentifier ?? ""
 
-        var includesEmptySubsystem = true
-
         var onLines: (([DO.ConsoleLine]) -> Void)?
 
         var onStateChange: (() -> Void)?
@@ -73,7 +71,9 @@ extension DO {
             var lines: [DO.ConsoleLine] = []
             for entry in entries {
                 guard let log = entry as? OSLogEntryLog else { continue }
-                guard log.subsystem == subsystem || (includesEmptySubsystem && log.subsystem.isEmpty) else { continue }
+                // Empty subsystem means a bare `Logger()` — could be ours, could be a
+                // framework's. Read them all; the display filter decides what to show.
+                guard log.subsystem == subsystem || log.subsystem.isEmpty else { continue }
 
                 guard entry.date > last else { continue }
 

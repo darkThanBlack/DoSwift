@@ -21,8 +21,8 @@ extension DO {
     ///
     /// 交互（与 DoKit 原版一致，导航方式换成面包屑）：
     /// - 点文件夹：路径栈压一层，重新取内容；
-    /// - 点面包屑：回退到该层（缓存命中 → 同步回调，不闪 loading）；
-    /// - 点文件：弹「本地预览 / 分享」；
+    /// - 点面包屑：回退到该层（缓存命中 → 同步回调，不闪 loading）；点当前层（末端）复制当前完整路径；
+    /// - 点文件：弹「本地预览 / 分享 / 复制路径」；
     /// - 左划一行：删除（原版即如此，没有二次确认）。
     @objc(DOSandboxViewController)
     final class SandboxViewController: UIViewController, DO.FileBrowserPathDataSource, DO.FileBrowserDelegate {
@@ -101,8 +101,19 @@ extension DO {
 
         // MARK: - DO.FileBrowserDelegate
 
-        /// 点了面包屑祖先（框架只报第几项）：回退到该层再重画
+        /// 当前层也要能点（点了复制路径），所以这里全部放行；
+        /// 「点了之后做什么」在 ``didSelectPathAt`` 里按是否为末项区分。
+        func fileBrowser(_ browser: DO.FileBrowserView, canSelectPathAt index: Int) -> Bool {
+            return true
+        }
+
+        /// 面包屑：祖先层 = 回退到该层重画；当前层 = 复制「我在哪」的完整路径
         func fileBrowser(_ browser: DO.FileBrowserView, didSelectPathAt index: Int) {
+            guard index < stack.depth - 1 else {
+                copyPath(stack.topID)
+                return
+            }
+
             stack.trim(toDepth: index + 1)
             reload()
         }
@@ -152,6 +163,9 @@ extension DO {
             alert.addAction(UIAlertAction(title: "分享", style: .default) { [weak self] _ in
                 self?.share(url)
             })
+            alert.addAction(UIAlertAction(title: "复制路径", style: .default) { [weak self] _ in
+                self?.copyPath(url.path)
+            })
             alert.addAction(UIAlertAction(title: "取消", style: .cancel))
 
             if let popover = alert.popoverPresentationController {
@@ -190,6 +204,12 @@ extension DO {
                 popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0.0, height: 0.0)
             }
             present(controller, animated: true)
+        }
+
+        /// 复制到剪贴板；与应用内其它「复制」一致，给一次轻反馈
+        private func copyPath(_ path: String) {
+            UIPasteboard.general.string = path
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
 
         private func presentError(_ error: Error) {

@@ -136,6 +136,13 @@ extension DO {
             let keyword = filter.keyword.trimmingCharacters(in: .whitespaces).lowercased()
             let filtered = snapshot.filter { line in
                 guard filter.sources.contains(line.source) else { return false }
+                // Unified log entries without a subsystem cannot be attributed to anyone;
+                // this is the only thing that hides them.
+                if !filter.includesEmptySubsystem,
+                   line.source == .unifiedLog,
+                   (line.subsystem ?? "").isEmpty {
+                    return false
+                }
                 guard !keyword.isEmpty else { return true }
                 return line.text.lowercased().contains(keyword)
             }

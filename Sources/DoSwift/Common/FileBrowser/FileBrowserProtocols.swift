@@ -72,12 +72,15 @@ extension DO {
     /// - Important: 全部回调**同步、主线程**；index 口径与数据源一致（面包屑 0 = 根，列表 0 = 第一行）。
     protocol FileBrowserDelegate: AnyObject {
 
-        /// 面包屑第 index 项「将要切过去」，问一句允许吗？
+        /// 面包屑第 index 项被点了，问一句「这次要不要投递」。
         ///
         /// 返回 `false` 则这次点击**整个作废**：框架不上报事件、不改任何东西 —— 提示由业务在这里自己给。
+        ///
+        /// - Note: 默认实现只放行**祖先层**；当前层（末项）点了不投递 —— 「回到我在的地方」不构成一次切换。
+        ///   需要「点当前层做事」（复制路径 / 刷新）的业务覆盖本方法，再在 ``didSelectPathAt`` 里按 `index` 分辨。
         func fileBrowser(_ browser: DO.FileBrowserView, canSelectPathAt index: Int) -> Bool
 
-        /// 面包屑第 index 项被点了（0 = 根；点当前层不回调），且已通过 ``canSelectPathAt``
+        /// 面包屑第 index 项被点了（0 = 根），且已通过 ``canSelectPathAt``
         func fileBrowser(_ browser: DO.FileBrowserView, didSelectPathAt index: Int)
 
         /// 列表第 index 行「将要打开」，问一句允许吗？
@@ -103,9 +106,13 @@ extension DO {
 
 extension DO.FileBrowserDelegate {
 
-    /// 默认放行
+    /// 默认放行祖先层；当前层（末项）不投递
+    ///
+    /// - Note: 「末项是惰性的」是浏览器层的策略，路径条自己不知道。要看深度只能问浏览器 ——
+    ///   ``DO.FileBrowserPathDataSource/fileBrowserPathNumbers(_:)`` 契约上是纯 O(1) 查询，重复问没有副作用。
     func fileBrowser(_ browser: DO.FileBrowserView, canSelectPathAt index: Int) -> Bool {
-        return true
+        let numbers: Int = browser.pathDataSource?.fileBrowserPathNumbers(browser) ?? 0
+        return index < numbers - 1
     }
 
     /// 默认不关心
