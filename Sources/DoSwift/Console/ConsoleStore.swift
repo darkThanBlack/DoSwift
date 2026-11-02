@@ -85,9 +85,21 @@ extension DO {
 
             var line = line
             line.setText(line.text, limit: maxTextLength)
-            buffer.append(line)
-            if buffer.count > limit {
-                buffer.removeFirst(buffer.count - limit)
+
+            // Same timestamp and same source means one write that happened to contain several
+            // lines: keep them as one block instead of a dozen near-identical rows.
+            if let last = buffer.last,
+               last.source == line.source,
+               last.level == line.level,
+               last.timeText == line.timeText {
+                var merged = last
+                merged.appendContinuation(line.text, limit: maxTextLength)
+                buffer[buffer.count - 1] = merged
+            } else {
+                buffer.append(line)
+                if buffer.count > limit {
+                    buffer.removeFirst(buffer.count - limit)
+                }
             }
             lock.unlock()
 

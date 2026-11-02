@@ -13,10 +13,39 @@ import UIKit
 
 extension DO {
 
+    /// The log list.
+    ///
+    /// Deliberately not a `SectionTableViewController`: this screen has one homogeneous kind of
+    /// row and wants a flat, card-less look, while the base class exists for grouped settings
+    /// panels. A plain table with no separators and 3pt row spacing reads as one continuous
+    /// block of text.
     @objc(DOConsoleViewController)
-    final class ConsoleViewController: DO.SectionTableViewController {
+    final class ConsoleViewController: UIViewController {
+
+        private static let cellIdentifier = "line"
 
         private var lines: [DO.ConsoleLine] = []
+
+        private lazy var tableView: UITableView = {
+            let tableView = UITableView(frame: .zero, style: .plain)
+            tableView.dataSource = self
+            tableView.delegate = self
+            tableView.separatorStyle = .none
+            tableView.rowHeight = UITableView.automaticDimension
+            tableView.estimatedRowHeight = 32
+            tableView.backgroundColor = .systemBackground
+            tableView.keyboardDismissMode = .onDrag
+            tableView.register(DO.ConsoleLineCell.self, forCellReuseIdentifier: Self.cellIdentifier)
+            return tableView
+        }()
+
+        private let statusLabel: UILabel = {
+            let label = UILabel()
+            label.font = .monospacedSystemFont(ofSize: 10, weight: .regular)
+            label.textColor = .secondaryLabel
+            label.numberOfLines = 1
+            return label
+        }()
 
         private lazy var searchController: UISearchController = {
             let controller = UISearchController(searchResultsController: nil)
@@ -69,6 +98,11 @@ extension DO {
             navigationItem.hidesSearchBarWhenScrolling = false
             navigationItem.searchController = searchController
             navigationItem.rightBarButtonItem = settingItem
+            navigationItem.leftBarButtonItem = UIBarButtonItem(
+                barButtonSystemItem: .close,
+                target: self,
+                action: #selector(close)
+            )
 
             navigationController?.setToolbarHidden(false, animated: false)
 
@@ -77,14 +111,31 @@ extension DO {
                 spacer(), unifiedLogItem, spacer(), pauseItem, spacer(), clearItem, spacer(), exportItem, spacer(),
             ]
 
+            view.backgroundColor = .systemBackground
+            tableView.translatesAutoresizingMaskIntoConstraints = false
+            statusLabel.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(tableView)
+            view.addSubview(statusLabel)
+
+            NSLayoutConstraint.activate([
+                tableView.topAnchor.constraint(equalTo: view.topAnchor),
+                tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                tableView.bottomAnchor.constraint(equalTo: statusLabel.topAnchor),
+
+                statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+                statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+                statusLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -2),
+            ])
+
             DO.ConsoleStore.shared.onChange = { [weak self] in
-                self?.reloadSections()
+                self?.reload()
             }
             DO.ConsoleStore.shared.unifiedLog.onStateChange = { [weak self] in
                 self?.updateToolbarItems()
             }
 
-            reloadSections()
+            reload()
         }
 
         override func viewWillAppear(_ animated: Bool) {
@@ -93,34 +144,21 @@ extension DO {
             navigationController?.setToolbarHidden(false, animated: animated)
         }
 
-        override func close() {
+        @objc func close() {
             DO.ConsolePlugin.shared.hide()
         }
 
+        /// Called by the plugin every time the window is shown.
         func refresh() {
             searchController.isActive = false
             view.endEditing(true)
-            reloadSections()
+            reload()
         }
 
-        private func reloadSections() {
+        private func reload() {
             lines = DO.ConsoleStore.shared.visibleLines()
-
-            sections = [
-                Section(footer: statusText, rows: lines.map { line in
-                    Row(
-                        cellClass: DO.SelectorCell.self,
-                        onTrigger: { [weak self] _ in
-                            self?.showDetail(line)
-                        }
-                    ) { cell in
-                        cell.titleNumberOfLines = 1
-                        cell.detailNumberOfLines = 1
-                        cell.update(title: line.rowTitle, detail: line.metaText)
-                    }
-                })
-            ]
-
+            tableView.reloadData()
+            statusLabel.text = statusText
             updateToolbarItems()
         }
 
@@ -197,7 +235,41 @@ extension DO {
             present(activity, animated: true)
         }
     }
+}
 
+extension DO.ConsoleViewController: UITableViewDataSource {
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        lines.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: Self.cellIdentifier,
+            for: indexPath
+        ) as! DO.ConsoleLineCell
+
+        cell.sectionDelegate = self
+        cell.update(lines[indexPath.row])
+        return cell
+    }
+}
+
+extension DO.ConsoleViewController: UITableViewDelegate {}
+
+extension DO.ConsoleViewController: DO.SectionCellDelegate {
+
+    func sectionCellDidTrigger(_ cell: UITableViewCell) {
+        guard let indexPath = tableView.indexPath(for: cell) else { return }
+
+        // Let the highlight blink instead of disappearing under the pushed page.
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, let indexPath = self.tableView.indexPath(for: cell) else { return }
+            self.tableView.deselectRow(at: indexPath, animated: true)
+        }
+
+        showDetail(lines[indexPath.row])
+    }
 }
 
 extension DO.ConsoleViewController: UISearchResultsUpdating {

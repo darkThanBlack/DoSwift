@@ -106,10 +106,10 @@ extension DO {
                 DO.MenuItem(plugin: DO.ConsolePlugin.shared),
                 DO.MenuItem(plugin: DO.NetworkPlugin.shared),
                 DO.MenuItem(plugin: DO.UserDefaultsPlugin.shared),
+                DO.MenuItem(plugin: DO.SandboxPlugin.shared),
             ])
             
 //            item("app_setting",    "应用设置",      "gear"),
-//            item("sandbox",        "沙盒浏览器",    "folder"),
 //            item("mock_gps",       "Mock GPS",      "location"),
 //            item("h5",             "H5任意门",      "safari"),
 //            item("clean_cache",    "清理缓存",      "trash"),

@@ -27,6 +27,10 @@ extension DO {
 
         weak var sectionDelegate: DO.SectionCellDelegate?
 
+        var detailNumberOfLines: Int = 0 {
+            didSet { detailLabel.numberOfLines = detailNumberOfLines }
+        }
+
         func update(_ dataSource: DO.KeyValueCellDataSource?) {
             update(
                 title: dataSource?.title,

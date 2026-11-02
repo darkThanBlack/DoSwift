@@ -29,6 +29,15 @@ extension DO {
                 }
             }
 
+            /// Short tag used by the flat list: what the fd actually is.
+            var shortTitle: String {
+                switch self {
+                case .standardOutput: return "fd1"
+                case .standardError:  return "fd2"
+                case .unifiedLog:     return "oslog"
+                }
+            }
+
             var detail: String {
                 switch self {
                 case .standardOutput: return "print / fputs / FileHandle — fd 1"
@@ -80,12 +89,6 @@ extension DO {
             self.subsystem = subsystem
             self.category = category
             self.timeText = DO.ConsoleLine.format(date)
-            self.rowTitle = text.contains("\n") ? DO.ConsoleLine.flatten(text) : text
-        }
-
-        private static func flatten(_ text: String) -> String {
-            let folded = text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
-            return String(folded.prefix(300))
         }
 
         private static let timeFormatter: DateFormatter = {
@@ -109,12 +112,9 @@ extension DO {
             return parts.joined(separator: " · ")
         }
 
-        private(set) var rowTitle: String
-
         mutating func setText(_ newText: String, limit: Int) {
             let needsTruncating = newText.utf8.count > limit && newText.count > limit
             text = needsTruncating ? String(newText.prefix(limit)) : newText
-            rowTitle = text.contains("\n") ? DO.ConsoleLine.flatten(text) : text
         }
 
         mutating func appendContinuation(_ fragment: String, limit: Int) {
