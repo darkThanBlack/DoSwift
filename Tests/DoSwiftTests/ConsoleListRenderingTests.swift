@@ -4,6 +4,14 @@ import XCTest
 
 final class ConsoleListRenderingTests: XCTestCase {
 
+    private static func labels(in view: UIView) -> [UILabel] {
+        return view.subviews.flatMap { subview -> [UILabel] in
+            var result = labels(in: subview)
+            if let label = subview as? UILabel { result.append(label) }
+            return result
+        }
+    }
+
     func testRowsAreRendered() {
         let store = DO.ConsoleStore.shared
         store.clear()
@@ -22,15 +30,14 @@ final class ConsoleListRenderingTests: XCTestCase {
         XCTAssertGreaterThan(table?.contentSize.height ?? 0, 0)
 
         // Newest first.
-        let texts = (0..<2).compactMap { row -> String? in
+        let rendered = (0..<2).compactMap { row -> String? in
             guard let cell = table?.cellForRow(at: IndexPath(row: row, section: 0)) else { return nil }
             XCTAssertGreaterThan(cell.bounds.height, 0)
-            let label = cell.contentView.subviews.compactMap { $0 as? UILabel }.first
-            return label?.attributedText?.string
+            return Self.labels(in: cell.contentView).compactMap(\.text).joined(separator: " | ")
         }
-        XCTAssertEqual(texts.count, 2)
-        XCTAssertTrue(texts.contains { $0.contains("fd1") && $0.contains("hello from fd1") }, "\(texts)")
-        XCTAssertTrue(texts.contains { $0.contains("fd2") && $0.contains("oops from fd2") }, "\(texts)")
+        XCTAssertEqual(rendered.count, 2)
+        XCTAssertTrue(rendered.contains { $0.contains("fd1") && $0.contains("hello from fd1") }, "\(rendered)")
+        XCTAssertTrue(rendered.contains { $0.contains("fd2") && $0.contains("oops from fd2") }, "\(rendered)")
     }
 
     func testTableHasHeightInsideNavigationController() {
@@ -51,7 +58,25 @@ final class ConsoleListRenderingTests: XCTestCase {
 
 final class ConsoleMergeTests: XCTestCase {
 
-    func testSameTimestampMerges() {
+    override func setUp() {
+        super.setUp()
+        DO.ConsoleStore.shared.mergesSameTimestamp = [.standardError]
+    }
+
+    func testSameTimestampMergesForStandardError() {
+        let store = DO.ConsoleStore.shared
+        store.clear()
+
+        let date = Date()
+        for index in 0..<3 {
+            store.append(DO.ConsoleLine(date: date, source: .standardError, text: "line \(index)"))
+        }
+
+        XCTAssertEqual(store.visibleLines().count, 1)
+        XCTAssertEqual(store.visibleLines().first?.text, "line 0\nline 1\nline 2")
+    }
+
+    func testStandardOutputDoesNotMergeByDefault() {
         let store = DO.ConsoleStore.shared
         store.clear()
 
@@ -60,8 +85,19 @@ final class ConsoleMergeTests: XCTestCase {
             store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "line \(index)"))
         }
 
+        XCTAssertEqual(store.visibleLines().count, 3)
+    }
+
+    func testMergingCanBeTurnedOnPerSource() {
+        let store = DO.ConsoleStore.shared
+        store.mergesSameTimestamp = [.standardOutput]
+        store.clear()
+
+        let date = Date()
+        store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "a"))
+        store.append(DO.ConsoleLine(date: date, source: .standardOutput, text: "b"))
+
         XCTAssertEqual(store.visibleLines().count, 1)
-        XCTAssertEqual(store.visibleLines().first?.text, "line 0\nline 1\nline 2")
     }
 
     func testDifferentTimestampsDoNotMerge() {
@@ -72,7 +108,7 @@ final class ConsoleMergeTests: XCTestCase {
         for index in 0..<3 {
             store.append(DO.ConsoleLine(
                 date: start.addingTimeInterval(Double(index) * 0.01),
-                source: .standardOutput,
+                source: .standardError,
                 text: "line \(index)"
             ))
         }

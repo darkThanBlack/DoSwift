@@ -17,7 +17,7 @@ extension DO {
     ///
     /// Capture starts when the panel is opened. Everything logged before that moment is
     /// invisible — a pipe only sees what is written after it is attached. Call
-    /// `startCapture()` from `application(_:didFinishLaunchingWithOptions:)` if the panel
+    /// `start()` from `application(_:didFinishLaunchingWithOptions:)` if the panel
     /// should show the whole session instead.
     public final class ConsolePlugin: DO.DefaultPlugin {
 
@@ -33,7 +33,7 @@ extension DO {
         ///
         /// Opt-in on purpose: attaching the pipe takes over fd 1 and fd 2, so output stops
         /// going wherever it went before. Call it early in debug builds if you want history.
-        public func startCapture() {
+        public func start() {
             DO.ConsoleStore.shared.startCollecting()
         }
 

@@ -13,13 +13,19 @@ import UIKit
 
 extension DO {
 
+    /// One section per source, each carrying its own show / merge switches.
+    ///
+    /// Grouping by source instead of by switch kind matters here: the two fd streams behave
+    /// differently in practice (`NSLog` dumps multi-line objects, `print` does not), so the
+    /// merge decision has to be made per stream rather than once for everything.
     @objc(DOConsoleSettingViewController)
     final class ConsoleSettingViewController: DO.SectionTableViewController {
 
         private struct Item: DO.ToggleCellDataSource {
 
             enum Kind {
-                case source(DO.ConsoleLine.Source)
+                case enabled(DO.ConsoleLine.Source)
+                case merge(DO.ConsoleLine.Source)
                 case emptySubsystem
             }
 
@@ -28,11 +34,15 @@ extension DO {
             let kind: Kind
 
             var isOn: Bool {
+                let store = DO.ConsoleStore.shared
+
                 switch kind {
-                case .source(let source):
-                    return DO.ConsoleStore.shared.filter.sources.contains(source)
+                case .enabled(let source):
+                    return store.filter.sources.contains(source)
+                case .merge(let source):
+                    return store.mergesSameTimestamp.contains(source)
                 case .emptySubsystem:
-                    return DO.ConsoleStore.shared.filter.includesEmptySubsystem
+                    return store.filter.includesEmptySubsystem
                 }
             }
         }
@@ -50,48 +60,63 @@ extension DO {
         }
 
         private func reloadSections() {
-            let sources = DO.ConsoleLine.Source.allCases.filter {
-                $0 != .unifiedLog || DO.ConsoleUnifiedLog.isAvailable
-            }
-
-            var sections: [Section] = [
-                Section(
-                    title: "Sources",
-                    footer: "Lines are tagged with the link they came from. "
-                          + "Both fd links are received by one pipe tee, and are restored when the app exits.",
-                    rows: sources.map { source in
-                        makeRow(Item(title: source.title, detail: source.detail, kind: .source(source)))
-                    }
-                )
-            ]
-
-            if DO.ConsoleUnifiedLog.isAvailable {
-                sections.append(
-                    Section(
-                        title: "Unified Log",
-                        footer: "Read back through OSLogStore, current process only, iOS 15 or later. "
-                              + "One read costs about a second regardless of how much is there, "
-                              + "so it runs when you open the page and whenever you tap the button — "
-                              + "never on a timer. "
-                              + "Interpolated values are private by default: only what was logged with "
-                              + "`privacy: .public` (and numbers) can be read, everything else is <private>.",
-                        rows: [
-                            makeRow(Item(
-                                title: "No Subsystem",
-                                detail: "A bare `Logger()` has an empty subsystem — "
-                                      + "could be yours, could be a framework's",
-                                kind: .emptySubsystem
-                            ))
-                        ]
-                    )
-                )
-            } else {
-                sections.append(
-                    Section(title: "Unified Log", footer: "Unavailable on this system.", rows: [])
-                )
-            }
-
+            var sections = [DO.ConsoleLine.Source.standardOutput, .standardError].map(sourceSection)
+            sections.append(unifiedLogSection())
             self.sections = sections
+        }
+
+        private func sourceSection(_ source: DO.ConsoleLine.Source) -> Section {
+            return Section(
+                title: source.title,
+                footer: source.detail,
+                rows: [
+                    makeRow(Item(
+                        title: "Show",
+                        detail: "Include these lines in the list.",
+                        kind: .enabled(source)
+                    )),
+                    makeRow(Item(
+                        title: "Merge same timestamp",
+                        detail: "Consecutive lines sharing a timestamp become one block. "
+                              + "Applies to lines that arrive from now on.",
+                        kind: .merge(source)
+                    )),
+                ]
+            )
+        }
+
+        private func unifiedLogSection() -> Section {
+            let source = DO.ConsoleLine.Source.unifiedLog
+
+            guard DO.ConsoleUnifiedLog.isAvailable else {
+                return Section(title: source.title, footer: "Unavailable on this system.", rows: [])
+            }
+
+            return Section(
+                title: source.title,
+                footer: source.detail + ". "
+                      + "One read costs about a second regardless of how much is there, so it runs "
+                      + "when you open the page or tap the button — never on a timer. Interpolated "
+                      + "values are private by default: only what was logged with `privacy: .public` "
+                      + "(and numbers) can be read.",
+                rows: [
+                    makeRow(Item(
+                        title: "Show",
+                        detail: "Include these lines in the list.",
+                        kind: .enabled(source)
+                    )),
+                    makeRow(Item(
+                        title: "Merge same timestamp",
+                        detail: "Off by default — unified log entries already carry their own boundaries.",
+                        kind: .merge(source)
+                    )),
+                    makeRow(Item(
+                        title: "No Subsystem",
+                        detail: "A bare `Logger()` has an empty subsystem — could be yours, could be a framework's",
+                        kind: .emptySubsystem
+                    )),
+                ]
+            )
         }
 
         private func makeRow(_ item: Item) -> Row {
@@ -106,15 +131,23 @@ extension DO {
         }
 
         private func update(_ kind: Item.Kind, isOn: Bool) {
+            let store = DO.ConsoleStore.shared
+
             switch kind {
-            case .source(let source):
+            case .enabled(let source):
                 if isOn {
-                    DO.ConsoleStore.shared.filter.sources.insert(source)
+                    store.filter.sources.insert(source)
                 } else {
-                    DO.ConsoleStore.shared.filter.sources.remove(source)
+                    store.filter.sources.remove(source)
+                }
+            case .merge(let source):
+                if isOn {
+                    store.mergesSameTimestamp.insert(source)
+                } else {
+                    store.mergesSameTimestamp.remove(source)
                 }
             case .emptySubsystem:
-                DO.ConsoleStore.shared.filter.includesEmptySubsystem = isOn
+                store.filter.includesEmptySubsystem = isOn
             }
         }
     }

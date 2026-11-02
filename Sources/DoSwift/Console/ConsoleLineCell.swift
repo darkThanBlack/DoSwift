@@ -13,11 +13,13 @@ import UIKit
 
 extension DO {
 
-    /// One block of log output, laid out to read as a slice of one long text view.
+    /// One block of log output: a small meta line on top, the message below it, and a hairline
+    /// at the bottom.
     ///
-    /// The timestamp and source sit inline at the start of the text rather than on their own
-    /// row: a separate meta line doubles the height of every entry and breaks the wall of text
-    /// the console is trying to be.
+    /// The meta line is deliberately not inline with the message. Inline keeps rows compact,
+    /// but it makes a wrapped message hard to scan — the eye cannot tell where one entry ends
+    /// and the next begins. A separate line plus a rule restores that boundary without
+    /// bringing back the card look.
     @objc(DOConsoleLineCell)
     final class ConsoleLineCell: UITableViewCell, DO.SectionCell {
 
@@ -34,14 +36,21 @@ extension DO {
             backgroundColor = .systemBackground
             selectionStyle = .default
 
-            label.translatesAutoresizingMaskIntoConstraints = false
-            contentView.addSubview(label)
+            stack.translatesAutoresizingMaskIntoConstraints = false
+            separator.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview(stack)
+            contentView.addSubview(separator)
 
             NSLayoutConstraint.activate([
-                label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Metrics.vertical),
-                label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Metrics.vertical),
-                label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Metrics.horizontal),
-                label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Metrics.horizontal),
+                stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Metrics.vertical),
+                stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Metrics.horizontal),
+                stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Metrics.horizontal),
+
+                separator.topAnchor.constraint(equalTo: stack.bottomAnchor, constant: Metrics.vertical),
+                separator.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Metrics.horizontal),
+                separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Metrics.horizontal),
+                separator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
+                separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             ])
         }
 
@@ -50,7 +59,9 @@ extension DO {
         }
 
         func update(_ line: DO.ConsoleLine) {
-            label.attributedText = Self.text(for: line)
+            metaLabel.text = "\(line.timeText)  \(line.metaTag)"
+            messageLabel.text = line.text
+            messageLabel.textColor = Self.color(for: line.level)
         }
 
         override func setSelected(_ selected: Bool, animated: Bool) {
@@ -58,23 +69,6 @@ extension DO {
 
             guard selected else { return }
             sectionDelegate?.sectionCellDidTrigger(self)
-        }
-
-        private static func text(for line: DO.ConsoleLine) -> NSAttributedString {
-            let result = NSMutableAttributedString()
-
-            let meta = "\(line.timeText)  \(line.metaTag)  "
-            result.append(NSAttributedString(string: meta, attributes: [
-                .font: UIFont.monospacedSystemFont(ofSize: 10, weight: .regular),
-                .foregroundColor: UIColor.tertiaryLabel,
-            ]))
-
-            result.append(NSAttributedString(string: line.text, attributes: [
-                .font: UIFont.monospacedSystemFont(ofSize: 12, weight: .regular),
-                .foregroundColor: color(for: line.level),
-            ]))
-
-            return result
         }
 
         private static func color(for level: DO.ConsoleLine.Level?) -> UIColor {
@@ -87,10 +81,34 @@ extension DO {
             }
         }
 
-        private let label: UILabel = {
+        private lazy var stack: UIStackView = {
+            let stack = UIStackView(arrangedSubviews: [metaLabel, messageLabel])
+            stack.axis = .vertical
+            stack.alignment = .fill
+            stack.spacing = 2
+            return stack
+        }()
+
+        private lazy var metaLabel: UILabel = {
             let label = UILabel()
+            label.font = .monospacedSystemFont(ofSize: 10, weight: .regular)
+            label.textColor = .secondaryLabel
+            label.numberOfLines = 1
+            return label
+        }()
+
+        private lazy var messageLabel: UILabel = {
+            let label = UILabel()
+            label.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
+            label.textColor = .label
             label.numberOfLines = 0
             return label
+        }()
+
+        private lazy var separator: UIView = {
+            let view = UIView()
+            view.backgroundColor = .separator
+            return view
         }()
     }
 }

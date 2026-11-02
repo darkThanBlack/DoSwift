@@ -49,6 +49,14 @@ extension DO {
             didSet { notify() }
         }
 
+        /// Sources whose consecutive same-timestamp lines are folded into one block.
+        ///
+        /// Default: stderr only. `NSLog` tends to emit a multi-line object dump as one logical
+        /// message, while `print` output is more often a sequence of distinct statements —
+        /// folding those together would hide individual lines. Unified log entries already
+        /// carry their own boundaries, so they are left alone.
+        var mergesSameTimestamp: Set<DO.ConsoleLine.Source> = [.standardError]
+
         private var pausedStorage = false
 
         var isPaused: Bool {
@@ -88,7 +96,8 @@ extension DO {
 
             // Same timestamp and same source means one write that happened to contain several
             // lines: keep them as one block instead of a dozen near-identical rows.
-            if let last = buffer.last,
+            if mergesSameTimestamp.contains(line.source),
+               let last = buffer.last,
                last.source == line.source,
                last.level == line.level,
                last.timeText == line.timeText {
