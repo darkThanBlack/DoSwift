@@ -13,22 +13,13 @@ import UIKit
 
 extension DO {
 
-    /// 文件浏览器 = 路径条 + 列表 + 状态文案的**纯 UI 组合**。
+    /// 文件浏览器 = 路径条 + 列表 + 状态文案，自己不持有任何数据。
     ///
-    /// 它自己**不持有任何数据**：没有 `paths`、没有 `nodes`（容器只认下标，不认内容）。
-    /// 数据进出只有两条：
-    /// - **进**：``reloadData()`` 里现问 —— 路径（``DO.FileBrowserPathDataSource``）与末端节点那一屏内容
-    ///   （``DO.FileBrowserNodeDataSource``）；两个槽分开，是因为「业务自己的栈」与「真正的取数据」本来就是两件事；
-    /// - **出**：只报「第几项」，换不换路径由业务决定（它改完自己的路径栈，再调一次 ``reloadData()``）。
+    /// `reloadData()` 里现问路径与末端节点那一屏内容；出口只报「第几项」，换不换路径由业务决定。
+    /// 于是「现在在哪层 / 这层有什么」始终只有业务那一份账，没有第二份副本可以变味。
     ///
-    /// 于是「现在在哪一层」「这一层有什么」始终只有业务那一份账，框架只是把当前这一屏画出来 ——
-    /// 没有第二份副本可以变味。业务侧的全部写入口就是「改自己的路径栈 + `reloadData()`」。
-    ///
-    /// 取内容的时机也只有一个：**路径末端那个节点**（首次给路径、点文件夹行、点面包屑回退，都是它）。
-    ///
-    /// - Note: loading / empty / 失败这三种状态**是本类的内部 UI 属性，不对外暴露** ——
-    ///   只有它自己知道是「还没取回来」还是「真的是空」，上层不必（也无从）操心这一层。
-    ///   `Result` 的 `.failure` 直接显示 `error.localizedDescription`（文案由业务随 error 给）。
+    /// loading / empty / 失败是本类的内部 UI 属性，不对外暴露 —— 只有它知道是「还没取回来」还是
+    /// 「真的是空」。
     @objc(DOFileBrowserView)
     final class FileBrowserView: UIView {
 
@@ -52,9 +43,7 @@ extension DO {
 
         // MARK: - Interface
 
-        /// 重画这一屏：现问路径（路径条）+ 现取末端节点的内容（列表）
-        ///
-        /// 这是**唯一**的入口 —— 业务改完自己的路径栈调它，或数据变了想重取也调它（重试同理）。
+        /// 重画这一屏：现问路径 + 现取末端节点的内容。业务改完自己的路径栈后调它（重试同理）。
         func reloadData() {
             pathBar.reloadData()
 
@@ -158,10 +147,7 @@ extension DO {
     }
 }
 
-// MARK: - 子组件 ←→ 业务（转发）
-//
-// - Note: 容器自己就是路径条的 dataSource / delegate —— 路径条永远只跟容器说话，
-//   业务只实现容器这一层协议。
+// MARK: - 子组件 ←→ 业务（容器自己就是路径条的 dataSource / delegate，业务只实现容器这一层）
 
 extension DO.FileBrowserView: DO.PathBarViewDataSource {
 

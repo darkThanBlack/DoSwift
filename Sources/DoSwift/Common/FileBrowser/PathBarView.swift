@@ -33,12 +33,8 @@ extension DO {
         func pathBar(_ bar: DO.PathBarView, didSelectAt index: Int)
     }
 
-    /// 文件路径条
-    ///
-    /// - 从左到右，可以滚动和点击，边缘有渐隐遮罩和内间距
-    /// - 只认「有几项 / 第 i 项是什么 / 点了第几项」，**自己一个数据字段都不存**
-    ///   （`itemViews` 只是它自己造出来的展示视图）。
-    ///   于是「现在在哪几层」始终只有业务那一份账（它的路径栈），没有第二份可以对不上。
+    /// 文件路径条：从左到右可滚动、可点击，边缘渐隐。只认「几项 / 第 i 项 / 点了第几项」，
+    /// 自己一个数据字段都不存 —— 「现在在哪几层」只有业务那份路径栈。
     @objc(DOPathBarView)
     final class PathBarView: UIView {
 
@@ -49,9 +45,7 @@ extension DO {
         /// 当前展示的第 i 项（下标与 dataSource 对齐；分隔符不在其中）
         private(set) var itemViews: [UILabel] = []
 
-        /// 重新问一遍数据源，并对齐到当前层（最右）
-        ///
-        /// - Note: 「上游重排」本身就意味着数据刷新过，所以每次刷都对齐到末端，不做「数据没变就别动」的判断。
+        /// 重新问一遍数据源并对齐到最右 —— 上游重排本身就意味着刷新过，不做「没变就别动」。
         func reloadData() {
             reload()
 
@@ -123,19 +117,16 @@ extension DO {
                 stack.heightAnchor.constraint(greaterThanOrEqualToConstant: 36.0),
             ])
 
-            /// 条高只由内容决定（见 ``intrinsicContentSize``）：把垂直 hugging 抬到默认 250 之上，
-            /// 免得同层的兄弟视图（内容区）把整条拉长。
+            /// 垂直 hugging 抬到 250（默认值）之上，免得同层的内容区把整条拉长
             setContentHuggingPriority(.defaultHigh, for: .vertical)
 
             addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap(gesture:))))
         }
 
-        /// 条高由内容决定（`36` 兜底），宽度交给外部
+        /// 条高由内容决定（`36` 兜底），宽度交给外部。
         ///
-        /// - Note: 高度**必须自带固有尺寸**，不能只靠 ``stack`` 的 `>= 36` 兜底：
-        ///   `UIStackView` 的 `intrinsicContentSize` 是 `(-1, -1)`，而这里又是 `.center` 对齐，
-        ///   内容高度压根不会回传到 ``stack`` / `self` 上 —— 「条该多高」于是变成外部约束系统的
-        ///   歧义解。兄弟视图一旦有确定的固有高度（如内容区为空、只剩一句状态文案时），它就会被拉去占满剩余空间。
+        /// 高度**必须自带固有尺寸**：`UIStackView` 的 `intrinsicContentSize` 是 `(-1, -1)`，`.center`
+        /// 对齐下内容高度回传不到 `stack` / `self`；兄弟视图一有确定高度就会把它拉满剩余的。
         override var intrinsicContentSize: CGSize {
             return CGSize(width: UIView.noIntrinsicMetric, height: max(36.0, contentHeight()))
         }
@@ -149,10 +140,8 @@ extension DO {
             return height
         }
 
-        /// 滚动到末尾
-        ///
-        /// - Note: 内容宽用 `systemLayoutSizeFitting` 现算，不读 `scrollView.contentSize`
-        ///   （后者只在 scrollView 自己的布局回调里结算，加子视图也不会标脏，实测会读到「少了一项」的旧值）。
+        /// 滚动到末尾。内容宽用 `systemLayoutSizeFitting` 现算，不读 `contentSize` ——
+        /// 后者加子视图不标脏，实测会读到「少了一项」的旧值。
         private func scrollToTail() {
             let viewport: CGFloat = bounds.width
             guard viewport > 0.0 else { return }

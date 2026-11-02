@@ -13,10 +13,7 @@ import Foundation
 
 extension DO {
 
-    /// 面包屑的路径栈（纯逻辑，只认 id，不依赖 UIKit、不依赖 ``DO.FileNode``）。
-    ///
-    /// 值语义：`push` / `trim` 都是原地变换，谁持有谁负责回写。
-    /// 栈里恒有至少一层（根）。
+    /// 面包屑的路径栈（纯逻辑，只认 id，不依赖 UIKit / ``DO.FileNode``）。值语义，栈里恒有根。
     struct FilePathStack: Equatable {
 
         /// 从根到当前层，恒非空
@@ -37,9 +34,7 @@ extension DO {
             return ids.firstIndex(of: id)
         }
 
-        /// 追加一层；若 id 已在栈中则视为「绕回来」，先回退到该层（防环）
-        ///
-        /// - Returns: 该层在栈中的下标
+        /// 追加一层；id 已在栈中则视为绕回来，先回退到该层（防环）。返回该层下标。
         @discardableResult
         mutating func push(_ id: String) -> Int {
             if let index = index(of: id) {

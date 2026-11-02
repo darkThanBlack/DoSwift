@@ -13,10 +13,7 @@ import UIKit
 
 extension DO {
 
-    /// 一行一格的薄壳 cell：只把 ``DO.FileRowView`` 钉满 `contentView`。
-    ///
-    /// 行视图是普通 `UIView`，cell 只是它在表格里的承载 —— 换承载时这里可整个替换。
-    /// 自绘行视图（而不是 `.value1` / `.subtitle`）是 floor = iOS 13 时的唯一「不踩弃用」写法。
+    /// 只把 ``DO.FileRowView`` 钉满 `contentView`；自绘行视图是 floor = iOS 13 上唯一不踩弃用的写法。
     @objc(DOFileBrowserNodeCell)
     final class FileBrowserNodeCell: UITableViewCell {
 

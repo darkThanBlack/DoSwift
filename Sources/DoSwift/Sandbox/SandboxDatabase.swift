@@ -14,9 +14,7 @@ import SQLite3
 
 extension DO {
 
-    /// 只读的 SQLite 查询（沙盒里常见的 `.db` / `.sqlite` 文件）。
-    ///
-    /// 沿用 DoKit 原版的判断方式：看文件头 `SQLite format 3\0`，而不是只看后缀。
+    /// 只读 SQLite 查询。沿用 DoKit：看文件头 `SQLite format 3\0`，而不是只看后缀。
     enum SandboxDatabase {
 
         /// 单表一次最多读这么多行：大表整表读进内存会卡主线程，浏览用途取前若干行足够

@@ -13,11 +13,8 @@ import Foundation
 
 extension DO {
 
-    /// 沙盒文件预览的「就地渲染」判断。
-    ///
-    /// plist / strings 这类结构化文本没必要交给 QuickLook：解析出来直接看更清楚
-    /// （与 DoKit 原版一致）。其余文件（文本 / 图片 / PDF / 音视频 / Office…）一律走系统
-    /// `QLPreviewController`。
+    /// plist / strings 这类结构化文本就地渲染（解析出来直接看更清楚，与 DoKit 一致），
+    /// 其余文件一律走系统 `QLPreviewController`。
     enum SandboxFilePreview {
 
         static func text(for url: URL) -> String? {

@@ -14,16 +14,11 @@ import UIKit
 
 extension DO {
 
-    /// 沙盒文件浏览器。
+    /// 沙盒文件浏览器：界面全由 ``DO.FileBrowserView`` 提供，本页只做业务那一半 ——
+    /// 自己的路径栈、内容源，以及「点文件 / 点面包屑」之后做什么。
     ///
-    /// 界面全部由 ``DO.FileBrowserView`` 提供：路径条 + 列表 + 状态文案；
-    /// 本页只做业务那一半 —— 自己的路径栈、内容源、以及「点文件 / 点面包屑」之后做什么。
-    ///
-    /// 交互（与 DoKit 原版一致，导航方式换成面包屑）：
-    /// - 点文件夹：路径栈压一层，重新取内容；
-    /// - 点面包屑：回退到该层（缓存命中 → 同步回调，不闪 loading）；点当前层（末端）复制当前完整路径；
-    /// - 点文件：弹「本地预览 / 分享 / 复制路径」；
-    /// - 左划一行：删除（原版即如此，没有二次确认）。
+    /// 点文件夹压栈重取；点面包屑回退，末项则复制完整路径；点文件弹预览 / 分享；
+    /// 左划一行删除（原版即如此，没有二次确认）。
     @objc(DOSandboxViewController)
     final class SandboxViewController: UIViewController, DO.FileBrowserPathDataSource, DO.FileBrowserDelegate {
 
@@ -101,8 +96,7 @@ extension DO {
 
         // MARK: - DO.FileBrowserDelegate
 
-        /// 当前层也要能点（点了复制路径），所以这里全部放行；
-        /// 「点了之后做什么」在 ``didSelectPathAt`` 里按是否为末项区分。
+        /// 当前层也要能点（点了复制路径），所以全部放行；做什么在 ``didSelectPathAt`` 里按末项区分。
         func fileBrowser(_ browser: DO.FileBrowserView, canSelectPathAt index: Int) -> Bool {
             return true
         }

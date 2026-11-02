@@ -26,13 +26,8 @@ extension DO {
         func fileListView(_ list: DO.FileListView, didDeleteAt index: Int)
     }
 
-    /// 文件列表的**哑组件**：给什么画什么，只回报「第几行被点了」。
-    ///
-    /// 不认识路径栈、不认识业务模型、不判断「在加载还是真的空」—— 内容由上层组织好后 ``update(_:)`` 一把传入。
-    /// 行高自适应，故行视图只要把内容撑起来即可。
-    ///
-    /// - Note: 表格只是承载。对外契约只有 node（`[any DO.FileNode]`），`IndexPath` / cell 一概不外露；
-    ///   换承载只需重写这一个文件。
+    /// 文件列表的哑组件：给什么画什么，只回报「第几行被点了」—— 不认路径栈，也不判断加载态。
+    /// 对外契约只有 `[any DO.FileNode]`，`IndexPath` / cell 一概不外露。
     @objc(DOFileListView)
     final class FileListView: UIView {
 

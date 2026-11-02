@@ -13,8 +13,7 @@ import UIKit
 
 extension DO {
 
-    /// The "Sandbox" tool. Browsing itself is owned by `DO.SandboxViewController`; this only
-    /// puts a window around it.
+    /// The "Sandbox" tool. Browsing is owned by `DO.SandboxViewController`; this only wraps a window.
     final class SandboxPlugin: DO.DefaultPlugin {
 
         static let shared = DO.SandboxPlugin()

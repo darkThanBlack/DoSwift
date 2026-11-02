@@ -15,10 +15,8 @@ extension DO {
 
     // MARK: - 节点
 
-    /// 沙盒文件节点：直接包住一个 `file://` URL。
-    ///
-    /// 框架的 ``DO.FileNode`` 里**没有 id** —— 「路径栈按什么入栈」是业务自己的账，
-    /// 这里取 `standardizedFileURL.path`：同一个文件不管从哪一层被问到，拿到的 id 都一致。
+    /// 沙盒文件节点，直接包住一个 `file://` URL。``DO.FileNode`` 没有 id —— 「按什么入栈」是
+    /// 业务自己的账，这里取 `standardizedFileURL.path`，同一个文件从哪层问到 id 都一致。
     struct SandboxFileNode: DO.FileNode {
 
         let url: URL
@@ -55,10 +53,8 @@ extension DO {
             return name.isEmpty ? url.standardizedFileURL.path : name
         }
 
-        /// 按 URL 探测类型 / 大小，并顺手算出图标 token。
-        ///
-        /// - Returns: 文件不存在（比如枚举与读取之间被删掉）时返回 nil，调用方直接跳过这一行 ——
-        ///   宁可少一行，也不画一个点不开的幽灵节点。
+        /// 按 URL 探测类型 / 大小，顺手算出图标 token。文件不存在（枚举与读取之间被删掉）返回 nil，
+        /// 调用方跳过这一行 —— 宁可少一行，也不画一个点不开的幽灵节点。
         static func make(url: URL) -> DO.SandboxFileNode? {
             guard let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey]) else {
                 return nil
@@ -89,17 +85,10 @@ extension DO {
 
     // MARK: - 数据源
 
-    /// 真实沙盒：``DO.FileBrowserNodeDataSource`` 的实现 —— 用 `FileManager` 列目录，**异步 + 带缓存**。
+    /// ``DO.FileBrowserNodeDataSource`` 的真实实现：`FileManager` 列目录，异步 + 带缓存。
+    /// 首次某层走后台 IO（能看到 loading），之后同层同步回调（点面包屑回退是瞬时的）。
     ///
-    /// 路径不归它管（那是页面的路径栈），接口契约与浏览器的内容源完全一致 ——
-    /// 换一套实现即换数据源，``DO.FileBrowserView`` 一行都不用改。
-    ///
-    /// - 第一次要某一层：后台线程列目录（真实 IO），主线程回调，于是能看到 loading 文案；
-    /// - 之后要同一层：缓存命中、**同步**回调 —— 点面包屑回退是瞬时的；
-    /// - 枚举失败（权限 / 目录被删）：`.failure`，框架直接显示 `localizedDescription`。
-    ///
-    /// - Important: 过期回调由业务自己丢（框架不认请求序号）—— 这里用 ``currentID`` 认「当前层」，
-    ///   快速连点、旧请求晚回来时直接不回调。
+    /// - Important: 框架不认请求序号 —— 这里用 ``currentID`` 认当前层，旧请求晚回来就不回调。
     final class SandboxFileProvider: DO.FileBrowserNodeDataSource {
 
         /// 沙盒根（`NSHomeDirectory()`，与 DoKit 原版一致）

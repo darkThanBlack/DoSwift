@@ -15,13 +15,8 @@ extension DO {
 
     // MARK: - 节点契约
 
-    /// 路径条（面包屑）能画出来的最小信息：一个展示名。
-    ///
-    /// 框架**只读 `nodeName`** —— 它是纯 UI，不做身份识别，所以这里**没有 id**：
-    /// 「路径项是什么」由业务自己定（业务拿自己的 model 实现本协议，自带 id / url 等字段），
-    /// 框架只取 `nodeName` 去画；要拿回身份也不用框架给，取内容时框架会把**同一个值**
-    /// 原样回传（见 ``DO.FileBrowserNodeDataSource/fileBrowser(_:nodesOf:completion:)``），
-    /// 业务 `as?` 收窄回自己的类型即可。
+    /// 路径项能画出来的最小信息：一个展示名。**没有 id** —— 身份由业务自己的 model 承载，
+    /// 取内容时框架把同一个值原样回传，业务 `as?` 收窄即可。
     protocol PathNode {
 
         /// 展示名；nil 或空串 = 不展示（路径条会给一个占位符，列表行则整块隐藏）
@@ -38,9 +33,7 @@ extension DO {
         case file
     }
 
-    /// 文件 / 文件夹节点：列表一行所需的**展示信息**。
-    ///
-    /// 框架**只读**它 —— 界面状态（哪层在加载、滚到哪儿）一律不回写 model。
+    /// 列表一行所需的展示信息。框架只读 —— 界面状态（哪层在加载、滚到哪儿）一律不回写 model。
     protocol FileNode: DO.PathNode {
 
         var nodeKind: DO.FileNodeKind { get }

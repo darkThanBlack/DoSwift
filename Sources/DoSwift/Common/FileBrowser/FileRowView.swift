@@ -13,13 +13,8 @@ import UIKit
 
 extension DO {
 
-    /// 一行文件 / 文件夹的内容视图（不含分隔线、不含卡片，那些由外层 ``DO.FileListView`` 给）。
-    ///
-    /// 结构：`H[ iconBox | V[Title, Detail] | spacer | RightImage ]`
-    ///
-    /// 是普通 `UIView` 而不是 cell —— 表格只是它的一种承载，换承载时这层不用动。
-    ///
-    /// - Note: 只有「展示」，没有选择态；框架只管浏览（进入 / 返回 / 置灰不可点）。
+    /// 一行文件 / 文件夹的内容视图，结构 `H[ iconBox | V[Title, Detail] | spacer | RightImage ]`。
+    /// 是普通 `UIView` 而不是 cell；只有展示，没有选择态（进入 / 返回 / 置灰由框架判断）。
     @objc(DOFileRowView)
     final class FileRowView: UIView {
 
@@ -46,8 +41,7 @@ extension DO {
             detailLabel.text = detailText(for: node)
             detailLabel.isHidden = (detailLabel.text?.isEmpty ?? true)
 
-            /// 只有文件夹才有「可进入」的尾部箭头；文件行把图置空（槽位照旧占着，
-            /// 于是长名的截断线一律对齐 —— 也避开「带固定尺寸的 arranged subview 被 isHidden」这类坑）
+            /// 只有文件夹有尾部箭头；文件行置空但保留槽位 —— 长名截断线才对得齐
             arrowImageView.image = (node.nodeKind == .folder) ? DO.FileBrowserStyle.arrowImage() : nil
         }
 
@@ -79,8 +73,7 @@ extension DO {
                 stacks.leadingAnchor.constraint(equalTo: box.leadingAnchor, constant: insetX),
                 stacks.trailingAnchor.constraint(equalTo: box.trailingAnchor, constant: -insetX),
                 stacks.bottomAnchor.constraint(equalTo: box.bottomAnchor, constant: -insetY),
-                /// 文字块的高度下限 = 「标题 + 副标题」两行；文件夹没有副标题，
-                /// 靠它跟文件行一样高 —— 同一份列表里不该出现两种行高
+                /// 高度下限 = 两行（标题 + 副标题）：文件夹没有副标题，靠它跟文件行一样高
                 stacks.heightAnchor.constraint(greaterThanOrEqualToConstant: 36.0),
             ])
 
