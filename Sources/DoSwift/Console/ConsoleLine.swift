@@ -105,6 +105,23 @@ extension DO {
             return timeFormatter.string(from: date)
         }
 
+        /// What sits in front of the message: the source, plus the category when the line came
+        /// from the unified log. This is the closest thing we have to Xcode's metadata column.
+        var metaTag: String {
+            switch source {
+            case .standardOutput: return source.shortTitle
+            case .standardError:  return source.shortTitle
+            case .unifiedLog:
+                guard let category = category, !category.isEmpty else { return source.shortTitle }
+                return source.shortTitle + " " + category
+            }
+        }
+
+        /// What the list shows, and therefore what a tap puts on the pasteboard.
+        var copyText: String {
+            "\(timeText)  \(metaTag)  \(text)"
+        }
+
         var metaText: String {
             var parts = [timeText]
             if let level = level { parts.append(level.title) }
@@ -121,16 +138,5 @@ extension DO {
             setText(text + "\n" + fragment, limit: limit)
         }
 
-        var fullText: String {
-            var rows = [
-                "Time:      \(timeText)",
-                "Source:    \(source.title) — \(source.detail)",
-            ]
-            if let level = level { rows.append("Level:     \(level.title)") }
-            if let subsystem = subsystem, !subsystem.isEmpty { rows.append("Subsystem: \(subsystem)") }
-            if let category = category, !category.isEmpty { rows.append("Category:  \(category)") }
-
-            return rows.joined(separator: "\n") + "\n\n" + text
-        }
     }
 }

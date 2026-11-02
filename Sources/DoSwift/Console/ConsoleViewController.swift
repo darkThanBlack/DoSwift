@@ -193,11 +193,6 @@ extension DO {
             return parts.joined(separator: " · ")
         }
 
-        private func showDetail(_ line: DO.ConsoleLine) {
-            let detail = DO.PlainTextViewController(title: line.timeText, text: line.fullText)
-            navigationController?.pushViewController(detail, animated: true)
-        }
-
         @objc private func showSettings() {
             navigationController?.pushViewController(DO.ConsoleSettingViewController(), animated: true)
         }
@@ -262,13 +257,13 @@ extension DO.ConsoleViewController: DO.SectionCellDelegate {
     func sectionCellDidTrigger(_ cell: UITableViewCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
 
-        // Let the highlight blink instead of disappearing under the pushed page.
+        UIPasteboard.general.string = lines[indexPath.row].copyText
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
         DispatchQueue.main.async { [weak self] in
             guard let self = self, let indexPath = self.tableView.indexPath(for: cell) else { return }
             self.tableView.deselectRow(at: indexPath, animated: true)
         }
-
-        showDetail(lines[indexPath.row])
     }
 }
 

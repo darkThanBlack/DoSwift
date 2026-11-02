@@ -63,7 +63,7 @@ extension DO {
         private static func text(for line: DO.ConsoleLine) -> NSAttributedString {
             let result = NSMutableAttributedString()
 
-            let meta = "\(line.timeText)  \(line.source.shortTitle)  "
+            let meta = "\(line.timeText)  \(line.metaTag)  "
             result.append(NSAttributedString(string: meta, attributes: [
                 .font: UIFont.monospacedSystemFont(ofSize: 10, weight: .regular),
                 .foregroundColor: UIColor.tertiaryLabel,
