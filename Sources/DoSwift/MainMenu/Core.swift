@@ -104,6 +104,7 @@ extension DO {
             let common = DO.MenuGroup(title: "Info", items: [
                 DO.MenuItem(plugin: DO.AppInfoPlugin.shared),
                 DO.MenuItem(plugin: DO.ConsolePlugin.shared),
+                DO.MenuItem(plugin: DO.NetworkPlugin.shared),
                 DO.MenuItem(plugin: DO.UserDefaultsPlugin.shared),
             ])
             
