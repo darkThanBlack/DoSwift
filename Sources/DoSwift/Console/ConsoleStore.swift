@@ -33,8 +33,19 @@ extension DO {
 
         let unifiedLog = DO.ConsoleUnifiedLog()
 
+        /// Whether the fd pipe is attached right now. Display pausing is `isPaused`, unrelated.
+        var isCapturing: Bool {
+            capture.isRunning
+        }
+
         func startCollecting() {
             capture.start()
+            notify()
+        }
+
+        func stopCollecting() {
+            capture.stop()
+            notify()
         }
 
         struct Filter {

@@ -25,8 +25,8 @@ extension DO {
 
         private let list = DO.ConsoleViewController()
 
-        /// Attaches the pipe now. Opt-in: it takes over fd 1 and fd 2, so output stops going wherever
-        /// it went before.
+        /// Attaches the pipe now. Opt-in: it takes over fd 1 and fd 2, so output stops going
+        /// wherever it went before. Opening the panel alone does not start it.
         public func start() {
             DO.ConsoleStore.shared.startCollecting()
         }
@@ -36,8 +36,6 @@ extension DO {
 
             list.navigationController?.popToRootViewController(animated: false)
             list.refresh()
-
-            DO.ConsoleStore.shared.startCollecting()
 
             DO.ConsoleStore.shared.unifiedLog.refresh()
         }
