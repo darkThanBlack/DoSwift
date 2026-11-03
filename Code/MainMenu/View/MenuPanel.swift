@@ -208,7 +208,7 @@ extension DO {
             #if DEBUG
             assert(
                 superview != nil && frame != superview!.bounds,
-                "[MenuPanel] 面板必须是容器的直接子视图，且 frame 不能等于容器 bounds，否则事件穿透会被破坏"
+                "[MenuPanel] the panel must be a direct subview with a frame smaller than its container bounds, or pass-through hit testing breaks"
             )
             #endif
 

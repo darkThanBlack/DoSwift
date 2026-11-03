@@ -13,8 +13,7 @@ import Foundation
 
 extension DO {
 
-    /// plist / strings 这类结构化文本就地渲染（解析出来直接看更清楚，与 DoKit 一致），
-    /// 其余文件一律走系统 `QLPreviewController`。
+    /// plist / strings are parsed and rendered inline; everything else goes to QuickLook.
     enum SandboxFilePreview {
 
         static func text(for url: URL) -> String? {

@@ -18,7 +18,7 @@ extension DO {
 
         override func viewDidLoad() {
             super.viewDidLoad()
-            title = "性能"
+            title = DO.Text.Perf.title
         }
 
         override func viewWillAppear(_ animated: Bool) {
@@ -56,7 +56,7 @@ extension DO {
                     self.reload()
                 }) { cell in
                     cell.update(
-                        title: "检测",
+                        title: DO.Text.Perf.toggleDetect,
                         detail: Self.detail(for: chart),
                         isOn: DO.PerfTrendPlugin.shared.isEnabled(index)
                     )
@@ -67,11 +67,11 @@ extension DO {
                 rows.append(Row(cellClass: DO.SelectorCell.self, onTrigger: { [weak self] _ in
                     self?.chooseMemoryMetric()
                 }) { cell in
-                    cell.update(title: "测量方式", detail: DO.PerfTrendPlugin.shared.memoryMetric.title)
+                    cell.update(title: DO.Text.Perf.memoryMetric, value: DO.PerfTrendPlugin.shared.memoryMetric.title)
                 })
             }
 
-            let footer = (index == 2) ? "两种口径量的不是一回事：进程占用是系统杀进程看的量，堆分配只覆盖 malloc。换口径会清空已采数据。" : nil
+            let footer = (index == 2) ? DO.Text.Perf.memoryMetricFooter : nil
             return Section(title: chart.title, footer: footer, rows: rows)
         }
 
@@ -80,8 +80,8 @@ extension DO {
             let current = DO.PerfTrendPlugin.shared.memoryMetric
 
             let alert = UIAlertController(
-                title: "内存测量方式",
-                message: "当前：\(current.title)",
+                title: DO.Text.Perf.memoryMetricAlert,
+                message: DO.Text.Perf.current(current.title),
                 preferredStyle: .alert
             )
             for metric in metrics {
@@ -90,31 +90,31 @@ extension DO {
                     self?.reload()
                 })
             }
-            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+            alert.addAction(UIAlertAction(title: DO.Text.Common.cancel, style: .cancel))
             present(alert, animated: true)
         }
 
         private func styleSection() -> Section {
             let plugin = DO.PerfTrendPlugin.shared
             return Section(
-                title: "显示",
-                footer: "两种样式读的是同一批数据，换样式不会清空任何历史。",
+                title: DO.Text.Perf.displaySection,
+                footer: DO.Text.Perf.displayFooter,
                 rows: [
                     Row(cellClass: DO.SelectorCell.self, onTrigger: { [weak self] _ in
                         self?.chooseStyle()
                     }) { cell in
-                        cell.update(title: "浮窗样式", detail: plugin.displayStyle.title)
+                        cell.update(title: DO.Text.Perf.floatingStyle, value: plugin.displayStyle.title)
                     }
                 ]
             )
         }
 
         private func closeSection() -> Section {
-            return Section(rows: [
+            return Section(footer: DO.Text.Perf.longPressTip, rows: [
                 Row(cellClass: DO.ActionCell.self, onTrigger: { _ in
-                    DO.PerfTrendPlugin.shared.hide()
+                    DO.PerfTrendPlugin.shared.dismissAll()
                 }) { cell in
-                    cell.update(title: "关闭浮窗", isDestructive: true)
+                    cell.update(title: DO.Text.Perf.closeFloating, isDestructive: true)
                 }
             ])
         }
@@ -122,10 +122,10 @@ extension DO {
         private func presentCannotDisableLast() {
             let alert = UIAlertController(
                 title: nil,
-                message: "至少要保留一个指标。",
+                message: DO.Text.Perf.cannotDisableLast,
                 preferredStyle: .alert
             )
-            alert.addAction(UIAlertAction(title: "好", style: .default))
+            alert.addAction(UIAlertAction(title: DO.Text.Common.ok, style: .default))
             present(alert, animated: true)
         }
 
@@ -134,8 +134,8 @@ extension DO {
             let current = DO.PerfTrendPlugin.shared.displayStyle
 
             let alert = UIAlertController(
-                title: "浮窗样式",
-                message: "当前：\(current.title)",
+                title: DO.Text.Perf.floatingStyle,
+                message: DO.Text.Perf.current(current.title),
                 preferredStyle: .alert
             )
             for style in styles {
@@ -144,7 +144,7 @@ extension DO {
                     self?.reload()
                 })
             }
-            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+            alert.addAction(UIAlertAction(title: DO.Text.Common.cancel, style: .cancel))
             present(alert, animated: true)
         }
 
@@ -154,8 +154,8 @@ extension DO {
             let range = "\(lower)–\(upper) \(chart.unit)"
 
             switch chart.threshold {
-            case .above(let value): return "\(range) · 高于 \(Int(value)) 标红"
-            case .below(let value): return "\(range) · 低于 \(Int(value)) 标红"
+            case .above(let value): return DO.Text.Perf.thresholdAbove(range: range, value: Int(value))
+            case .below(let value): return DO.Text.Perf.thresholdBelow(range: range, value: Int(value))
             case .none:             return range
             }
         }

@@ -7,8 +7,9 @@
 ```
 Example/
 ├── Example/
-│   ├── AppDelegate.swift        # 建 window，DEBUG 下 setup
-│   ├── Info.plist
+│   ├── AppDelegate.swift        # 只有 didFinishLaunching
+│   ├── SceneDelegate.swift      # 建 window，DEBUG 下 setup
+│   ├── Info.plist               # UIApplicationSceneManifest 单 scene
 │   └── LaunchScreen.storyboard
 ├── Podfile                      # pod 'DoSwift', :path => '../'
 ├── Podfile.lock
@@ -25,6 +26,10 @@ pod install
 open DoSwiftExample.xcworkspace
 ```
 
+**顺序不能反**：`xcodegen generate` 是整份重写 `.xcodeproj`，会把 `pod install` 写进去的
+xcconfig / Pods 链接一起抹掉，表现为 `Unable to find module dependency: 'DoSwift'`。
+先 generate、后 install。
+
 ## dev pod
 
 `Podfile` 用 `:path => '../'` 指向仓库根目录，CocoaPods 按 `DoSwift.podspec` 里的
@@ -35,19 +40,29 @@ open DoSwiftExample.xcworkspace
 
 ## 入口
 
-`AppDelegate` 里只做一件事：
+这是单 scene 的 `UIWindowScene` 工程：window 在 `SceneDelegate` 里建，工具也在那里启动。
 
 ```swift
-#if DEBUG
-DO.Core.shared.setup(appWindow: window)
-#endif
+func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
+    guard let windowScene = scene as? UIWindowScene else { return }
+
+    let window = UIWindow(windowScene: windowScene)
+    window.rootViewController = root
+    window.makeKeyAndVisible()
+    self.window = window
+
+    #if DEBUG
+    DO.Core.shared.setup(appWindow: window, appScene: windowScene)
+    #endif
+}
 ```
 
-`appWindow` 建议显式传入 —— 自动探测 `keyWindow` 只是兜底，多 scene 场景下不保证准确。
-需要挂自定义工具时传 `plugins:`：
+- `appScene` 决定所有浮窗挂到哪个 `UIWindowScene`；只传 window 时会取它的 `windowScene`
+- 两者都不传也能跑，但走的是「按前台 scene 猜 + `keyWindow`」的兜底分支，多 scene 下不保证准确
+- 需要挂自定义工具时传 `plugins:`：
 
 ```swift
-DO.Core.shared.setup(appWindow: window, plugins: [MyPlugin()])
+DO.Core.shared.setup(appWindow: window, appScene: windowScene, plugins: [MyPlugin()])
 ```
 
 ## 注意

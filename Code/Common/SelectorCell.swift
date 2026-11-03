@@ -40,9 +40,11 @@ extension DO {
             )
         }
 
-        func update(title: String? = nil, detail: String? = nil) {
+        func update(title: String? = nil, detail: String? = nil, value: String? = nil) {
             titleLabel.text = title
             detailLabel.text = detail
+            valueLabel.text = value
+            valueLabel.isHidden = (value?.isEmpty ?? true)
         }
 
         override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -60,6 +62,8 @@ extension DO {
             titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
             detailLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
             textStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            valueLabel.setContentHuggingPriority(.required, for: .horizontal)
+            valueLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
             chevronView.setContentHuggingPriority(.required, for: .horizontal)
             chevronView.setContentCompressionResistancePriority(.required, for: .horizontal)
 
@@ -82,7 +86,7 @@ extension DO {
         }
 
         private lazy var stacks: UIStackView = {
-            let stacks = UIStackView(arrangedSubviews: [textStack, chevronView])
+            let stacks = UIStackView(arrangedSubviews: [textStack, valueLabel, chevronView])
             stacks.axis = .horizontal
             stacks.alignment = .center
             stacks.spacing = 8
@@ -110,6 +114,17 @@ extension DO {
             label.font = .systemFont(ofSize: 12)
             label.textColor = .secondaryLabel
             label.numberOfLines = 0
+            return label
+        }()
+
+        /// Current value, trailing-aligned like a disclosure row.
+        private lazy var valueLabel: UILabel = {
+            let label = UILabel()
+            label.font = .systemFont(ofSize: 15)
+            label.textColor = .secondaryLabel
+            label.textAlignment = .right
+            label.numberOfLines = 1
+            label.isHidden = true
             return label
         }()
 

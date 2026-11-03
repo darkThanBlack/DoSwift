@@ -13,27 +13,27 @@ import UIKit
 
 extension DO {
 
-    /// ``DO.FileListView`` 的事件出口
+    /// Event outlet of ``DO.FileListView``.
     protocol FileListViewDelegate: AnyObject {
 
-        /// 第 index 行被点了（哑组件只认下标，不认业务模型）
+        /// Row `index` was tapped; indices only, no business models.
         func fileListView(_ list: DO.FileListView, didSelectAt index: Int)
 
-        /// 第 index 行能不能划出「删除」；默认不提供（只读浏览）
+        /// Whether row `index` can be swiped to delete; `false` by default.
         func fileListView(_ list: DO.FileListView, canDeleteAt index: Int) -> Bool
 
-        /// 第 index 行的删除被点确认了（业务删完数据后自己重画）
+        /// Delete confirmed for row `index` — reload after deleting.
         func fileListView(_ list: DO.FileListView, didDeleteAt index: Int)
     }
 
-    /// 文件列表的哑组件：给什么画什么，只回报「第几行被点了」—— 不认路径栈，也不判断加载态。
-    /// 对外契约只有 `[any DO.FileNode]`，`IndexPath` / cell 一概不外露。
+    /// Dumb list: draws what it is given and reports row indices only. No path stack,
+    /// no loading state; the public contract is `[any DO.FileNode]`, never `IndexPath` or cells.
     @objc(DOFileListView)
     final class FileListView: UIView {
 
         weak var delegate: (any DO.FileListViewDelegate)?
 
-        /// 当前展示的内容（顺序即展示顺序）
+        /// Current rows, in display order.
         private(set) var nodes: [any DO.FileNode] = []
 
         override init(frame: CGRect) {
@@ -69,7 +69,7 @@ extension DO {
                 tableView.bottomAnchor.constraint(equalTo: box.bottomAnchor),
             ])
 
-            /// 干掉末行分隔线（省掉「是不是最后一行」在全链路上传参）
+            /// Drop the last separator instead of threading "is last" through the call chain.
             tableView.tableFooterView = UIView()
         }
 
@@ -81,7 +81,7 @@ extension DO {
             view.delegate = self
             view.register(DO.FileBrowserNodeCell.self, forCellReuseIdentifier: Self.cellIdentifier)
             view.backgroundColor = .clear
-            /// 行高交给行视图自己撑
+            /// Let the row view size itself.
             view.rowHeight = UITableView.automaticDimension
             view.estimatedRowHeight = 64.0
             view.separatorInset = UIEdgeInsets(top: 0.0, left: 16.0, bottom: 0.0, right: 0.0)
@@ -94,12 +94,12 @@ extension DO {
 
 extension DO.FileListViewDelegate {
 
-    /// 默认只读
+    /// Read-only by default.
     func fileListView(_ list: DO.FileListView, canDeleteAt index: Int) -> Bool {
         return false
     }
 
-    /// 默认不关心
+    /// Nothing to do by default.
     func fileListView(_ list: DO.FileListView, didDeleteAt index: Int) {}
 }
 
@@ -136,7 +136,7 @@ extension DO.FileListView: UITableViewDelegate, UITableViewDataSource {
             return nil
         }
 
-        let action = UIContextualAction(style: .destructive, title: "删除") { [weak self] _, _, completion in
+        let action = UIContextualAction(style: .destructive, title: DO.Text.Common.delete) { [weak self] _, _, completion in
             guard let self = self else {
                 completion(false)
                 return

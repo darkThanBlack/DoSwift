@@ -13,41 +13,41 @@ import UIKit
 
 extension DO {
 
-    /// 文件浏览器的外观收束：一律取系统值（语义色顺带解决深色模式），组件内不直接写颜色。
-    /// 只收会随外观变化的东西；尺寸与布局常量就地写字面量 —— 收在这里反而看不出来。
+    /// File browser appearance: system values only (semantic colors, dark mode comes free).
+    /// Only things that vary with appearance live here; sizes stay inline.
     enum FileBrowserStyle {
 
         // MARK: - Text
 
-        /// 取内容期间的状态文案（列表藏起来，居中显示）
-        static var loadingText: String { return "正在读取…" }
+        /// Shown centered while loading.
+        static var loadingText: String { return DO.Text.FileBrowser.loading }
 
-        /// 这一层确实没有内容
-        static var emptyText: String { return "空文件夹" }
+        /// Shown when the level is empty.
+        static var emptyText: String { return DO.Text.FileBrowser.emptyFolder }
 
         // MARK: - Color
 
-        /// 路径条 / 列表背景
+        /// Path bar and list background.
         static var backgroundColor: UIColor { return .systemBackground }
 
-        /// 强调色：当前层文字 / 文件夹图标
+        /// Accent: current crumb, folder icon.
         static var themeColor: UIColor { return .systemBlue }
 
-        /// 行标题
+        /// Row title.
         static var textColor: UIColor { return .label }
 
-        /// 祖先层文字 / 行副标题 / 文件图标
+        /// Ancestor crumbs, row subtitle, file icon.
         static var lightTextColor: UIColor { return .secondaryLabel }
 
-        /// 分隔符 / 尾部箭头
+        /// Separators and chevron.
         static var disabledTextColor: UIColor { return .tertiaryLabel }
 
-        /// 行图标底色
+        /// Icon box background.
         static var iconBackgroundColor: UIColor { return .secondarySystemFill }
 
         // MARK: - Font
 
-        /// 路径条文字；当前层加粗一档（用于「我在哪」的区分）
+        /// Crumb text; the current one is bolder.
         static func pathFont(isCurrent: Bool) -> UIFont {
             let font = UIFont.preferredFont(forTextStyle: .footnote)
             guard isCurrent,
@@ -57,13 +57,13 @@ extension DO {
             return UIFont(descriptor: descriptor, size: 0)
         }
 
-        /// 状态文案
+        /// State text.
         static var stateFont: UIFont { return UIFont.preferredFont(forTextStyle: .footnote) }
 
-        /// 行标题
+        /// Row title.
         static var titleFont: UIFont { return .systemFont(ofSize: 15, weight: .regular) }
 
-        /// 行副标题
+        /// Row subtitle.
         static var detailFont: UIFont { return .systemFont(ofSize: 12, weight: .regular) }
 
         // MARK: - Image
@@ -74,7 +74,7 @@ extension DO {
 
         static func arrowImage() -> UIImage? { return UIImage(systemName: "chevron.right") }
 
-        /// 行图标：`nodeIconToken`（SF Symbol 名，优先）→ 按 ``DO.FileNode/nodeKind`` 兜底
+        /// Row icon: `nodeIconToken` first, then ``DO.FileNode/nodeKind``.
         static func nodeImage(_ node: any DO.FileNode) -> UIImage? {
             if let token = node.nodeIconToken, let image = UIImage(systemName: token) {
                 return image
@@ -82,12 +82,12 @@ extension DO {
             return (node.nodeKind == .folder) ? folderImage() : fileImage()
         }
 
-        /// 图标着色：文件夹走强调色，文件走中性色
+        /// Tint: accent for folders, neutral for files.
         static func nodeTintColor(_ node: any DO.FileNode) -> UIColor {
             return (node.nodeKind == .folder) ? themeColor : lightTextColor
         }
 
-        /// 常见后缀 → SF Symbol 名（业务可在自己 model 里用它算出 ``DO.FileNode/nodeIconToken``）
+        /// Extension → SF Symbol, optionally used by a model's `nodeIconToken`.
         static func token(forExtension ext: String?) -> String? {
             switch ext?.lowercased() {
             case "pdf":                                 return "doc.richtext"
@@ -104,7 +104,7 @@ extension DO {
 
         // MARK: - Size
 
-        /// 文件大小（`ByteCountFormatter` 自带本地化与单位进位）
+        /// File size; `ByteCountFormatter` handles localization and units.
         static func formatSize(_ bytes: Int64) -> String {
             return sizeFormatter.string(fromByteCount: bytes)
         }

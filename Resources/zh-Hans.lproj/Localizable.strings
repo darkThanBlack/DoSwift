@@ -1,0 +1,252 @@
+/* DoSwift — 由 Code/Common/DoSwiftText.swift 生成，改文案请两边一起改 */
+
+/* Common */
+"common.cancel" = "取消";
+"common.ok" = "好";
+"common.delete" = "删除";
+"common.clear" = "清空";
+"common.settings" = "设置";
+"common.custom" = "自定义";
+"common.start_capture" = "开始采集";
+"common.stop_capture" = "停止采集";
+
+/* AppInfo */
+"appinfo.title" = "基础信息";
+"appinfo.copy_json" = "复制 JSON";
+"appinfo.section.application" = "应用";
+"appinfo.row.bundle_id" = "Bundle ID";
+"appinfo.row.version" = "版本";
+"appinfo.row.build" = "构建号";
+"appinfo.row.display_name" = "显示名";
+"appinfo.row.build_configuration" = "构建配置";
+"appinfo.row.distribution" = "分发渠道";
+"appinfo.row.runtime_form" = "运行态";
+"appinfo.row.executable_timestamp" = "可执行文件时间";
+"appinfo.distribution.development" = "开发 / 企业签名";
+"appinfo.runtime.simulator" = "模拟器";
+"appinfo.runtime.device_mac" = "真机 · Mac";
+"appinfo.runtime.device" = "真机";
+"appinfo.section.authority" = "权限";
+"appinfo.authority.location" = "地理位置";
+"appinfo.authority.notification" = "通知";
+"appinfo.authority.camera" = "相机";
+"appinfo.authority.microphone" = "麦克风";
+"appinfo.authority.photo" = "相册";
+"appinfo.authority.contacts" = "通讯录";
+"appinfo.authority.calendar" = "日历";
+"appinfo.authority.reminder" = "提醒事项";
+"appinfo.authority.bluetooth" = "蓝牙";
+"appinfo.authority.tracking" = "跟踪";
+"appinfo.authority.cellular" = "蜂窝数据";
+"appinfo.state.not_determined" = "未决定";
+"appinfo.state.restricted" = "受限";
+"appinfo.state.denied" = "已拒绝";
+"appinfo.state.granted" = "已授权";
+"appinfo.state.always" = "始终允许";
+"appinfo.state.when_in_use" = "使用期间";
+"appinfo.state.limited" = "部分授权";
+"appinfo.state.write_only" = "仅写入";
+"appinfo.state.unavailable" = "不适用";
+"appinfo.state.unknown" = "未知";
+"appinfo.cellular.restricted_wifi" = "受限（仅 Wi-Fi）";
+"appinfo.cellular.unrestricted" = "不受限";
+"appinfo.section.device" = "设备";
+"appinfo.row.model" = "机型";
+"appinfo.row.system_version" = "系统版本";
+"appinfo.row.screen" = "屏幕";
+"appinfo.row.device_name" = "设备名称";
+"appinfo.section.runtime" = "运行时";
+"appinfo.row.top_view_controller" = "当前页面";
+"appinfo.row.language_region" = "语言与地区";
+"appinfo.row.time_zone" = "时区";
+"appinfo.row.thermal_state" = "热状态";
+"appinfo.row.low_power_mode" = "低电量模式";
+"appinfo.row.vendor_identifier" = "设备标识";
+"appinfo.toggle.on" = "开启";
+"appinfo.toggle.off" = "关闭";
+"appinfo.thermal.nominal" = "正常";
+"appinfo.thermal.fair" = "偏热";
+"appinfo.thermal.serious" = "严重";
+"appinfo.thermal.critical" = "危急";
+"appinfo.thermal.unknown" = "未知";
+
+/* Sandbox */
+"sandbox.title" = "Sandbox";
+"sandbox.root_name" = "Sandbox";
+"sandbox.action.preview" = "本地预览";
+"sandbox.action.share" = "分享";
+"sandbox.action.copy_path" = "复制路径";
+"sandbox.action.failed" = "操作失败";
+"sandbox.database.no_tables" = "没有可读取的数据表。";
+"sandbox.database.no_rows" = "没有数据。";
+"sandbox.database.tables" = "数据表（%d）";
+"sandbox.database.row" = "第 %d 行";
+"sandbox.database.record_count" = "%d 条记录";
+"sandbox.database.truncated" = "只展示前 %d 条。";
+"sandbox.database.blob" = "<%d 字节的 BLOB>";
+
+/* Trend */
+"trend.style.line" = "折线图";
+"trend.style.text" = "单行文字";
+
+/* Perf */
+"perf.title" = "仪表盘";
+"perf.metric.fps" = "FPS";
+"perf.metric.cpu" = "CPU";
+"perf.metric.memory" = "内存";
+"perf.settings.track" = "检测";
+"perf.settings.memory_metric" = "测量方式";
+"perf.settings.memory_metric_footer" = "两种口径量的不是一回事：进程占用是系统杀进程看的量，堆分配只覆盖 malloc。换口径会清空已采数据。";
+"perf.settings.memory_metric_alert" = "内存测量方式";
+"perf.settings.display" = "显示";
+"perf.settings.display_footer" = "两种样式读的是同一批数据，换样式不会清空任何历史。";
+"perf.settings.floating_style" = "浮窗样式";
+"perf.settings.close_floating" = "关闭浮窗";
+"perf.settings.long_press_tip" = "长按浮窗可以再次打开这个页面。";
+"perf.settings.keep_one" = "至少要保留一个指标。";
+"perf.current" = "当前：%@";
+"perf.threshold.above" = "%1$@ · 高于 %2$d 标红";
+"perf.threshold.below" = "%1$@ · 低于 %2$d 标红";
+"perf.memory.footprint" = "进程占用";
+"perf.memory.heap" = "堆分配";
+"perf.report.overview" = "总览";
+"perf.report.scope_all" = "全部";
+"perf.report.total" = "总额";
+"perf.report.average" = "平均";
+"perf.report.peak" = "峰值";
+"perf.report.graphics" = "图形";
+"perf.report.media" = "媒体";
+"perf.report.network" = "网络";
+"perf.report.rest" = "其余";
+"perf.report.average_usage" = "平均占用";
+"perf.report.cpu_time" = "累计 CPU 时间";
+"perf.report.average_fps" = "平均帧率";
+"perf.report.slow_frames" = "慢帧";
+"perf.report.frozen_frames" = "冻结帧";
+"perf.report.total_frames" = "总帧数";
+"perf.duration.seconds" = "%d 秒";
+"perf.duration.minutes_seconds" = "%d 分 %02d 秒";
+
+/* Network */
+"network.title" = "网络";
+"network.row.failed" = "失败";
+"network.empty" = "没有捕获到请求。采集只覆盖 URLSession —— WKWebView、WebSocket 和裸 socket 都不在其中；开启采集之前创建的 session 也要等下一个 session 建出来才会被覆盖。";
+"network.section.requests" = "请求（%d）";
+"network.section.overview" = "概要";
+"network.section.request" = "请求";
+"network.section.response" = "响应";
+"network.row.request_headers" = "请求头";
+"network.row.request_body" = "请求体";
+"network.row.response_headers" = "响应头";
+"network.row.response_body" = "响应体";
+"network.row.url" = "URL";
+"network.row.method" = "Method";
+"network.row.status" = "Status";
+"network.row.duration" = "Duration";
+"network.value.none" = "无";
+"network.value.view" = "查看";
+"network.body.binary" = "<%d 字节的二进制数据>";
+"network.body.truncated" = "\n\n… 已截断，只保留前 %d 字节";
+
+/* Console */
+"console.title" = "Console";
+"console.search.placeholder" = "搜索日志";
+"console.empty.nothing" = "还没有捕获到任何输出。\n管道只能看到接上之后写入的内容 —— 点下面的录制按钮，\n或在启动时调用 DO.ConsolePlugin.shared.start() 覆盖整个会话。";
+"console.empty.filtered" = "捕获到的 %d 行全被过滤器挡住了。\n检查「设置 → 来源」。";
+"console.toolbar.resume" = "继续";
+"console.toolbar.pause" = "暂停";
+"console.toolbar.read_log" = "读取统一日志";
+"console.toolbar.reading_log" = "正在读取统一日志";
+"console.status.total" = "共 %d 条";
+"console.status.source" = "%1$@ %2$d";
+"console.status.filtered" = "%d/%d 来源";
+"console.status.capture_off" = "采集已关闭";
+"console.status.paused" = "已暂停";
+"console.status.needs_ios15" = "统一日志需要 iOS 15";
+"console.status.reading" = "正在读取统一日志…";
+"console.status.read_in" = "读取耗时 %.1fs";
+"console.clear.confirmation" = "清空全部捕获到的日志（%d 条）？";
+"console.settings.show" = "显示";
+"console.settings.show_detail" = "把这类日志纳入列表。";
+"console.settings.merge" = "合并同一时间戳";
+"console.settings.merge_detail" = "时间戳相同的连续行合并成一条。";
+"console.settings.merge_detail_log" = "默认关闭 —— 统一日志本身已经分好边界。";
+"console.settings.unavailable" = "当前系统不支持。";
+"console.settings.log_footer" = "每次读取大约要一秒，与日志多少无关，所以只在打开页面或点按钮时触发，不会定时轮询。插值参数默认是隐私的：只有以 `privacy: .public` 记录的（以及数字）才能读出来。";
+"console.settings.no_subsystem" = "无 Subsystem";
+"console.settings.no_subsystem_detail" = "裸 `Logger()` 的 subsystem 是空的 —— 可能是你的，也可能是某个库的";
+"console.source.stdout" = "Standard Output";
+"console.source.stderr" = "Standard Error";
+"console.source.unified_log" = "Unified Log";
+"console.source.stdout_detail" = "print / fputs / FileHandle — fd 1";
+"console.source.stderr_detail" = "NSLog — fd 2";
+"console.source.unified_log_detail" = "os_log / Logger — iOS 15 起可读";
+"console.level.debug" = "Debug";
+"console.level.info" = "Info";
+"console.level.notice" = "Notice";
+"console.level.error" = "Error";
+"console.level.fault" = "Fault";
+
+/* Hierarchy */
+"hierarchy.title" = "视图结构";
+"hierarchy.detail_title" = "UI 结构";
+"hierarchy.info_title" = "UI 层级";
+"hierarchy.pinned" = "置顶";
+"hierarchy.visibility.never" = "从不";
+"hierarchy.visibility.while_dragging" = "拖动时";
+"hierarchy.visibility.always" = "始终";
+"hierarchy.settings.color_picker" = "取色器";
+"hierarchy.settings.align_ruler" = "对齐标尺";
+"hierarchy.settings.view_hierarchy" = "视图层级";
+"hierarchy.settings.enabled" = "启用";
+"hierarchy.settings.loupe" = "放大镜";
+"hierarchy.settings.cross_lines" = "标尺";
+"hierarchy.settings.ignore_private" = "忽略私有类";
+"hierarchy.settings.color_picker_detail" = "面板里显示像素颜色，并启用放大镜";
+"hierarchy.settings.loupe_detail" = "放大镜出现的时机";
+"hierarchy.settings.align_ruler_detail" = "面板里显示到四边的距离，并启用标尺";
+"hierarchy.settings.cross_lines_detail" = "标尺出现的时机";
+"hierarchy.settings.ignore_private_detail" = "跳过类名以下划线开头的视图";
+"hierarchy.settings.footer" = "立即生效，并记录在 UserDefaults 里。";
+"hierarchy.key.position" = "position";
+"hierarchy.key.name" = "name";
+"hierarchy.key.pixel" = "color";
+"hierarchy.key.frame" = "frame";
+"hierarchy.key.background" = "backgroundColor";
+"hierarchy.key.text_color" = "textColor";
+"hierarchy.key.font" = "font";
+"hierarchy.key.tag" = "tag";
+"hierarchy.button.parents" = "父视图";
+"hierarchy.button.children" = "子视图";
+"hierarchy.button.more" = "更多";
+"hierarchy.sheet.parents" = "父级视图";
+"hierarchy.sheet.subviews" = "子视图";
+"hierarchy.alert.note" = "提示";
+"hierarchy.alert.confirm" = "确定";
+"hierarchy.editor.color_hint" = "也收 r,g,b,a · #RRGGBBAA";
+"hierarchy.editor.now" = "现在";
+"hierarchy.editor.plus_day" = "+1 天";
+"hierarchy.editor.plus_hour" = "+1 小时";
+"hierarchy.editor.done" = "完成";
+"hierarchy.editor.font_preview" = "永字八法 汉字预览 0123456789";
+"hierarchy.editor.count" = "%1$d 字符 · %2$d 行";
+
+/* UserDefaults */
+"userdefaults.title" = "UserDefaults";
+"userdefaults.search.placeholder" = "按 key 搜索";
+"userdefaults.select_all" = "全选";
+"userdefaults.deselect_all" = "取消全选";
+"userdefaults.delete_with_count" = "删除（%d）";
+"userdefaults.delete_confirmation" = "删除选中的 %d 个键？";
+"userdefaults.domain.app" = "App";
+"userdefaults.domain.other" = "其他域";
+"userdefaults.data_summary" = "Data · %d 字节";
+
+/* FileBrowser */
+"filebrowser.loading" = "正在读取…";
+"filebrowser.empty" = "空文件夹";
+
+/* Menu */
+"menu.group.info" = "信息";
+"menu.group.visual" = "可视化";
+

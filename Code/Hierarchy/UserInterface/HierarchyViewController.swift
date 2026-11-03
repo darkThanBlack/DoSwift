@@ -361,7 +361,7 @@ extension DO.HierarchyViewController: DO.HierarchyInfoViewDelegate {
     private func showParentSheet(_ selectView: UIView) {
         let parents = findParentViews(of: selectView)
         let actions = parents.map { String(describing: type(of: $0)) }
-        self.hierarchy_showActionSheet(title: "Parent Views", actions: actions, currentAction: nil) { [weak self] index in
+        self.hierarchy_showActionSheet(title: DO.Text.Hierarchy.parentViewsSheet, actions: actions, currentAction: nil) { [weak self] index in
             self?.setNewSelectView(parents[index])
         }
     }
@@ -369,7 +369,7 @@ extension DO.HierarchyViewController: DO.HierarchyInfoViewDelegate {
     private func showSubviewSheet(_ selectView: UIView) {
         let subviews = findSubviews(of: selectView)
         let actions = subviews.map { String(describing: type(of: $0)) }
-        self.hierarchy_showActionSheet(title: "Subviews", actions: actions, currentAction: nil) { [weak self] index in
+        self.hierarchy_showActionSheet(title: DO.Text.Hierarchy.subviewsSheet, actions: actions, currentAction: nil) { [weak self] index in
             self?.setNewSelectView(subviews[index])
         }
     }

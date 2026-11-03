@@ -27,18 +27,18 @@ extension DO {
             locale = Locale.current.identifier
             timeZone = Self.timeZone()
             thermalState = Self.thermalState()
-            lowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled ? "开启" : "关闭"
+            lowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled ? DO.Text.AppInfo.enabled : DO.Text.AppInfo.disabled
             vendorIdentifier = UIDevice.current.identifierForVendor?.uuidString
         }
 
         func section() -> DO.AppInfoSection? {
-            return DO.AppInfoSectionBuilder.make("运行时", [
-                ("当前页面", topViewController),
-                ("语言与地区", locale),
-                ("时区", timeZone),
-                ("热状态", thermalState),
-                ("低电量模式", lowPowerMode),
-                ("设备标识", vendorIdentifier),
+            return DO.AppInfoSectionBuilder.make(DO.Text.AppInfo.runtimeSection, [
+                (DO.Text.AppInfo.rowTopViewController, topViewController),
+                (DO.Text.AppInfo.rowLanguageAndRegion, locale),
+                (DO.Text.AppInfo.rowTimeZone, timeZone),
+                (DO.Text.AppInfo.rowThermalState, thermalState),
+                (DO.Text.AppInfo.rowLowPowerMode, lowPowerMode),
+                (DO.Text.AppInfo.rowVendorIdentifier, vendorIdentifier),
             ])
         }
 
@@ -68,11 +68,11 @@ extension DO {
 
         private static func thermalState() -> String {
             switch ProcessInfo.processInfo.thermalState {
-            case .nominal:    return "正常"
-            case .fair:       return "偏热"
-            case .serious:    return "严重"
-            case .critical:   return "危急"
-            @unknown default: return "未知"
+            case .nominal:    return DO.Text.AppInfo.thermalNominal
+            case .fair:       return DO.Text.AppInfo.thermalFair
+            case .serious:    return DO.Text.AppInfo.thermalSerious
+            case .critical:   return DO.Text.AppInfo.thermalCritical
+            @unknown default: return DO.Text.AppInfo.thermalUnknown
             }
         }
     }

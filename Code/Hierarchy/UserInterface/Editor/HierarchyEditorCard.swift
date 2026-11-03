@@ -237,7 +237,7 @@ extension DO {
 
         private lazy var doneButton: UIButton = {
             let button = UIButton(type: .system)
-            button.setTitle("完成", for: .normal)
+            button.setTitle(DO.Text.Hierarchy.done, for: .normal)
             button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
             button.setTitleColor(.white, for: .normal)
             button.setTitleColor(.tertiaryLabel, for: .disabled)

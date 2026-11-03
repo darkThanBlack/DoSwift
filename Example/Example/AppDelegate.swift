@@ -16,26 +16,11 @@ import DoSwift
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
-
+    // Single-scene host: the window and the DoSwift setup live in `SceneDelegate`.
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        let window = UIWindow(frame: UIScreen.main.bounds)
-        window.backgroundColor = .systemBackground
-
-        let root = UIViewController()
-        root.view.backgroundColor = .systemBackground
-        window.rootViewController = root
-
-        window.makeKeyAndVisible()
-        self.window = window
-
-        #if DEBUG
-        DO.Core.shared.setup(appWindow: window)
-        #endif
-
         return true
     }
 }

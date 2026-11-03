@@ -13,7 +13,7 @@ import UIKit
 
 extension DO {
 
-    /// 只把 ``DO.FileRowView`` 钉满 `contentView`；自绘行视图是 floor = iOS 13 上唯一不踩弃用的写法。
+    /// Pins ``DO.FileRowView`` to `contentView`; our own row avoids the deprecated iOS 13 labels.
     @objc(DOFileBrowserNodeCell)
     final class FileBrowserNodeCell: UITableViewCell {
 

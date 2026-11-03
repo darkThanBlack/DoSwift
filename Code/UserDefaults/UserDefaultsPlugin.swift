@@ -19,7 +19,7 @@ extension DO {
         static let shared = DO.UserDefaultsPlugin()
 
         private init() {
-            super.init(identifier: "user_defaults", title: "UserDefaults", icon: UIImage(systemName: "rectangle.grid.2x2"))
+            super.init(identifier: "user_defaults", title: DO.Text.UserDefaults.title, icon: UIImage(systemName: "rectangle.grid.2x2"))
         }
 
         private let list = DO.UserDefaultsViewController()

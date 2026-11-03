@@ -23,9 +23,9 @@ extension DO {
 
             var title: String {
                 switch self {
-                case .never:         return "Never"
-                case .whileDragging: return "While Dragging"
-                case .always:        return "Always"
+                case .never:         return DO.Text.Hierarchy.never
+                case .whileDragging: return DO.Text.Hierarchy.whileDragging
+                case .always:        return DO.Text.Hierarchy.always
                 }
             }
 

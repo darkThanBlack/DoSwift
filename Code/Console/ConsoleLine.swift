@@ -23,9 +23,9 @@ extension DO {
 
             var title: String {
                 switch self {
-                case .standardOutput: return "Standard Output"
-                case .standardError:  return "Standard Error"
-                case .unifiedLog:     return "Unified Log"
+                case .standardOutput: return DO.Text.Console.standardOutput
+                case .standardError:  return DO.Text.Console.standardError
+                case .unifiedLog:     return DO.Text.Console.unifiedLog
                 }
             }
 
@@ -40,9 +40,9 @@ extension DO {
 
             var detail: String {
                 switch self {
-                case .standardOutput: return "print / fputs / FileHandle — fd 1"
-                case .standardError:  return "NSLog — fd 2"
-                case .unifiedLog:     return "os_log / Logger — readable since iOS 15"
+                case .standardOutput: return DO.Text.Console.standardOutputDetail
+                case .standardError:  return DO.Text.Console.standardErrorDetail
+                case .unifiedLog:     return DO.Text.Console.unifiedLogDetail
                 }
             }
         }
@@ -56,11 +56,11 @@ extension DO {
 
             var title: String {
                 switch self {
-                case .debug:  return "Debug"
-                case .info:   return "Info"
-                case .notice: return "Notice"
-                case .error:  return "Error"
-                case .fault:  return "Fault"
+                case .debug:  return DO.Text.Console.levelDebug
+                case .info:   return DO.Text.Console.levelInfo
+                case .notice: return DO.Text.Console.levelNotice
+                case .error:  return DO.Text.Console.levelError
+                case .fault:  return DO.Text.Console.levelFault
                 }
             }
         }

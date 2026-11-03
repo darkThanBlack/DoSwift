@@ -15,16 +15,12 @@ import QuartzCore
 
 extension DO {
 
-    /// Captures `URLSession` traffic. `NSURLSession` is a class cluster, so instance hooks have
-    /// to land on the concrete class (`__NSURLSessionLocal`): the three factory methods are
-    /// hooked first, and the first time a concrete class is seen the task hooks go on it.
+    /// Captures `URLSession` traffic. `NSURLSession` is a class cluster, so instance hooks must
+    /// land on the concrete class (`__NSURLSessionLocal`): factories first, task hooks on first
+    /// sight of that class.
     ///
-    /// Nothing is un-swizzled — `stop()` only closes the gate, so a framework that stacked a
-    /// hook on top of ours keeps working. Discovery, not enforcement: a session created before
-    /// `start()` stays invisible until some later session registers the shared class.
-    ///
-    /// Not covered: `WKWebView`, `URLSessionWebSocketTask`, `InputStream` upload bodies, and any
-    /// traffic that does not go through `URLSession`.
+    /// Nothing is un-swizzled — `stop()` only closes the gate, so a framework stacked on top of
+    /// ours keeps working. Not covered: `WKWebView`, WebSocket tasks, streamed uploads.
     final class NetworkCapture {
 
         static let shared = DO.NetworkCapture()

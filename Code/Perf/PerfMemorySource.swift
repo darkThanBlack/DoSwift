@@ -22,8 +22,8 @@ extension DO {
 
         var title: String {
             switch self {
-            case .footprint: return "进程占用"
-            case .heap: return "堆分配"
+            case .footprint: return DO.Text.Perf.memoryFootprint
+            case .heap: return DO.Text.Perf.memoryHeap
             }
         }
     }

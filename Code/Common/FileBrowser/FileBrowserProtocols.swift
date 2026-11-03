@@ -13,29 +13,29 @@ import UIKit
 
 extension DO {
 
-    // MARK: - 路径源（同步、确定）
+    // MARK: - Path source (sync)
 
-    /// 浏览器向业务问的**路径**：多长 / 第 i 层是什么。必须是纯查询 —— 框架不持有路径，每次现问，
-    /// 同一层被问两次是正常的（路径条一次、取内容前一次），不许有「第一次来才算」之类的副作用。
+    /// The path, asked on every reload: how deep, and what sits at layer i.
+    /// Pure query only — the browser holds no path, and being asked twice is normal.
     protocol FileBrowserPathDataSource: AnyObject {
 
-        /// 路径深度（含根）；返回 0 = 没有路径，框架直接落到空态文案（不触发取内容）
+        /// Depth including the root. `0` = no path; the browser shows its empty state.
         func fileBrowserPathNumbers(_ browser: DO.FileBrowserView) -> Int
 
-        /// 第 index 层的路径项（0 = 根）。返回**业务自己的 model** 即可 —— 框架只读它的 `nodeName`。
+        /// Item at `index` (0 = root). Any business model works; only `nodeName` is read.
         func fileBrowser(_ browser: DO.FileBrowserView, pathItemFor index: Int) -> any DO.PathNode
     }
 
-    // MARK: - 内容源（异步）
+    // MARK: - Node source (async)
 
-    /// 浏览器要的**那一屏内容**：一次 ``DO.FileBrowserView/reloadData()`` 一问，只问路径末端那个
-    /// 节点。框架不持有内容，所以「上次那层是什么」它答不上来（也不需要）。
+    /// One screen of children, fetched per `reloadData()` for the last path node only.
+    /// The browser keeps no cache.
     protocol FileBrowserNodeDataSource: AnyObject {
 
-        /// 取 `node` 这一层内容。`completion` **必须回主线程**（框架直接更新 UI），也可以同步回调 ——
-        /// 缓存命中就走这条路。`.success([])` = 这一层确实没有内容，`.failure` = 显示 `localizedDescription`。
+        /// Children of `node`. `completion` must land on the main thread; sync is fine.
+        /// `.success([])` = empty, `.failure` = show `localizedDescription`.
         ///
-        /// - Important: 框架不认请求序号 —— 过期回调由业务自己丢（快速连点、旧请求晚回来这类形态）。
+        /// - Important: no request sequence here — drop stale callbacks yourself.
         func fileBrowser(
             _ browser: DO.FileBrowserView,
             nodesOf node: any DO.PathNode,
@@ -43,56 +43,56 @@ extension DO {
         )
     }
 
-    // MARK: - 事件
+    // MARK: - Events
 
-    /// 用户意图的出口：只报第几项 —— 框架不推栈、不缓存，也交不出节点。
-    /// 全部回调同步、主线程；index 口径与数据源一致：面包屑 0 = 根，列表 0 = 第一行。
+    /// Reports an index only — the browser never pushes or caches, and hands back no node.
+    /// Sync on the main thread; 0 = root (path bar) or first row (list).
     protocol FileBrowserDelegate: AnyObject {
 
-        /// 面包屑第 index 项被点了，问一句要不要投递：返回 `false` 则这次点击整个作废，提示业务自己给。
-        /// 默认只放行祖先层（「回到我在的地方」不算切换）；要在末项做事就覆盖它，再按 `index` 分辨。
+        /// Tap on path item `index`; `false` drops the whole tap.
+        /// Default lets ancestors through and keeps the current item inert.
         func fileBrowser(_ browser: DO.FileBrowserView, canSelectPathAt index: Int) -> Bool
 
-        /// 面包屑第 index 项被点了（0 = 根），且已通过 ``canSelectPathAt``
+        /// Path item `index` (0 = root) was tapped and passed `canSelectPathAt`.
         func fileBrowser(_ browser: DO.FileBrowserView, didSelectPathAt index: Int)
 
-        /// 列表第 index 行将要打开，问一句允许吗：每行都问，框架只认行号，「哪一行进不去」是业务规则。
+        /// Row `index` is about to open; asked per row. Which rows are blocked is a business rule.
         func fileBrowser(_ browser: DO.FileBrowserView, canSelectNodeAt index: Int) -> Bool
 
-        /// 列表第 index 行被点了，且已通过 ``canSelectNodeAt``
+        /// Row `index` was tapped and passed `canSelectNodeAt`.
         func fileBrowser(_ browser: DO.FileBrowserView, didSelectNodeAt index: Int)
 
-        /// 列表第 index 行「能不能划出删除」；默认 `false`（只读浏览）
+        /// Whether row `index` can be swiped to delete; `false` by default (read-only).
         func fileBrowser(_ browser: DO.FileBrowserView, canDeleteNodeAt index: Int) -> Bool
 
-        /// 列表第 index 行的删除被确认了（业务在这一步真正删数据，然后自己重画）
+        /// Delete confirmed for row `index` — delete for real here, then reload yourself.
         func fileBrowser(_ browser: DO.FileBrowserView, didDeleteNodeAt index: Int)
     }
 }
 
-// MARK: - 默认实现（协议扩展只能写在文件作用域；`didSelectNodeAt` 刻意不给默认实现 —— 漏写等于列表点不动）
+// MARK: - Defaults
 
 extension DO.FileBrowserDelegate {
 
-    /// 默认放行祖先层，当前层（末项）不投递 —— 「末项是惰性的」是浏览器层的策略，路径条自己不知道。
+    /// Ancestors only: the current item stays inert, which the path bar knows nothing about.
     func fileBrowser(_ browser: DO.FileBrowserView, canSelectPathAt index: Int) -> Bool {
         let numbers: Int = browser.pathDataSource?.fileBrowserPathNumbers(browser) ?? 0
         return index < numbers - 1
     }
 
-    /// 默认不关心
+    /// Always allowed by default.
     func fileBrowser(_ browser: DO.FileBrowserView, didSelectPathAt index: Int) {}
 
-    /// 默认放行（「哪些行进不去」由业务在这一个方法里表达）
+    /// Always allowed by default.
     func fileBrowser(_ browser: DO.FileBrowserView, canSelectNodeAt index: Int) -> Bool {
         return true
     }
 
-    /// 默认只读：不提供删除
+    /// Read-only by default.
     func fileBrowser(_ browser: DO.FileBrowserView, canDeleteNodeAt index: Int) -> Bool {
         return false
     }
 
-    /// 默认不关心
+    /// Nothing to do by default.
     func fileBrowser(_ browser: DO.FileBrowserView, didDeleteNodeAt index: Int) {}
 }

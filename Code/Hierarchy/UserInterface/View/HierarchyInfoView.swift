@@ -150,7 +150,7 @@ extension DO {
 
         private lazy var titleLabel: UILabel = {
             let label = UILabel()
-            label.text = "UI Hierarchy"
+            label.text = DO.Text.Hierarchy.infoTitle
             label.font = .boldSystemFont(ofSize: 15)
             label.textColor = .label
             label.numberOfLines = 1
@@ -175,23 +175,23 @@ extension DO {
             return button
         }()
 
-        private lazy var rulerRow = HierarchyInfoRowView(key: "Position:")
-        private lazy var nameRow = HierarchyInfoRowView(key: "Name:")
-        private lazy var pixelColorRow = HierarchyInfoRowView(key: "Pixel:")
-        private lazy var frameRow = HierarchyInfoRowView(key: "Frame:")
-        private lazy var backgroundColorRow = HierarchyInfoRowView(key: "Background:")
-        private lazy var textColorRow = HierarchyInfoRowView(key: "Text Color:")
-        private lazy var fontRow = HierarchyInfoRowView(key: "Font:")
-        private lazy var tagRow = HierarchyInfoRowView(key: "Tag:")
+        private lazy var rulerRow = HierarchyInfoRowView(key: DO.Text.Hierarchy.keyPosition)
+        private lazy var nameRow = HierarchyInfoRowView(key: DO.Text.Hierarchy.keyName)
+        private lazy var pixelColorRow = HierarchyInfoRowView(key: DO.Text.Hierarchy.keyPixel)
+        private lazy var frameRow = HierarchyInfoRowView(key: DO.Text.Hierarchy.keyFrame)
+        private lazy var backgroundColorRow = HierarchyInfoRowView(key: DO.Text.Hierarchy.keyBackground)
+        private lazy var textColorRow = HierarchyInfoRowView(key: DO.Text.Hierarchy.keyTextColor)
+        private lazy var fontRow = HierarchyInfoRowView(key: DO.Text.Hierarchy.keyFont)
+        private lazy var tagRow = HierarchyInfoRowView(key: DO.Text.Hierarchy.keyTag)
 
         private lazy var parentButton = makeActionButton(
-            title: "Parents", symbol: "arrow.up", action: #selector(parentTapped)
+            title: DO.Text.Hierarchy.parents, symbol: "arrow.up", action: #selector(parentTapped)
         )
         private lazy var subviewsButton = makeActionButton(
-            title: "Childs", symbol: "arrow.down", action: #selector(subviewTapped)
+            title: DO.Text.Hierarchy.childs, symbol: "arrow.down", action: #selector(subviewTapped)
         )
         private lazy var moreButton = makeActionButton(
-            title: "More", symbol: "info.circle", action: #selector(moreInfoTapped)
+            title: DO.Text.Hierarchy.more, symbol: "info.circle", action: #selector(moreInfoTapped)
         )
 
         private func makeActionButton(title: String, symbol: String, action: Selector) -> UIButton {

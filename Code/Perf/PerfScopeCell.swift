@@ -71,7 +71,7 @@ extension DO {
 
         private lazy var allButton: UIButton = {
             let button = UIButton(type: .system)
-            button.setTitle("全部", for: .normal)
+            button.setTitle(DO.Text.Perf.scopeAll, for: .normal)
             button.titleLabel?.font = .systemFont(ofSize: 14)
             button.addTarget(self, action: #selector(handleSelectAll), for: .touchUpInside)
             return button

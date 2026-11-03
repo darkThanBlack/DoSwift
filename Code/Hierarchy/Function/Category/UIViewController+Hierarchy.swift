@@ -31,9 +31,9 @@ extension UIViewController {
     }
 
     func hierarchy_showAlert(message: String, handler: ((Int) -> Void)?) {
-        let alert = UIAlertController(title: "Note", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in handler?(0) })
-        alert.addAction(UIAlertAction(title: "Confirm", style: .destructive) { _ in handler?(1) })
+        let alert = UIAlertController(title: DO.Text.Hierarchy.note, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: DO.Text.Common.cancel, style: .cancel) { _ in handler?(0) })
+        alert.addAction(UIAlertAction(title: DO.Text.Hierarchy.confirm, style: .destructive) { _ in handler?(1) })
         DispatchQueue.main.async {
             self.present(alert, animated: true)
         }
@@ -52,7 +52,7 @@ extension UIViewController {
             }
             alert.addAction(action)
         }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: DO.Text.Common.cancel, style: .cancel))
         DispatchQueue.main.async {
             self.present(alert, animated: true)
         }

@@ -57,18 +57,18 @@ extension DO {
         }
 
         func section() -> DO.AppInfoSection? {
-            return DO.AppInfoSectionBuilder.make("权限", [
-                ("地理位置", location),
-                ("通知", notification),
-                ("相机", camera),
-                ("麦克风", microphone),
-                ("相册", photo),
-                ("通讯录", contacts),
-                ("日历", calendar),
-                ("提醒事项", reminder),
-                ("蓝牙", bluetooth),
-                ("跟踪", tracking),
-                ("蜂窝数据", cellular),
+            return DO.AppInfoSectionBuilder.make(DO.Text.AppInfo.authoritySection, [
+                (DO.Text.AppInfo.location, location),
+                (DO.Text.AppInfo.notification, notification),
+                (DO.Text.AppInfo.camera, camera),
+                (DO.Text.AppInfo.microphone, microphone),
+                (DO.Text.AppInfo.photo, photo),
+                (DO.Text.AppInfo.contacts, contacts),
+                (DO.Text.AppInfo.calendar, calendar),
+                (DO.Text.AppInfo.reminder, reminder),
+                (DO.Text.AppInfo.bluetooth, bluetooth),
+                (DO.Text.AppInfo.tracking, tracking),
+                (DO.Text.AppInfo.cellular, cellular),
             ])
         }
 
@@ -86,16 +86,16 @@ extension DO {
 
             var text: String {
                 switch self {
-                case .notDetermined: return "未决定"
-                case .restricted:    return "受限"
-                case .denied:        return "已拒绝"
-                case .granted:       return "已授权"
-                case .always:        return "始终允许"
-                case .whenInUse:     return "使用期间"
-                case .limited:       return "部分授权"
-                case .writeOnly:     return "仅写入"
-                case .unavailable:   return "不适用"
-                case .unknown:       return "未知"
+                case .notDetermined: return DO.Text.AppInfo.stateNotDetermined
+                case .restricted:    return DO.Text.AppInfo.stateRestricted
+                case .denied:        return DO.Text.AppInfo.stateDenied
+                case .granted:       return DO.Text.AppInfo.stateGranted
+                case .always:        return DO.Text.AppInfo.stateAlways
+                case .whenInUse:     return DO.Text.AppInfo.stateWhenInUse
+                case .limited:       return DO.Text.AppInfo.stateLimited
+                case .writeOnly:     return DO.Text.AppInfo.stateWriteOnly
+                case .unavailable:   return DO.Text.AppInfo.stateUnavailable
+                case .unknown:       return DO.Text.AppInfo.stateUnknown
                 }
             }
         }
@@ -242,9 +242,9 @@ extension DO {
             data.cellularDataRestrictionDidUpdateNotifier = { state in
                 let text: String
                 switch state {
-                case .restricted:    text = "受限（仅 Wi-Fi）"
-                case .notRestricted: text = "不受限"
-                default:             text = "未知"
+                case .restricted:    text = DO.Text.AppInfo.cellularRestrictedToWifi
+                case .notRestricted: text = DO.Text.AppInfo.cellularUnrestricted
+                default:             text = DO.Text.AppInfo.stateUnknown
                 }
                 DispatchQueue.main.async { done(text) }
             }

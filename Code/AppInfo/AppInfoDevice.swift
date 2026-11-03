@@ -33,11 +33,11 @@ extension DO {
         }
 
         func section() -> DO.AppInfoSection? {
-            return DO.AppInfoSectionBuilder.make("设备", [
-                ("机型", model),
-                ("系统版本", systemVersion),
-                ("屏幕", screen),
-                ("设备名称", name),
+            return DO.AppInfoSectionBuilder.make(DO.Text.AppInfo.deviceSection, [
+                (DO.Text.AppInfo.rowModel, model),
+                (DO.Text.AppInfo.rowSystemVersion, systemVersion),
+                (DO.Text.AppInfo.rowScreen, screen),
+                (DO.Text.AppInfo.rowDeviceName, name),
                 ("IPv4", ipv4),
                 ("IPv6", ipv6),
             ])

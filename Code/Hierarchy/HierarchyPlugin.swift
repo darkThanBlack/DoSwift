@@ -19,7 +19,7 @@ extension DO {
         static let shared = DO.HierarchyPlugin()
 
         private init() {
-            super.init(identifier: "ui_hierarchy", title: "视图结构", icon: UIImage(systemName: "viewfinder"))
+            super.init(identifier: "ui_hierarchy", title: DO.Text.Hierarchy.pluginTitle, icon: UIImage(systemName: "viewfinder"))
         }
 
         var appWindow: UIWindow? {

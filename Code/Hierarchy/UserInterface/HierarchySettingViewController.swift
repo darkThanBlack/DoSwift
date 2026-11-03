@@ -36,25 +36,25 @@ extension DO {
         }
 
         private let groups: [(title: String, items: [Item])] = [
-            ("Color Picker", [
-                Item(title: "Enabled",
-                     detail: "Pixel color readout in the panel, plus the loupe",
+            (DO.Text.Hierarchy.colorPickerGroup, [
+                Item(title: DO.Text.Hierarchy.enabled,
+                     detail: DO.Text.Hierarchy.colorPickerDetail,
                      kind: .toggle(\.isColorPickEnabled)),
-                Item(title: "Loupe",
-                     detail: "When the magnifier appears",
+                Item(title: DO.Text.Hierarchy.loupe,
+                     detail: DO.Text.Hierarchy.loupeDetail,
                      kind: .selector(\.loupeVisibility)),
             ]),
-            ("Align Ruler", [
-                Item(title: "Enabled",
-                     detail: "Distances to the four edges in the panel, plus the cross lines",
+            (DO.Text.Hierarchy.alignRulerGroup, [
+                Item(title: DO.Text.Hierarchy.enabled,
+                     detail: DO.Text.Hierarchy.alignRulerDetail,
                      kind: .toggle(\.isAlignRulerEnabled)),
-                Item(title: "Cross Lines",
-                     detail: "When the ruler lines appear",
+                Item(title: DO.Text.Hierarchy.crossLines,
+                     detail: DO.Text.Hierarchy.crossLinesDetail,
                      kind: .selector(\.rulerVisibility)),
             ]),
-            ("View Hierarchy", [
-                Item(title: "Ignore Private Classes",
-                     detail: "Skip views whose class name starts with an underscore",
+            (DO.Text.Hierarchy.viewHierarchyGroup, [
+                Item(title: DO.Text.Hierarchy.ignorePrivateClasses,
+                     detail: DO.Text.Hierarchy.ignorePrivateDetail,
                      kind: .toggle(\.isIgnorePrivateClass)),
             ]),
         ]
@@ -62,7 +62,7 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            title = "Settings"
+            title = DO.Text.Common.settings
             reloadSections()
         }
 
@@ -71,7 +71,7 @@ extension DO {
                 Section(
                     title: group.title,
                     footer: index == groups.count - 1
-                        ? "Applied immediately and remembered in UserDefaults."
+                        ? DO.Text.Hierarchy.settingsFooter
                         : nil,
                     rows: group.items.map(makeRow)
                 )
@@ -97,7 +97,8 @@ extension DO {
                 ) { cell in
                     cell.update(
                         title: item.title,
-                        detail: DO.HierarchyPlugin.shared.config[keyPath: keyPath].title
+                        detail: item.detail,
+                        value: DO.HierarchyPlugin.shared.config[keyPath: keyPath].title
                     )
                 }
             }

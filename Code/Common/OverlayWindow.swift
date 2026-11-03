@@ -27,7 +27,7 @@ extension DO {
         private var noResponses: [Weaker<UIView>] = []
 
         public init(frame: CGRect, level: UIWindow.Level = .normal) {
-            if let scene = Self.activeWindowScene() {
+            if let scene = Self.targetWindowScene() {
                 super.init(windowScene: scene)
                 self.frame = frame
             } else {
@@ -40,7 +40,11 @@ extension DO {
             fatalError("init(coder:) has not been implemented")
         }
 
-        private static func activeWindowScene() -> UIWindowScene? {
+        /// The scene from `DO.Core.setup` wins; otherwise guess by activation state.
+        private static func targetWindowScene() -> UIWindowScene? {
+            if let scene = DO.Core.shared.appScene {
+                return scene
+            }
             let scenes = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
             return scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first
         }

@@ -19,7 +19,7 @@ extension DO {
         static let shared = DO.SandboxPlugin()
 
         private init() {
-            super.init(identifier: "sandbox", title: "沙盒", icon: UIImage(systemName: "folder"))
+            super.init(identifier: "sandbox", title: DO.Text.Sandbox.title, icon: UIImage(systemName: "folder"))
         }
 
         private let browser = DO.SandboxViewController()

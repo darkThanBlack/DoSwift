@@ -19,8 +19,8 @@ extension DO {
 
         var title: String {
             switch self {
-            case .line: return "折线图"
-            case .text: return "单行文字"
+            case .line: return DO.Text.Trend.lineChart
+            case .text: return DO.Text.Trend.singleLineText
             }
         }
     }

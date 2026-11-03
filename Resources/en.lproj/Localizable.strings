@@ -1,0 +1,252 @@
+/* DoSwift — 由 Code/Common/DoSwiftText.swift 生成，改文案请两边一起改 */
+
+/* Common */
+"common.cancel" = "Cancel";
+"common.ok" = "OK";
+"common.delete" = "Delete";
+"common.clear" = "Clear";
+"common.settings" = "Settings";
+"common.custom" = "Custom";
+"common.start_capture" = "Start Capture";
+"common.stop_capture" = "Stop Capture";
+
+/* AppInfo */
+"appinfo.title" = "App Info";
+"appinfo.copy_json" = "Copy JSON";
+"appinfo.section.application" = "Application";
+"appinfo.row.bundle_id" = "Bundle ID";
+"appinfo.row.version" = "Version";
+"appinfo.row.build" = "Build";
+"appinfo.row.display_name" = "Display Name";
+"appinfo.row.build_configuration" = "Build Configuration";
+"appinfo.row.distribution" = "Distribution";
+"appinfo.row.runtime_form" = "Runtime Form";
+"appinfo.row.executable_timestamp" = "Executable Timestamp";
+"appinfo.distribution.development" = "Development / Enterprise";
+"appinfo.runtime.simulator" = "Simulator";
+"appinfo.runtime.device_mac" = "Device · Mac";
+"appinfo.runtime.device" = "Device";
+"appinfo.section.authority" = "Permissions";
+"appinfo.authority.location" = "Location";
+"appinfo.authority.notification" = "Notifications";
+"appinfo.authority.camera" = "Camera";
+"appinfo.authority.microphone" = "Microphone";
+"appinfo.authority.photo" = "Photos";
+"appinfo.authority.contacts" = "Contacts";
+"appinfo.authority.calendar" = "Calendar";
+"appinfo.authority.reminder" = "Reminders";
+"appinfo.authority.bluetooth" = "Bluetooth";
+"appinfo.authority.tracking" = "Tracking";
+"appinfo.authority.cellular" = "Cellular Data";
+"appinfo.state.not_determined" = "Not Determined";
+"appinfo.state.restricted" = "Restricted";
+"appinfo.state.denied" = "Denied";
+"appinfo.state.granted" = "Authorized";
+"appinfo.state.always" = "Always Allow";
+"appinfo.state.when_in_use" = "While Using";
+"appinfo.state.limited" = "Limited";
+"appinfo.state.write_only" = "Write Only";
+"appinfo.state.unavailable" = "Not Applicable";
+"appinfo.state.unknown" = "Unknown";
+"appinfo.cellular.restricted_wifi" = "Restricted (Wi-Fi Only)";
+"appinfo.cellular.unrestricted" = "Unrestricted";
+"appinfo.section.device" = "Device";
+"appinfo.row.model" = "Model";
+"appinfo.row.system_version" = "System Version";
+"appinfo.row.screen" = "Screen";
+"appinfo.row.device_name" = "Device Name";
+"appinfo.section.runtime" = "Runtime";
+"appinfo.row.top_view_controller" = "Top View Controller";
+"appinfo.row.language_region" = "Language & Region";
+"appinfo.row.time_zone" = "Time Zone";
+"appinfo.row.thermal_state" = "Thermal State";
+"appinfo.row.low_power_mode" = "Low Power Mode";
+"appinfo.row.vendor_identifier" = "Vendor Identifier";
+"appinfo.toggle.on" = "On";
+"appinfo.toggle.off" = "Off";
+"appinfo.thermal.nominal" = "Nominal";
+"appinfo.thermal.fair" = "Fair";
+"appinfo.thermal.serious" = "Serious";
+"appinfo.thermal.critical" = "Critical";
+"appinfo.thermal.unknown" = "Unknown";
+
+/* Sandbox */
+"sandbox.title" = "Sandbox";
+"sandbox.root_name" = "Sandbox";
+"sandbox.action.preview" = "Preview";
+"sandbox.action.share" = "Share";
+"sandbox.action.copy_path" = "Copy Path";
+"sandbox.action.failed" = "Action Failed";
+"sandbox.database.no_tables" = "No readable tables.";
+"sandbox.database.no_rows" = "No data.";
+"sandbox.database.tables" = "Tables (%d)";
+"sandbox.database.row" = "Row %d";
+"sandbox.database.record_count" = "%d records";
+"sandbox.database.truncated" = "Showing the first %d only.";
+"sandbox.database.blob" = "<BLOB, %d bytes>";
+
+/* Trend */
+"trend.style.line" = "Line Chart";
+"trend.style.text" = "Single Line";
+
+/* Perf */
+"perf.title" = "Performance";
+"perf.metric.fps" = "FPS";
+"perf.metric.cpu" = "CPU";
+"perf.metric.memory" = "Memory";
+"perf.settings.track" = "Track";
+"perf.settings.memory_metric" = "Metric";
+"perf.settings.memory_metric_footer" = "The two metrics measure different things: footprint is what the system kills on, heap only covers malloc. Switching clears captured data.";
+"perf.settings.memory_metric_alert" = "Memory Metric";
+"perf.settings.display" = "Display";
+"perf.settings.display_footer" = "Both styles read the same data. Switching style keeps all history.";
+"perf.settings.floating_style" = "Overlay Style";
+"perf.settings.close_floating" = "Close Overlay";
+"perf.settings.long_press_tip" = "Long-press the overlay to open this page again.";
+"perf.settings.keep_one" = "Keep at least one metric.";
+"perf.current" = "Current: %@";
+"perf.threshold.above" = "%1$@ · above %2$d turns red";
+"perf.threshold.below" = "%1$@ · below %2$d turns red";
+"perf.memory.footprint" = "Footprint";
+"perf.memory.heap" = "Heap";
+"perf.report.overview" = "Overview";
+"perf.report.scope_all" = "All";
+"perf.report.total" = "Total";
+"perf.report.average" = "Average";
+"perf.report.peak" = "Peak";
+"perf.report.graphics" = "Graphics";
+"perf.report.media" = "Media";
+"perf.report.network" = "Network";
+"perf.report.rest" = "Other";
+"perf.report.average_usage" = "Average Usage";
+"perf.report.cpu_time" = "Total CPU Time";
+"perf.report.average_fps" = "Average FPS";
+"perf.report.slow_frames" = "Slow Frames";
+"perf.report.frozen_frames" = "Frozen Frames";
+"perf.report.total_frames" = "Total Frames";
+"perf.duration.seconds" = "%d s";
+"perf.duration.minutes_seconds" = "%d m %02d s";
+
+/* Network */
+"network.title" = "Network";
+"network.row.failed" = "Failed";
+"network.empty" = "No requests captured. Only URLSession is covered — WKWebView, WebSocket and raw sockets are not; sessions created before capture started are covered from the next session on.";
+"network.section.requests" = "Requests (%d)";
+"network.section.overview" = "Overview";
+"network.section.request" = "Request";
+"network.section.response" = "Response";
+"network.row.request_headers" = "Request Headers";
+"network.row.request_body" = "Request Body";
+"network.row.response_headers" = "Response Headers";
+"network.row.response_body" = "Response Body";
+"network.row.url" = "URL";
+"network.row.method" = "Method";
+"network.row.status" = "Status";
+"network.row.duration" = "Duration";
+"network.value.none" = "None";
+"network.value.view" = "View";
+"network.body.binary" = "<%d bytes of binary data>";
+"network.body.truncated" = "\n\n… truncated to the first %d bytes";
+
+/* Console */
+"console.title" = "Console";
+"console.search.placeholder" = "Search lines";
+"console.empty.nothing" = "Nothing captured yet.\nA pipe only sees output written after it is attached — tap record below,\nor call DO.ConsolePlugin.shared.start() at launch to keep the whole session.";
+"console.empty.filtered" = "All %d captured lines are hidden by the filter.\nCheck Settings → Sources.";
+"console.toolbar.resume" = "Resume";
+"console.toolbar.pause" = "Pause";
+"console.toolbar.read_log" = "Read Unified Log";
+"console.toolbar.reading_log" = "Reading Unified Log";
+"console.status.total" = "total %d";
+"console.status.source" = "%1$@ %2$d";
+"console.status.filtered" = "%d/%d sources";
+"console.status.capture_off" = "capture off";
+"console.status.paused" = "paused";
+"console.status.needs_ios15" = "unified log needs iOS 15";
+"console.status.reading" = "reading unified log…";
+"console.status.read_in" = "read in %.1fs";
+"console.clear.confirmation" = "Clear all captured lines (%d)?";
+"console.settings.show" = "Show";
+"console.settings.show_detail" = "Include these lines in the list.";
+"console.settings.merge" = "Merge Same Timestamp";
+"console.settings.merge_detail" = "Consecutive lines sharing a timestamp become one block.";
+"console.settings.merge_detail_log" = "Off by default — unified log entries already carry their own boundaries.";
+"console.settings.unavailable" = "Unavailable on this system.";
+"console.settings.log_footer" = "One read costs about a second regardless of how much is there, so it runs when you open the page or tap the button — never on a timer. Interpolated values are private by default: only what was logged with `privacy: .public` (and numbers) can be read.";
+"console.settings.no_subsystem" = "No Subsystem";
+"console.settings.no_subsystem_detail" = "A bare `Logger()` has an empty subsystem — could be yours, could be a framework's";
+"console.source.stdout" = "Standard Output";
+"console.source.stderr" = "Standard Error";
+"console.source.unified_log" = "Unified Log";
+"console.source.stdout_detail" = "print / fputs / FileHandle — fd 1";
+"console.source.stderr_detail" = "NSLog — fd 2";
+"console.source.unified_log_detail" = "os_log / Logger — readable since iOS 15";
+"console.level.debug" = "Debug";
+"console.level.info" = "Info";
+"console.level.notice" = "Notice";
+"console.level.error" = "Error";
+"console.level.fault" = "Fault";
+
+/* Hierarchy */
+"hierarchy.title" = "Hierarchy";
+"hierarchy.detail_title" = "UI Structure";
+"hierarchy.info_title" = "UI Hierarchy";
+"hierarchy.pinned" = "Pinned";
+"hierarchy.visibility.never" = "Never";
+"hierarchy.visibility.while_dragging" = "While Dragging";
+"hierarchy.visibility.always" = "Always";
+"hierarchy.settings.color_picker" = "Color Picker";
+"hierarchy.settings.align_ruler" = "Align Ruler";
+"hierarchy.settings.view_hierarchy" = "View Hierarchy";
+"hierarchy.settings.enabled" = "Enabled";
+"hierarchy.settings.loupe" = "Loupe";
+"hierarchy.settings.cross_lines" = "Cross Lines";
+"hierarchy.settings.ignore_private" = "Ignore Private Classes";
+"hierarchy.settings.color_picker_detail" = "Pixel color readout in the panel, plus the loupe";
+"hierarchy.settings.loupe_detail" = "When the magnifier appears";
+"hierarchy.settings.align_ruler_detail" = "Distances to the four edges in the panel, plus the cross lines";
+"hierarchy.settings.cross_lines_detail" = "When the ruler lines appear";
+"hierarchy.settings.ignore_private_detail" = "Skip views whose class name starts with an underscore";
+"hierarchy.settings.footer" = "Applied immediately and remembered in UserDefaults.";
+"hierarchy.key.position" = "Position:";
+"hierarchy.key.name" = "Name:";
+"hierarchy.key.pixel" = "Pixel:";
+"hierarchy.key.frame" = "Frame:";
+"hierarchy.key.background" = "Background:";
+"hierarchy.key.text_color" = "Text Color:";
+"hierarchy.key.font" = "Font:";
+"hierarchy.key.tag" = "Tag:";
+"hierarchy.button.parents" = "Parents";
+"hierarchy.button.children" = "Children";
+"hierarchy.button.more" = "More";
+"hierarchy.sheet.parents" = "Parent Views";
+"hierarchy.sheet.subviews" = "Subviews";
+"hierarchy.alert.note" = "Note";
+"hierarchy.alert.confirm" = "Confirm";
+"hierarchy.editor.color_hint" = "Also accepts r,g,b,a · #RRGGBBAA";
+"hierarchy.editor.now" = "Now";
+"hierarchy.editor.plus_day" = "+1 day";
+"hierarchy.editor.plus_hour" = "+1 hour";
+"hierarchy.editor.done" = "Done";
+"hierarchy.editor.font_preview" = "The quick brown fox 0123456789";
+"hierarchy.editor.count" = "%1$d characters · %2$d lines";
+
+/* UserDefaults */
+"userdefaults.title" = "UserDefaults";
+"userdefaults.search.placeholder" = "Search by key";
+"userdefaults.select_all" = "Select All";
+"userdefaults.deselect_all" = "Deselect All";
+"userdefaults.delete_with_count" = "Delete (%d)";
+"userdefaults.delete_confirmation" = "Delete selected keys (%d)?";
+"userdefaults.domain.app" = "App";
+"userdefaults.domain.other" = "Other Domains";
+"userdefaults.data_summary" = "Data · %d bytes";
+
+/* FileBrowser */
+"filebrowser.loading" = "Loading…";
+"filebrowser.empty" = "Empty Folder";
+
+/* Menu */
+"menu.group.info" = "Info";
+"menu.group.visual" = "Visual";
+

@@ -15,9 +15,9 @@ Simulator路径=$SIMULATOR_PATH
 """
 }
 
-# 重新加载工程
+# Regenerate the project
 reopen() {
-    # 清除缓存
+    # Clear caches
     if [[ $1 == "clean" ]]; then
         osascript -e "tell app \"${SIMULATOR_PATH}\" to quit"
         osascript -e "tell app \"${XCODE_PATH}\" to quit"

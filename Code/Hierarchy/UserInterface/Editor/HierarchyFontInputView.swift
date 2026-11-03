@@ -40,7 +40,7 @@ extension DO {
 
         private lazy var preview: UILabel = {
             let label = UILabel()
-            label.text = "The quick brown fox 字体预览"
+            label.text = DO.Text.Hierarchy.fontPreview
             label.numberOfLines = 2
             label.adjustsFontSizeToFitWidth = true
             label.minimumScaleFactor = 0.5

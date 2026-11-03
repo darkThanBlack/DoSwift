@@ -21,7 +21,7 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            title = "UI Structure"
+            title = DO.Text.Hierarchy.detailTitle
 
             loadData()
 

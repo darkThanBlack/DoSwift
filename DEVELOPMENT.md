@@ -19,7 +19,9 @@ DoSwift/
 │   ├── Sandbox/                   # 沙盒文件浏览器
 │   └── UserDefaults/              # UserDefaults 浏览与删除
 ├── Resources/                     # 随包资源（与 Code/ 平级）
-│   └── DoSwiftHierarchyDefine.json
+│   ├── DoSwiftHierarchyDefine.json
+│   ├── en.lproj/Localizable.strings
+│   └── zh-Hans.lproj/Localizable.strings
 ├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen 管理）
 ├── Tests/                         # SPM 测试目标
 ├── Scripts/ci.sh                  # 交互式开发脚本
@@ -31,7 +33,7 @@ DoSwift/
 
 | 集成方式 | 源码 | 资源 |
 |---|---|---|
-| CocoaPods | `Code/**/*.{swift,m,h}` | `resource_bundles => { 'DoSwiftResources' => ['Resources/**/*.{json}'] }` |
+| CocoaPods | `Code/**/*.{swift,m,h}` | `resource_bundles => { 'DoSwiftResources' => ['Resources/**/*.{json,strings}'] }` |
 | SwiftPM | `target(path: ".")` + `sources: ["Code"]` | `resources: [.process("Resources")]` |
 
 SwiftPM 只认包根目录之下的资源，而 `Resources/` 与 `Code/` 平级，所以 target 声明成包根，
@@ -69,14 +71,16 @@ public protocol Plugin {
 ```
 
 - `DO.DefaultPlugin`：`shared` 单例 + `prepare()` + `show()` / `hide()` 的窗口骨架。
-- `DO.Core.shared.setup(appWindow:plugins:)`：注册自定义插件、显示主菜单浮窗。
-  推荐显式传入当前 App 的 window —— 自动探测 `keyWindow` 走的是兜底分支，不能保证 100% 准确。
+- `DO.Core.shared.setup(appWindow:appScene:plugins:)`：注册自定义插件、显示主菜单浮窗。
+  推荐 window 和 scene 都显式传入 —— 自动探测走的是兜底分支，多 scene 下不能保证准确。
+  `appScene` 决定浮窗挂到哪个 `UIWindowScene`；只传 window 时会用它的 `windowScene`。
 
 ### 3. 窗口
 
 每个工具**各建自己的** `DO.OverlayWindow` 实例，不共享宿主。类共享的只有 `OverlayWindow`
 本身，它比 `UIWindow` 多的唯一实质能力是 `addNoResponseView`（登记一个 view，命中时
-`hitTest` 返回 nil，事件透到业务 App）。
+`hitTest` 返回 nil，事件透到业务 App）。构造时优先挂到 `DO.Core.appScene`，没有才按
+前台 scene 猜。
 
 - 层级工具（`HierarchyPlugin`）：登记 `noResponseView`，触摸要漏下去。
 - 信息展示类工具（AppInfo / Console / Network / Sandbox / UserDefaults / Perf）：不登记，
@@ -114,6 +118,27 @@ level 一般用 `.alert - 1`，主菜单用 `.statusBar`。
 取舍（已知、可接受）：丢编译期类型检查（枚举 rawValue 是裸 int）；纯 Swift 非 `@objc`
 属性读不到，只显示到父类层。
 
+## 国际化
+
+界面文案全部收在 `DO.Text`（`Code/Common/DoSwiftText.swift`），调用点不出现裸字符串。
+每条是一个 key + 英文兜底：
+
+```swift
+static let copyPath = DO.Text.string("sandbox.action.copy_path", "Copy Path")
+static func recordCount(_ count: Int) -> String {
+    return DO.Text.format("sandbox.database.record_count", "%d records", count)
+}
+```
+
+- 表在 `Resources/{en,zh-Hans}.lproj/Localizable.strings`，源语言 `en`
+- `DO.resourceBundle` 负责定位：SPM 是 `Bundle.module`（`DoSwift_DoSwift.bundle`），
+  CocoaPods 是 `DoSwiftResources.bundle`；**两边都能命中**，缺失时退回英文 `value`
+- 术语不翻译：UserDefaults / Sandbox / Bundle ID / URL / Method / Status / Duration /
+  CPU / FPS / MB / os_log / fd1 等，中英两版都保持原词
+- 复数没有用 `.stringsdict`：涉及数量的文案改成了与数量无关的写法
+  （`Clear all captured lines (%d)?`），要精确单复数时再补 `.stringsdict`
+- 新语言：加 `Resources/xx.lproj/Localizable.strings` 即可，代码不用动
+
 ## 验证
 
 无第三方依赖，整库一条命令做完整编译期验证（zsh 下别把文件列表存进变量再展开）：
@@ -133,9 +158,6 @@ swift build --triple arm64-apple-ios13.0-simulator --sdk "$SDK"
 
 ## 已知限制
 
-- **SPM 下 Hierarchy 的 JSON 找不到**：`HierarchyPropertyEngine` 只查 `DoSwiftResources.bundle`
-  （CocoaPods 的 `resource_bundles` 名），SPM 生成的是 `DoSwift_DoSwift.bundle`。
-  用 SPM 集成时这张属性表不会加载，面板里只剩内存里能反射到的部分。
 - Console 的 stdout / stderr 只能看到「管道接上之后」的输出；Unified Log 需要 iOS 15。
 - Network 只覆盖 `URLSession`：WKWebView / WebSocket / 裸 socket 抓不到，`httpBodyStream`
   上传抓不到。

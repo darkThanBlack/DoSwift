@@ -52,11 +52,9 @@ extension DO {
         case enumValue(raw: Int, table: String, name: String)
         case unknown(Any)
 
-        /// Classifies a KVC result by its runtime type.
-        ///
-        /// Order matters. `UIColor`, `UIFont` and `UIImage` are objects, so they have to be
-        /// excluded before the `NSNumber` branch; `NSValue` has to be inspected through its
-        /// encoding because `CGRect` and `CGSize` arrive as the same class.
+        /// Classifies a KVC result by runtime type. Order matters: `UIColor` / `UIFont` /
+        /// `UIImage` are objects and must precede `NSNumber`, and `NSValue` needs its encoding
+        /// inspected because `CGRect` and `CGSize` share a class.
         static func probe(_ value: Any) -> DO.ValueKind {
             switch value {
             case is UIColor: return .color(value as! UIColor)
@@ -126,21 +124,13 @@ extension DO {
         let writeKey: String
     }
 
-    /// Read-only property panel driven by `DoSwiftHierarchyDefine.json`.
+    /// Property panel driven by `DoSwiftHierarchyDefine.json`.
     ///
-    /// Nothing here knows about any particular property. The JSON says which class exposes
-    /// which keys; this class reads them through KVC and renders one row each. That is what
-    /// replaced the original ObjC implementation, where every exposed property was a
-    /// hand-written block across several thousand lines.
-    ///
-    /// Three rules are worth holding on to:
-    ///
-    /// - Lookup walks the class chain from `NSObject` downwards, so a subclass entry wins
-    ///   over its parent's, and the nearest class that declares a key supplies its overrides.
-    /// - A key is only shown when the object actually answers the getter. `textColor` is
-    ///   declared for `UILabel`; a plain `UIView` has no such key and simply yields no row.
-    /// - Writing goes back through the same entry: `userEditable`, plus a `ValueKind` we know
-    ///   how to parse, plus a real setter. Miss any of the three and the row stays read-only.
+    /// The JSON says which class exposes which keys; this class reads them with KVC and renders
+    /// one row each. Lookup walks the class chain from `NSObject` down, so a subclass entry wins
+    /// and the nearest declaring class supplies the overrides. A key only shows when the object
+    /// answers its getter. Writing needs `userEditable`, a parseable `ValueKind` and a real
+    /// setter — miss one and the row stays read-only.
     class HierarchyPropertyEngine {
 
         static let shared = DO.HierarchyPropertyEngine()
@@ -150,7 +140,7 @@ extension DO {
 
         private var pinnedKeys: [String] = []
 
-        private static let pinnedSectionTitle = "Pinned"
+        private static let pinnedSectionTitle = DO.Text.Hierarchy.pinnedSection
 
         /// Keys with no KVC counterpart. They are computed from the object itself, so they
         /// never reach `value(forKey:)`.
@@ -189,27 +179,14 @@ extension DO {
             }
         }
 
-        /// Resolves the JSON resource across main bundle, framework bundle, and
-        /// CocoaPods `resource_bundles` (a nested `<name>.bundle`).
+        /// Resolves the JSON resource: a host that drops the file into the main bundle wins,
+        /// otherwise it comes from `DO.resourceBundle` (SPM → `Bundle.module`,
+        /// CocoaPods → `DoSwiftResources.bundle`).
         private func resolveURL() -> URL? {
-            let frameworkBundle = Bundle(for: DO.HierarchyPropertyEngine.self)
             if let url = Bundle.main.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
                 return url
             }
-            if let url = frameworkBundle.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
-                return url
-            }
-            if let bundleURL = Bundle.main.url(forResource: "DoSwiftResources", withExtension: "bundle"),
-               let bundle = Bundle(url: bundleURL),
-               let url = bundle.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
-                return url
-            }
-            if let bundleURL = frameworkBundle.url(forResource: "DoSwiftResources", withExtension: "bundle"),
-               let bundle = Bundle(url: bundleURL),
-               let url = bundle.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
-                return url
-            }
-            return nil
+            return DO.resourceBundle.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json")
         }
 
         func categoryModels(for view: UIView) -> [DO.HierarchyCategoryModel] {
@@ -410,11 +387,8 @@ extension DO {
             return table[index].value
         }
 
-        /// Applies an edit.
-        ///
-        /// Every guard here has a matching one in the UI: a row without an edit descriptor
-        /// never reaches this method, so a rejection means the JSON and the live value
-        /// disagree. Log it; do not crash the host app over a debug panel.
+        /// Applies an edit. Each guard mirrors one in the UI, so a rejection means the JSON and
+        /// the live value disagree — log it, never crash the host app over a debug panel.
         func write(_ newValue: DO.ValueKind, forKey key: String, to view: UIView) {
             guard let resolved = resolve(key: key, view: view, chain: classChain(view)),
                   resolved.isUserEditable, let oldKind = resolved.kind else {

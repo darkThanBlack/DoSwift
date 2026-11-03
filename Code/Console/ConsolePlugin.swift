@@ -20,7 +20,7 @@ extension DO {
         public static let shared = DO.ConsolePlugin()
 
         private init() {
-            super.init(identifier: "nslog", title: "NSLog", icon: UIImage(systemName: "doc.text"))
+            super.init(identifier: "nslog", title: "Console", icon: UIImage(systemName: "doc.text"))
         }
 
         private let list = DO.ConsoleViewController()

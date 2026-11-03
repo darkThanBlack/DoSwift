@@ -14,10 +14,10 @@ import SQLite3
 
 extension DO {
 
-    /// 只读 SQLite 查询。沿用 DoKit：看文件头 `SQLite format 3\0`，而不是只看后缀。
+    /// Read-only SQLite queries. Sniffs the `SQLite format 3\0` header, not the extension.
     enum SandboxDatabase {
 
-        /// 单表一次最多读这么多行：大表整表读进内存会卡主线程，浏览用途取前若干行足够
+        /// Row cap per table: whole large tables would block the main thread.
         static let maxRows: Int = 500
 
         struct TableRows {
@@ -26,11 +26,11 @@ extension DO {
 
             let rows: [[String?]]
 
-            /// 是否因为 ``maxRows`` 截断了
+            /// Whether ``maxRows`` cut the result short.
             let truncated: Bool
         }
 
-        /// 用文件头判断，而不是只看后缀
+        /// Header check rather than extension.
         static func isSQLiteFile(_ url: URL) -> Bool {
             guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
             defer { try? handle.close() }
@@ -38,7 +38,7 @@ extension DO {
             return handle.readData(ofLength: 16) == Data("SQLite format 3\u{0}".utf8)
         }
 
-        /// 库里所有普通表（不含 sqlite_ 内部表 / 视图 / 索引）
+        /// Ordinary tables only — no `sqlite_` internals, views or indexes.
         static func tables(at url: URL) -> [String] {
             guard let db = open(url) else { return [] }
             defer { sqlite3_close(db) }
@@ -61,12 +61,12 @@ extension DO {
             return names
         }
 
-        /// 单表内容（列名 + 行），最多 ``maxRows`` 行
+        /// One table's columns and rows, up to ``maxRows``.
         static func rows(at url: URL, table: String) -> TableRows? {
             guard let db = open(url) else { return nil }
             defer { sqlite3_close(db) }
 
-            /// 表名来自 `sqlite_master`，仍按标识符规则转义，避免奇怪名字把语句带偏
+            /// Names come from `sqlite_master` but are still quoted as identifiers.
             let quoted: String = "\"" + table.replacingOccurrences(of: "\"", with: "\"\"") + "\""
             let sql: String = "select * from \(quoted) limit \(maxRows + 1)"
 
@@ -113,14 +113,14 @@ extension DO {
             return db
         }
 
-        /// 一列 → 展示字符串；NULL 给 nil，BLOB 只报长度（二进制没法念）
+        /// One column as text; nil for NULL, length only for BLOB.
         private static func string(_ statement: OpaquePointer, _ index: Int32) -> String? {
             switch sqlite3_column_type(statement, index) {
             case SQLITE_NULL:
                 return nil
 
             case SQLITE_BLOB:
-                return "<\(sqlite3_column_bytes(statement, index)) 字节的 BLOB>"
+                return DO.Text.Sandbox.blobPlaceholder(sqlite3_column_bytes(statement, index))
 
             default:
                 guard let text = sqlite3_column_text(statement, index) else { return nil }

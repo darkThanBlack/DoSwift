@@ -60,7 +60,7 @@ extension DO {
             let controller = UISearchController(searchResultsController: nil)
             controller.searchResultsUpdater = self
             controller.obscuresBackgroundDuringPresentation = false
-            controller.searchBar.placeholder = "Search lines"
+            controller.searchBar.placeholder = DO.Text.Console.searchPlaceholder
             return controller
         }()
 
@@ -111,7 +111,7 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            title = "Console"
+            title = DO.Text.Console.title
 
             navigationItem.hidesSearchBarWhenScrolling = false
             navigationItem.searchController = searchController
@@ -197,12 +197,9 @@ extension DO {
             emptyLabel.isHidden = !lines.isEmpty
 
             if store.capturedCount == 0 {
-                emptyLabel.text = "Nothing captured yet.\n"
-                    + "A pipe only sees output written after it is attached — tap record below,\n"
-                    + "or call DO.ConsolePlugin.shared.start() at launch to keep the whole session."
+                emptyLabel.text = DO.Text.Console.emptyNothing
             } else {
-                emptyLabel.text = "All \(store.capturedCount) captured lines are hidden by the filter.\n"
-                    + "Check Settings → Sources."
+                emptyLabel.text = DO.Text.Console.emptyAllFiltered(store.capturedCount)
             }
         }
 
@@ -210,18 +207,18 @@ extension DO {
             let store = DO.ConsoleStore.shared
 
             pauseItem.image = UIImage(systemName: store.isPaused ? "play.fill" : "pause")
-            pauseItem.accessibilityLabel = store.isPaused ? "Resume" : "Pause"
+            pauseItem.accessibilityLabel = store.isPaused ? DO.Text.Console.resume : DO.Text.Console.pause
 
             clearItem.isEnabled = store.capturedCount > 0
             exportItem.isEnabled = store.capturedCount > 0
 
             captureItem.image = UIImage(systemName: store.isCapturing ? "stop.circle" : "record.circle")
             captureItem.tintColor = store.isCapturing ? .systemRed : nil
-            captureItem.accessibilityLabel = store.isCapturing ? "停止采集" : "开始采集"
+            captureItem.accessibilityLabel = store.isCapturing ? DO.Text.Common.stopCapture : DO.Text.Common.startCapture
 
             let refreshing = store.unifiedLog.isRefreshing
             unifiedLogItem.isEnabled = !refreshing && DO.ConsoleUnifiedLog.isAvailable
-            unifiedLogItem.accessibilityLabel = refreshing ? "Reading Unified Log" : "Read Unified Log"
+            unifiedLogItem.accessibilityLabel = refreshing ? DO.Text.Console.readingUnifiedLog : DO.Text.Console.readUnifiedLog
         }
 
         private var statusText: String {
@@ -231,27 +228,27 @@ extension DO {
                 $0 != .unifiedLog || DO.ConsoleUnifiedLog.isAvailable
             }
 
-            var counts = ["total \(store.capturedCount)"]
+            var counts = [DO.Text.Console.totalLines(store.capturedCount)]
             for source in sources {
-                counts.append("\(source.shortTitle) \(store.capturedCount(of: source))")
+                counts.append(DO.Text.Console.sourceCount(source.shortTitle, store.capturedCount(of: source)))
             }
 
             var parts = [counts.joined(separator: "  ")]
 
             if store.filter.sources.count < sources.count {
-                parts.append("\(store.filter.sources.count)/\(sources.count) sources")
+                parts.append(DO.Text.Console.filteredSources(store.filter.sources.count, sources.count))
             }
 
-            if !store.isCapturing { parts.append("capture off") }
+            if !store.isCapturing { parts.append(DO.Text.Console.captureOff) }
 
-            if store.isPaused { parts.append("paused") }
+            if store.isPaused { parts.append(DO.Text.Console.paused) }
 
             if !DO.ConsoleUnifiedLog.isAvailable {
-                parts.append("unified log needs iOS 15")
+                parts.append(DO.Text.Console.unifiedLogNeedsIOS15)
             } else if store.unifiedLog.isRefreshing {
-                parts.append("reading unified log…")
+                parts.append(DO.Text.Console.readingUnifiedLogStatus)
             } else if store.unifiedLog.lastDuration > 0 {
-                parts.append(String(format: "read in %.1fs", store.unifiedLog.lastDuration))
+                parts.append(DO.Text.Console.readIn(store.unifiedLog.lastDuration))
             }
 
             return parts.joined(separator: "  ·  ")
@@ -287,11 +284,11 @@ extension DO {
 
             let alert = UIAlertController(
                 title: nil,
-                message: "Clear \(count) line\(count > 1 ? "s" : "")?",
+                message: DO.Text.Console.clearConfirmation(count),
                 preferredStyle: .alert
             )
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-            alert.addAction(UIAlertAction(title: "Clear", style: .destructive) { _ in
+            alert.addAction(UIAlertAction(title: DO.Text.Common.cancel, style: .cancel))
+            alert.addAction(UIAlertAction(title: DO.Text.Common.clear, style: .destructive) { _ in
                 DO.ConsoleStore.shared.clear()
             })
             present(alert, animated: true)

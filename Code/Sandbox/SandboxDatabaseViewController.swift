@@ -13,7 +13,7 @@ import UIKit
 
 extension DO {
 
-    /// 数据库文件 → 数据表列表
+    /// One SQLite file: its tables.
     @objc(DOSandboxDatabaseViewController)
     final class SandboxDatabaseViewController: DO.SectionTableViewController {
 
@@ -33,7 +33,7 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            /// 这是被 push 的页面：基类装的关闭按钮会顶掉返回按钮
+            /// Pushed, so the base class's close button would replace the back button.
             navigationItem.leftBarButtonItem = nil
 
             title = url.lastPathComponent
@@ -42,7 +42,7 @@ extension DO {
 
         private func loadSections() {
             guard tables.isEmpty == false else {
-                sections = [Section(footer: "没有可读取的数据表。", rows: [])]
+                sections = [Section(footer: DO.Text.Sandbox.noTables, rows: [])]
                 return
             }
 
@@ -58,11 +58,11 @@ extension DO {
                 }
             }
 
-            sections = [Section(title: "数据表（\(tables.count)）", rows: rows)]
+            sections = [Section(title: DO.Text.Sandbox.dataTables(tables.count), rows: rows)]
         }
     }
 
-    /// 单表内容：一行一条记录，点开看整条（对应原版的「点格子看全文」）
+    /// One table: a row per record, tap to see the whole thing.
     @objc(DOSandboxDatabaseTableViewController)
     final class SandboxDatabaseTableViewController: DO.SectionTableViewController {
 
@@ -94,7 +94,7 @@ extension DO {
 
         private func loadSections() {
             guard let result = result, result.rows.isEmpty == false else {
-                sections = [Section(footer: "没有数据。", rows: [])]
+                sections = [Section(footer: DO.Text.Sandbox.noRows, rows: [])]
                 return
             }
 
@@ -105,7 +105,7 @@ extension DO {
                         .map { "\($0) = \($1 ?? "NULL")" }
                         .joined(separator: "\n")
                     self.navigationController?.pushViewController(
-                        DO.PlainTextViewController(title: "第 \(index + 1) 行", text: text),
+                        DO.PlainTextViewController(title: DO.Text.Sandbox.row(index), text: text),
                         animated: true
                     )
                 }) { cell in
@@ -119,21 +119,21 @@ extension DO {
             }
 
             sections = [Section(
-                title: "\(result.rows.count) 条记录",
-                footer: result.truncated ? "只展示前 \(DO.SandboxDatabase.maxRows) 条。" : nil,
+                title: DO.Text.Sandbox.recordCount(result.rows.count),
+                footer: result.truncated ? DO.Text.Sandbox.truncated(maxRows: DO.SandboxDatabase.maxRows) : nil,
                 rows: rows
             )]
         }
 
-        /// 行标题：第一个非空值；整行都空就给行号
+        /// First non-empty value, else the row number.
         private static func recordTitle(at index: Int, values: [String?]) -> String {
             if let first = values.compactMap({ $0 }).first(where: { $0.isEmpty == false }) {
                 return first
             }
-            return "第 \(index + 1) 行"
+            return DO.Text.Sandbox.row(index)
         }
 
-        /// 行摘要：最多三列，超出用省略号收尾（完整内容点开看）
+        /// At most three columns, ellipsis after that.
         private static func recordDetail(columns: [String], values: [String?]) -> String {
             let pairs = zip(columns, values).prefix(3).map { "\($0) = \($1 ?? "NULL")" }
             return pairs.joined(separator: "  ·  ") + (columns.count > 3 ? "  …" : "")

@@ -14,15 +14,10 @@ import ObjectiveC
 
 extension DO {
 
-    /// Hooks Objective-C methods. `class_replaceMethod`, never exchange — for an inherited
-    /// method the exchange rewrites the superclass and every sibling picks up the hook.
-    ///
-    /// The previous IMP is captured before the swap and handed back: Swift cannot call
-    /// `objc_msgSend`, so a forwarding hook has to hold that IMP itself. One swap per
-    /// (class, selector, kind), so a repeat install cannot stack our own hook on itself.
-    ///
-    /// The serial queue only orders callers inside this library; another framework racing on
-    /// the same selector is outside anyone's control.
+    /// Hooks Objective-C methods with `class_replaceMethod` (never exchange: that rewrites the
+    /// superclass and every sibling picks up the hook). The previous IMP is captured and handed
+    /// back, since Swift cannot call `objc_msgSend`. One swap per (class, selector, kind), so a
+    /// repeat install cannot stack our hook on itself.
     enum Swizzler {
 
         private struct Key: Hashable {

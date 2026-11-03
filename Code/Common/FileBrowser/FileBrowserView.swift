@@ -13,20 +13,20 @@ import UIKit
 
 extension DO {
 
-    /// 文件浏览器 = 路径条 + 列表 + 状态文案，自己不持有任何数据。
+    /// Path bar + list + state text, holding no data of its own.
     ///
-    /// `reloadData()` 里现问路径与末端节点那一屏内容；出口只报「第几项」，换不换路径由业务决定。
-    /// 于是「现在在哪层 / 这层有什么」始终只有业务那一份账，没有第二份副本可以变味。
+    /// `reloadData()` asks for the path and the children of its last node. Every output is an
+    /// index, so switching path stays a business decision and there is one source of truth.
     ///
-    /// loading / empty / 失败是本类的内部 UI 属性，不对外暴露 —— 只有它知道是「还没取回来」还是
-    /// 「真的是空」。
+    /// Loading / empty / failure are private UI state: only this class can tell "not yet"
+    /// from "truly empty".
     @objc(DOFileBrowserView)
     final class FileBrowserView: UIView {
 
-        /// 路径源（同步、确定）：现在在哪几层、每层叫什么
+        /// Path source (sync): depth and names.
         weak var pathDataSource: (any DO.FileBrowserPathDataSource)?
 
-        /// 内容源（异步）：某个节点里有什么
+        /// Node source (async): children of one node.
         weak var nodeDataSource: (any DO.FileBrowserNodeDataSource)?
 
         weak var delegate: (any DO.FileBrowserDelegate)?
@@ -43,7 +43,7 @@ extension DO {
 
         // MARK: - Interface
 
-        /// 重画这一屏：现问路径 + 现取末端节点的内容。业务改完自己的路径栈后调它（重试同理）。
+        /// Redraw: re-ask the path, refetch the last node. Call it after mutating your stack.
         func reloadData() {
             pathBar.reloadData()
 
@@ -54,7 +54,7 @@ extension DO {
 
         private func requestNodes() {
             guard let node = currentPathItem(), let nodeDataSource = nodeDataSource else {
-                /// 没有路径 / 没挂内容源时没有「正在加载」可言，直接落到空
+                /// No path or no node source: skip loading, go straight to empty.
                 show(stateText: DO.FileBrowserStyle.emptyText)
                 return
             }
@@ -70,14 +70,14 @@ extension DO {
                     self.show(stateText: nodes.isEmpty ? DO.FileBrowserStyle.emptyText : nil)
 
                 case .failure(let error):
-                    /// 清掉上一个节点的残留，只留这一句文案
+                    /// Drop the previous level's rows, keep only the message.
                     self.listView.update([])
                     self.show(stateText: error.localizedDescription)
                 }
             }
         }
 
-        /// 路径末端那一项 = 取内容的触发点（末端就是用户刚点到的那个节点）
+        /// The last path item is the node whose children we fetch.
         private func currentPathItem() -> (any DO.PathNode)? {
             guard let pathDataSource = pathDataSource else { return nil }
 
@@ -87,7 +87,7 @@ extension DO {
             return pathDataSource.fileBrowser(self, pathItemFor: numbers - 1)
         }
 
-        /// 四种状态共用一句文案：`nil` = 有内容（显示列表），否则列表藏起来、居中显示这句话
+        /// `nil` = show the list; otherwise hide it and center this message.
         private func show(stateText: String?) {
             stateLabel.text = stateText
             stateLabel.isHidden = (stateText == nil)
@@ -125,7 +125,7 @@ extension DO {
 
         private lazy var listView = DO.FileListView()
 
-        /// 状态文案（加载中 / 暂无内容 / 失败）：铺满内容区，文字自然居中对齐
+        /// State text fills the content area.
         private lazy var stateLabel: UILabel = {
             let view = UILabel()
             view.numberOfLines = 0
@@ -135,7 +135,7 @@ extension DO {
             return view
         }()
 
-        /// 列表与状态文案互斥：`.fill` 的 stack 里藏掉一个，剩下的自然占满
+        /// List and state text are mutually exclusive; hiding one lets the other fill.
         private lazy var contentStack: UIStackView = {
             let view = UIStackView(arrangedSubviews: [listView, stateLabel])
             view.axis = .vertical
@@ -147,7 +147,7 @@ extension DO {
     }
 }
 
-// MARK: - 子组件 ←→ 业务（容器自己就是路径条的 dataSource / delegate，业务只实现容器这一层）
+// MARK: - Wiring (this container is the path bar's data source / delegate)
 
 extension DO.FileBrowserView: DO.PathBarViewDataSource {
 
@@ -174,7 +174,7 @@ extension DO.FileBrowserView: DO.PathBarViewDelegate {
 extension DO.FileBrowserView: DO.FileListViewDelegate {
 
     func fileListView(_ list: DO.FileListView, didSelectAt index: Int) {
-        /// 每一行都过闸（框架只有行号，不替业务区分文件夹 / 文件行）
+        /// Every row goes through the gate; the framework knows indices, not kinds.
         guard (delegate?.fileBrowser(self, canSelectNodeAt: index) ?? true) else { return }
 
         delegate?.fileBrowser(self, didSelectNodeAt: index)

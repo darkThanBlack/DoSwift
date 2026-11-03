@@ -26,19 +26,19 @@ extension DO {
             let controller = UISearchController(searchResultsController: nil)
             controller.searchResultsUpdater = self
             controller.obscuresBackgroundDuringPresentation = false
-            controller.searchBar.placeholder = "Search by key"
+            controller.searchBar.placeholder = DO.Text.UserDefaults.searchPlaceholder
             return controller
         }()
 
         private lazy var deleteItem = UIBarButtonItem(
-            title: "Delete",
+            title: DO.Text.Common.delete,
             style: .plain,
             target: self,
             action: #selector(deleteSelected)
         )
 
         private lazy var selectAllItem = UIBarButtonItem(
-            title: "Select All",
+            title: DO.Text.UserDefaults.selectAll,
             style: .plain,
             target: self,
             action: #selector(toggleSelectAll)
@@ -47,7 +47,7 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            title = "UserDefaults"
+            title = DO.Text.UserDefaults.title
 
             navigationItem.hidesSearchBarWhenScrolling = false
             navigationItem.searchController = searchController
@@ -129,10 +129,10 @@ extension DO {
             let total = allIndexPaths.count
 
             deleteItem.isEnabled = selected > 0
-            deleteItem.title = selected > 0 ? "Delete (\(selected))" : "Delete"
+            deleteItem.title = selected > 0 ? DO.Text.UserDefaults.deleteWithCount(selected) : DO.Text.Common.delete
 
             selectAllItem.isEnabled = total > 0
-            selectAllItem.title = (total > 0 && selected == total) ? "Deselect All" : "Select All"
+            selectAllItem.title = (total > 0 && selected == total) ? DO.Text.UserDefaults.deselectAll : DO.Text.UserDefaults.selectAll
         }
 
         private var allIndexPaths: [IndexPath] {
@@ -163,11 +163,11 @@ extension DO {
 
             let alert = UIAlertController(
                 title: nil,
-                message: "Delete \(items.count) key\(items.count > 1 ? "s" : "")?",
+                message: DO.Text.UserDefaults.deleteConfirmation(items.count),
                 preferredStyle: .alert
             )
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-            alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            alert.addAction(UIAlertAction(title: DO.Text.Common.cancel, style: .cancel))
+            alert.addAction(UIAlertAction(title: DO.Text.Common.delete, style: .destructive) { [weak self] _ in
                 self?.setEditing(false, animated: true)
                 self?.delete(items)
             })
@@ -207,7 +207,7 @@ extension DO.UserDefaultsViewController {
     ) -> UISwipeActionsConfiguration? {
         guard let item = item(at: indexPath) else { return nil }
 
-        let action = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, done in
+        let action = UIContextualAction(style: .destructive, title: DO.Text.Common.delete) { [weak self] _, _, done in
             self?.delete([item])
             done(true)
         }

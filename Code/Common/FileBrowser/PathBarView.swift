@@ -13,28 +13,28 @@ import UIKit
 
 extension DO {
 
-    /// 路径条的**问**（有几项 / 第 i 项是什么）
+    /// What the bar asks: how many items, and what each one is.
     protocol PathBarViewDataSource: AnyObject {
 
-        /// 路径深度（含根）
+        /// Depth including the root.
         func pathBarItemNumbers(_ bar: DO.PathBarView) -> Int
 
-        /// 第 index 层的路径项（0 = 根）；只读它的 `nodeName`
+        /// Item at `index` (0 = root); only `nodeName` is read.
         func pathBar(_ bar: DO.PathBarView, itemFor index: Int) -> any DO.PathNode
     }
 
-    /// 路径条的**报**（点了第几项）
+    /// What the bar reports: which item was tapped.
     protocol PathBarViewDelegate: AnyObject {
 
-        /// 返回 false 阻止这次点击（不上报）
+        /// Return false to swallow the tap.
         func pathBar(_ bar: DO.PathBarView, canSelectAt index: Int) -> Bool
 
-        /// 已经点了某一项（当前层是否算数由 ``canSelectAt`` 决定）
+        /// An item was tapped; `canSelectAt` already said yes.
         func pathBar(_ bar: DO.PathBarView, didSelectAt index: Int)
     }
 
-    /// 文件路径条：从左到右可滚动、可点击，边缘渐隐。只认「几项 / 第 i 项 / 点了第几项」，
-    /// 自己一个数据字段都不存 —— 「现在在哪几层」只有业务那份路径栈。
+    /// Scrollable breadcrumb with faded edges. Knows only counts, indices and taps —
+    /// where you actually are lives in the business path stack.
     @objc(DOPathBarView)
     final class PathBarView: UIView {
 
@@ -42,10 +42,10 @@ extension DO {
 
         weak var delegate: (any DO.PathBarViewDelegate)?
 
-        /// 当前展示的第 i 项（下标与 dataSource 对齐；分隔符不在其中）
+        /// Item currently shown at `index` (separators excluded).
         private(set) var itemViews: [UILabel] = []
 
-        /// 重新问一遍数据源并对齐到最右 —— 上游重排本身就意味着刷新过，不做「没变就别动」。
+        /// Re-asks the data source and scrolls right; a reload always means something changed.
         func reloadData() {
             reload()
 
@@ -63,10 +63,10 @@ extension DO {
         }
 
         @objc private func handleTap(gesture: UITapGestureRecognizer) {
-            /// 命中判定只看自己造出来的 item（分隔符 / 间距不在里面，点了自然没反应）
+            /// Hit-test only the items we built; separators and spacing ignore taps.
             guard let index = itemViews.firstIndex(where: { $0.bounds.contains(gesture.location(in: $0)) }) else { return }
 
-            /// 点哪一项算不算数（包括「当前层点了要做什么」）是上层策略：这里只问、只报
+            /// Whether a tap counts is a delegate decision — ask, then report.
             guard (delegate?.pathBar(self, canSelectAt: index) ?? true) else { return }
 
             delegate?.pathBar(self, didSelectAt: index)
@@ -74,7 +74,7 @@ extension DO {
 
         // MARK: - Views
 
-        /// 首尾留白
+        /// Leading / trailing inset.
         private let contentInset: CGFloat = 16.0
 
         private func loadViews(in box: UIView) {
@@ -117,21 +117,20 @@ extension DO {
                 stack.heightAnchor.constraint(greaterThanOrEqualToConstant: 36.0),
             ])
 
-            /// 垂直 hugging 抬到 250（默认值）之上，免得同层的内容区把整条拉长
+            /// Hug above the default 250 so the content area cannot stretch the bar.
             setContentHuggingPriority(.defaultHigh, for: .vertical)
 
             addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap(gesture:))))
         }
 
-        /// 条高由内容决定（`36` 兜底），宽度交给外部。
+        /// Height comes from the content (`36` as floor); width is up to the caller.
         ///
-        /// 高度**必须自带固有尺寸**：`UIStackView` 的 `intrinsicContentSize` 是 `(-1, -1)`，`.center`
-        /// 对齐下内容高度回传不到 `stack` / `self`；兄弟视图一有确定高度就会把它拉满剩余的。
+        /// `UIStackView` reports `(-1, -1)`, so the bar must supply its own height.
         override var intrinsicContentSize: CGSize {
             return CGSize(width: UIView.noIntrinsicMetric, height: max(36.0, contentHeight()))
         }
 
-        /// 内容的自然高度：取分隔符 / 文字里最高的那个
+        /// Natural height: the tallest of separators and labels.
         private func contentHeight() -> CGFloat {
             var height: CGFloat = 0.0
             for view in stack.arrangedSubviews {
@@ -140,8 +139,8 @@ extension DO {
             return height
         }
 
-        /// 滚动到末尾。内容宽用 `systemLayoutSizeFitting` 现算，不读 `contentSize` ——
-        /// 后者加子视图不标脏，实测会读到「少了一项」的旧值。
+        /// Scroll to the end. Measure with `systemLayoutSizeFitting`; `contentSize` is stale
+        /// right after adding a subview.
         private func scrollToTail() {
             let viewport: CGFloat = bounds.width
             guard viewport > 0.0 else { return }
@@ -153,7 +152,7 @@ extension DO {
             scrollView.setContentOffset(CGPoint(x: contentWidth - viewport, y: 0.0), animated: false)
         }
 
-        /// 每次重建：视图是框架自己造的展示层，数据一律现问数据源
+        /// Rebuilt every time — the bar is a pure view layer over the data source.
         private func reload() {
             stack.arrangedSubviews.forEach({ $0.removeFromSuperview() })
             itemViews.removeAll()
@@ -185,7 +184,7 @@ extension DO {
 
         private func makeItem(node: any DO.PathNode, isCurrent: Bool) -> UILabel {
             let label = UILabel()
-            // 给默认值，用来确保 label.width > 0, 不会出现空节点
+            // Non-empty default so the label keeps a width.
             label.text = {
                 if let n = node.nodeName, n.isEmpty == false {
                     return n
@@ -193,7 +192,7 @@ extension DO {
                 return " - "
             }()
             label.numberOfLines = 1
-            label.lineBreakMode = .byTruncatingMiddle  // 中间截断
+            label.lineBreakMode = .byTruncatingMiddle  // keep the tail visible
             label.font = DO.FileBrowserStyle.pathFont(isCurrent: isCurrent)
             label.textColor = isCurrent ? DO.FileBrowserStyle.themeColor : DO.FileBrowserStyle.lightTextColor
             return label
@@ -226,13 +225,13 @@ extension DO {
             return view
         }()
 
-        /// 左侧渐隐：贴住视野左边缘，从「背景色」淡到透明
+        /// Leading fade: background to clear, pinned to the viewport edge.
         private lazy var leftFade = FadeView(
             background: DO.FileBrowserStyle.backgroundColor,
             reversed: false
         )
 
-        /// 右侧渐隐
+        /// Trailing fade.
         private lazy var rightFade = FadeView(
             background: DO.FileBrowserStyle.backgroundColor,
             reversed: true
@@ -242,7 +241,7 @@ extension DO {
 
 extension DO.PathBarViewDelegate {
 
-    /// 默认放行
+    /// Always allowed by default.
     func pathBar(_ bar: DO.PathBarView, canSelectAt index: Int) -> Bool {
         return true
     }
@@ -250,7 +249,7 @@ extension DO.PathBarViewDelegate {
 
 extension DO.PathBarView {
 
-    /// 渐隐遮罩
+    /// Fade mask.
     @objc(DOPathBarViewFadeView)
     private final class FadeView: UIView {
 

@@ -79,7 +79,7 @@ extension DO {
         private func updateMeta() {
             let text = textView.text ?? ""
             let lines = text.isEmpty ? 0 : text.components(separatedBy: .newlines).count
-            metaLabel.text = "\(text.count) 字符 · \(lines) 行"
+            metaLabel.text = DO.Text.Hierarchy.characterAndLineCount(text.count, lines)
         }
     }
 

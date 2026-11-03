@@ -50,7 +50,7 @@ extension DO {
             "iPhone12,1": "iPhone 11",
             "iPhone12,3": "iPhone 11 Pro",
             "iPhone12,5": "iPhone 11 Pro Max",
-            "iPhone12,8": "iPhone SE (第二代)",
+            "iPhone12,8": "iPhone SE (2nd generation)",
             "iPhone13,1": "iPhone 12 mini",
             "iPhone13,2": "iPhone 12",
             "iPhone13,3": "iPhone 12 Pro",
@@ -59,7 +59,7 @@ extension DO {
             "iPhone14,3": "iPhone 13 Pro Max",
             "iPhone14,4": "iPhone 13 mini",
             "iPhone14,5": "iPhone 13",
-            "iPhone14,6": "iPhone SE (第三代)",
+            "iPhone14,6": "iPhone SE (3rd generation)",
             "iPhone14,7": "iPhone 14",
             "iPhone14,8": "iPhone 14 Plus",
             "iPhone15,2": "iPhone 14 Pro",
@@ -74,7 +74,7 @@ extension DO {
             "iPhone17,4": "iPhone 16 Plus",
             "iPhone17,5": "iPhone 16e",
 
-            "iPod9,1": "iPod touch (第七代)",
+            "iPod9,1": "iPod touch (7th generation)",
         ]
     }
 }

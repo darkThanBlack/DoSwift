@@ -72,7 +72,7 @@ extension DO {
         }()
 
         private lazy var hintLabel: UILabel = {
-            let label = DO.HierarchyEditorStyle.makeLabel("也收 r,g,b,a · #RRGGBBAA")
+            let label = DO.HierarchyEditorStyle.makeLabel(DO.Text.Hierarchy.colorHint)
             label.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
             label.textColor = .tertiaryLabel
             return label

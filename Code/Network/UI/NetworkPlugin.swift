@@ -19,7 +19,7 @@ extension DO {
         public static let shared = DO.NetworkPlugin()
 
         private init() {
-            super.init(identifier: "network", title: "网络", icon: UIImage(systemName: "network"))
+            super.init(identifier: "network", title: DO.Text.Network.title, icon: UIImage(systemName: "network"))
         }
 
         private lazy var list = DO.NetworkViewController()

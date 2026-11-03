@@ -25,7 +25,7 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            title = "性能"
+            title = DO.Text.Perf.title
             navigationItem.rightBarButtonItem = UIBarButtonItem(
                 image: UIImage(systemName: "gearshape"),
                 style: .plain,
@@ -81,11 +81,11 @@ extension DO {
             let range = activeRange
 
             sections = [
-                Section(title: "总览", rows: [timelineRow(session: session, range: range)]),
+                Section(title: DO.Text.Perf.overview, rows: [timelineRow(session: session, range: range)]),
                 Section(rows: [scopeRow(range: range)]),
-                card(title: "内存", rows: memoryRows(in: range)),
-                card(title: "CPU", rows: cpuRows(in: range)),
-                card(title: "帧率", rows: fpsRows(in: range)),
+                card(title: DO.Text.Perf.memory, rows: memoryRows(in: range)),
+                card(title: DO.Text.Perf.cpu, rows: cpuRows(in: range)),
+                card(title: DO.Text.Perf.fps, rows: fpsRows(in: range)),
             ]
         }
 
@@ -167,18 +167,18 @@ extension DO {
             }
 
             return [
-                ("总额", budget.map { "\(Int($0.rounded())) MB" } ?? "—"),
-                row("平均", average),
-                row("峰值", peak),
-                row("图形", graphics),
-                row("媒体", media),
-                row("网络", network),
-                row("其余", rest),
+                (DO.Text.Perf.total, budget.map { "\(Int($0.rounded())) MB" } ?? "—"),
+                row(DO.Text.Perf.average, average),
+                row(DO.Text.Perf.peak, peak),
+                row(DO.Text.Perf.graphics, graphics),
+                row(DO.Text.Perf.media, media),
+                row(DO.Text.Perf.network, network),
+                row(DO.Text.Perf.rest, rest),
             ]
         }
 
         private func cpuRows(in range: ClosedRange<TimeInterval>) -> [(String, String)] {
-            guard let chart = chart(at: 1) else { return [("平均占用", "—")] }
+            guard let chart = chart(at: 1) else { return [(DO.Text.Perf.averageUsage, "—")] }
             let points = chart.points.filter { range.contains($0.t) }
             let samples = DO.PerfTrendPlugin.shared.cpuSamples.filter { range.contains($0.t) }
 
@@ -189,22 +189,22 @@ extension DO {
             }
 
             return [
-                ("平均占用", percent(mean(points.map(\.v)))),
-                ("峰值", percent(points.map(\.v).max())),
-                ("累计 CPU 时间", seconds.map(duration) ?? "—"),
+                (DO.Text.Perf.averageUsage, percent(mean(points.map(\.v)))),
+                (DO.Text.Perf.peak, percent(points.map(\.v).max())),
+                (DO.Text.Perf.accumulatedCPUTime, seconds.map(duration) ?? "—"),
             ]
         }
 
         private func fpsRows(in range: ClosedRange<TimeInterval>) -> [(String, String)] {
-            guard let chart = chart(at: 0) else { return [("平均帧率", "—")] }
+            guard let chart = chart(at: 0) else { return [(DO.Text.Perf.averageFPS, "—")] }
             let points = chart.points.filter { range.contains($0.t) }
             let samples = DO.PerfTrendPlugin.shared.frameSamples.filter { range.contains($0.t) }
 
             return [
-                ("平均帧率", mean(points.map(\.v)).map { "\(Int($0.rounded())) fps" } ?? "—"),
-                ("慢帧", "\(samples.reduce(0) { $0 + $1.slow })"),
-                ("冻结帧", "\(samples.reduce(0) { $0 + $1.frozen })"),
-                ("总帧数", "\(samples.reduce(0) { $0 + $1.frames })"),
+                (DO.Text.Perf.averageFPS, mean(points.map(\.v)).map { "\(Int($0.rounded())) fps" } ?? "—"),
+                (DO.Text.Perf.slowFrames, "\(samples.reduce(0) { $0 + $1.slow })"),
+                (DO.Text.Perf.frozenFrames, "\(samples.reduce(0) { $0 + $1.frozen })"),
+                (DO.Text.Perf.totalFrames, "\(samples.reduce(0) { $0 + $1.frames })"),
             ]
         }
 
@@ -220,8 +220,8 @@ extension DO {
 
         private func duration(_ seconds: TimeInterval) -> String {
             let total = Int(seconds.rounded())
-            guard total >= 60 else { return "\(total) 秒" }
-            return String(format: "%d 分 %02d 秒", total / 60, total % 60)
+            guard total >= 60 else { return DO.Text.Perf.seconds(total) }
+            return DO.Text.Perf.minutesAndSeconds(total)
         }
     }
 }

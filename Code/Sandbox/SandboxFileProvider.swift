@@ -13,10 +13,10 @@ import UIKit
 
 extension DO {
 
-    // MARK: - 节点
+    // MARK: - Node
 
-    /// 沙盒文件节点，直接包住一个 `file://` URL。``DO.FileNode`` 没有 id —— 「按什么入栈」是
-    /// 业务自己的账，这里取 `standardizedFileURL.path`，同一个文件从哪层问到 id 都一致。
+    /// A `file://` URL wrapper. ``DO.FileNode`` carries no id, so identity is our call:
+    /// `standardizedFileURL.path` stays the same whichever level asks.
     struct SandboxFileNode: DO.FileNode {
 
         let url: URL
@@ -27,7 +27,7 @@ extension DO {
 
         let nodeIconToken: String?
 
-        /// 定制展示名；nil = 用 `lastPathComponent`
+        /// Overrides the display name; nil = `lastPathComponent`.
         let displayName: String?
 
         init(
@@ -44,7 +44,7 @@ extension DO {
             self.displayName = displayName
         }
 
-        /// 业务侧身份：标准化后的绝对路径
+        /// Identity: the standardized absolute path.
         var nodeID: String { return url.standardizedFileURL.path }
 
         var nodeName: String? {
@@ -53,8 +53,8 @@ extension DO {
             return name.isEmpty ? url.standardizedFileURL.path : name
         }
 
-        /// 按 URL 探测类型 / 大小，顺手算出图标 token。文件不存在（枚举与读取之间被删掉）返回 nil，
-        /// 调用方跳过这一行 —— 宁可少一行，也不画一个点不开的幽灵节点。
+        /// Probes kind / size and picks the icon. nil when the file is gone (deleted between
+        /// listing and reading) — better a missing row than a ghost that cannot open.
         static func make(url: URL) -> DO.SandboxFileNode? {
             guard let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey]) else {
                 return nil
@@ -67,12 +67,12 @@ extension DO {
                 url: url,
                 nodeKind: isFolder ? .folder : .file,
                 nodeSize: size,
-                /// 文件夹交给 ``DO.FileBrowserStyle`` 的兜底图标（folder.fill）
+                /// Folders fall back to ``DO.FileBrowserStyle``'s icon.
                 nodeIconToken: isFolder ? nil : DO.FileBrowserStyle.token(forExtension: url.pathExtension)
             )
         }
 
-        /// 排序：文件夹在前，同类按文件名自然序（`文件2` < `文件10`）
+        /// Folders first, then natural name order (`file2` before `file10`).
         static func isOrderedBefore(_ lhs: DO.SandboxFileNode, _ rhs: DO.SandboxFileNode) -> Bool {
             if lhs.nodeKind != rhs.nodeKind {
                 return lhs.nodeKind == .folder
@@ -83,18 +83,18 @@ extension DO {
         }
     }
 
-    // MARK: - 数据源
+    // MARK: - Data source
 
-    /// ``DO.FileBrowserNodeDataSource`` 的真实实现：`FileManager` 列目录，异步 + 带缓存。
-    /// 首次某层走后台 IO（能看到 loading），之后同层同步回调（点面包屑回退是瞬时的）。
+    /// Real node source over `FileManager`: async on first visit, cached after.
     ///
-    /// - Important: 框架不认请求序号 —— 这里用 ``currentID`` 认当前层，旧请求晚回来就不回调。
+    /// - Important: no request sequence in the framework — ``currentID`` decides, and a stale
+    ///   result is simply dropped.
     final class SandboxFileProvider: DO.FileBrowserNodeDataSource {
 
-        /// 沙盒根（`NSHomeDirectory()`，与 DoKit 原版一致）
+        /// Sandbox root: `NSHomeDirectory()`.
         let rootURL: URL
 
-        /// 业务侧认定的「当前层」：过期回调在这里丢掉
+        /// Current level; stale callbacks are dropped here.
         var currentID: String?
 
         private var levelCache: [String: [any DO.FileNode]] = [:]
@@ -105,17 +105,17 @@ extension DO {
             self.rootURL = rootURL ?? URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
         }
 
-        /// 浏览器入口：根节点
+        /// Browser entry: the root node.
         var root: DO.SandboxFileNode {
-            return DO.SandboxFileNode(url: rootURL, nodeKind: .folder, displayName: "沙盒")
+            return DO.SandboxFileNode(url: rootURL, nodeKind: .folder, displayName: DO.Text.Sandbox.rootName)
         }
 
-        /// 业务侧改了数据后重新要一次（删除文件之后）
+        /// Refetch after the business changed something (a delete).
         func invalidate() {
             levelCache.removeAll()
         }
 
-        /// 某一层当前的内容：框架只报「第几行」，把行号映射回自己的节点是业务的事
+        /// Children of one level; mapping row indices back is ours.
         func level(_ id: String) -> [any DO.FileNode] {
             return levelCache[id] ?? []
         }
@@ -127,7 +127,7 @@ extension DO {
             nodesOf node: any DO.PathNode,
             completion: @escaping (Result<[any DO.FileNode], Error>) -> Void
         ) {
-            /// 路径项就是我们自己交出去的那个 model，收窄回来身份就回来了
+            /// The model we handed out, cast back.
             guard let node = node as? DO.SandboxFileNode else {
                 completion(.success([]))
                 return
@@ -136,7 +136,7 @@ extension DO {
             let id: String = node.nodeID
             let url: URL = node.url
 
-            /// 缓存命中：直接同步回调（框架照单收下，不会闪 loading）
+            /// Cache hit: call back synchronously, so no loading flash.
             if let cached = levelCache[id] {
                 completion(.success(cached))
                 return
@@ -162,7 +162,7 @@ extension DO {
                 }
 
                 DispatchQueue.main.async {
-                    /// 迟到的、已经不是当前层的回调：业务自己丢
+                    /// Late callback for a level we already left.
                     guard self.currentID == id else { return }
 
                     if case .success(let nodes) = result {

@@ -25,8 +25,10 @@ DoSwift/
 │   ├── Runtime/                   # Swizzler
 │   ├── Sandbox/                   # 沙盒文件浏览器
 │   └── UserDefaults/              # UserDefaults 浏览
-├── Resources/                     # 随包资源
-│   └── DoSwiftHierarchyDefine.json
+├── Resources/                     # 随包资源（与 Code/ 平级）
+│   ├── DoSwiftHierarchyDefine.json
+│   ├── en.lproj/Localizable.strings
+│   └── zh-Hans.lproj/Localizable.strings
 ├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen）
 ├── Tests/                         # SPM 测试
 ├── Scripts/ci.sh
@@ -37,7 +39,7 @@ DoSwift/
 `Code/` 与 `Resources/` 是**平级**的顶层目录，打包方式各异：
 
 - **CocoaPods**：`source_files = 'Code/**/*.{swift,m,h}'`，资源走
-  `resource_bundles => { 'DoSwiftResources' => ['Resources/**/*.{json}'] }`
+  `resource_bundles => { 'DoSwiftResources' => ['Resources/**/*.{json,strings}'] }`
 - **SPM**：SwiftPM 只认包根目录之下的资源，所以 target 声明为 `path: "."`，再用
   `sources: ["Code"]` / `resources: [.process("Resources")]` 收窄，其余目录列进 `exclude`
 
@@ -55,7 +57,8 @@ open DoSwiftExample.xcworkspace
 - **命名空间**：`public enum DO {}`，所有类型写成 `extension DO { ... }`；对外可见的加 `public`。
 - **插件**：`DO.Plugin`（`identifier` / `title` / `icon` / `actionHandler`）+ 基类
   `DO.DefaultPlugin`（`shared` / `prepare()` / `show` / `hide` 的窗口骨架）。
-  `DO.Core.shared.setup(appWindow:plugins:)` 注册并显示浮窗；自定义插件排在最前的 `Custom` 组。
+  `DO.Core.shared.setup(appWindow:appScene:plugins:)` 注册并显示浮窗；自定义插件排在最前的
+  `Custom` 组。`appScene` 决定浮窗挂到哪个 `UIWindowScene`，不传则按前台状态猜。
 - **窗口**：每个工具**各建自己的** `DO.OverlayWindow`（level 一般 `.alert - 1`），不共享宿主；
   层级工具登记 `addNoResponseView` 让触摸透到业务 App，信息展示类工具不登记。
 - **列表页**：继承 `DO.SectionTableViewController`，用 `Section` / `Row(cellClass:onTrigger:configure:)`
@@ -75,11 +78,31 @@ open DoSwiftExample.xcworkspace
 - **`HierarchyPropertyEngine`**：按类继承链（`NSObject` → 子类）匹配条目，KVC 读值，生成
   `HierarchyCategoryModel` / `HierarchyCellModel`；写回需同时满足 `userEditable`、可解析的
   `ValueKind`、真实 setter，缺一即只读。编辑 UI 在 `UserInterface/Editor/`。
-- **资源查找**：`Bundle.main` → `Bundle(for: engine)` → 各自的 `DoSwiftResources.bundle`。
+- **资源查找**：先看 `Bundle.main`，找不到再走 `DO.resourceBundle`
+  （SPM → `Bundle.module`，CocoaPods → `DoSwiftResources.bundle`）。
 
 数据驱动的取舍（已知、可接受）：
 - 丢编译期类型检查——枚举 rawValue 是裸 int，靠 JSON 里的名字自解释
 - KVC 边界：纯 Swift（非 `@objc`）属性读不到，只显示到父类层
+
+## 文案与国际化
+
+界面上的字面量一律走 `DO.Text`（`Code/Common/DoSwiftText.swift`），不直接写字符串：
+
+```swift
+DO.Text.Sandbox.copyPath        // 属性，内部是 NSLocalizedString
+DO.Text.Sandbox.recordCount(3)  // 带参数的写成 func，格式串留在 .strings
+```
+
+- 资源：`Resources/{en,zh-Hans}.lproj/Localizable.strings`，**源语言 en**
+  （`CFBundleDevelopmentRegion`）；英文同时作为 `value:` 兜底，资源缺失时不会把 key 漏到界面上
+- 加文案：先在 `DoSwiftText.swift` 加属性（英文放 `value`），再往两个 `.lproj` 各加一条
+- 多参数一律用 `%1$@` / `%2$d` 位置占位符
+- 术语口径：Apple API 名、协议名、单位与缩写（UserDefaults / Sandbox / Bundle ID / URL /
+  Method / Status / Duration / CPU / FPS / MB / os_log / fd1…）**两种语言下都保持英文原词**；
+  普通名词（网络 / 性能 / 视图结构 / 数据表…）翻译
+- 不走表的：开发期日志与断言、选择器与各种 key、Queue label、纯数值与单位模板
+  （`"%.1f ms"`、`"HH:mm:ss"`）、SQL、属性面板里 KVC 值本身的表示（`<nil>` / `X: Y:`）
 
 ## 验证
 

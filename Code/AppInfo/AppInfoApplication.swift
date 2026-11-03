@@ -36,15 +36,15 @@ extension DO {
         }
 
         func section() -> DO.AppInfoSection? {
-            return DO.AppInfoSectionBuilder.make("应用", [
-                ("Bundle ID", bundleIdentifier),
-                ("Version", version),
-                ("Build", build),
-                ("显示名", displayName),
-                ("构建配置", buildConfiguration),
-                ("分发渠道", distribution),
-                ("运行形态", runtimeForm),
-                ("可执行文件时间", executableTimestamp),
+            return DO.AppInfoSectionBuilder.make(DO.Text.AppInfo.applicationSection, [
+                (DO.Text.AppInfo.rowBundleIdentifier, bundleIdentifier),
+                (DO.Text.AppInfo.rowVersion, version),
+                (DO.Text.AppInfo.rowBuild, build),
+                (DO.Text.AppInfo.rowDisplayName, displayName),
+                (DO.Text.AppInfo.rowBuildConfiguration, buildConfiguration),
+                (DO.Text.AppInfo.rowDistribution, distribution),
+                (DO.Text.AppInfo.rowRuntimeForm, runtimeForm),
+                (DO.Text.AppInfo.rowExecutableTimestamp, executableTimestamp),
             ])
         }
 
@@ -69,18 +69,18 @@ extension DO {
         }
 
         private static func distribution() -> String {
-            guard let receipt = Bundle.main.appStoreReceiptURL else { return "开发 / 企业签名" }
+            guard let receipt = Bundle.main.appStoreReceiptURL else { return DO.Text.AppInfo.developmentSigned }
             return receipt.lastPathComponent == "sandboxReceipt" ? "TestFlight" : "App Store"
         }
 
         private static func runtimeForm() -> String {
             #if targetEnvironment(simulator)
-            return "模拟器"
+            return DO.Text.AppInfo.simulator
             #else
             if #available(iOS 14.0, *), ProcessInfo.processInfo.isiOSAppOnMac {
-                return "真机 · Mac"
+                return DO.Text.AppInfo.deviceOnMac
             }
-            return "真机"
+            return DO.Text.AppInfo.device
             #endif
         }
 

@@ -33,14 +33,14 @@ extension DO {
 
             measure("task_info(TASK_VM_INFO)",              100_000) { vmInfo() }
             measure("task_info(TASK_BASIC_INFO)",           100_000) { basicInfo() }
-            measure("task_threads(逐线程 CPU，原版 DoKit 用法)", 5_000) { cpuViaThreads() }
+            measure("task_threads (per-thread CPU, as DoKit did)", 5_000) { cpuViaThreads() }
             measure("malloc_zone_statistics(default)",        5_000) { zoneStats(everyZone: false) }
-            measure("malloc_zone_statistics(nil=全部 zone)",   5_000) { zoneStats(everyZone: true) }
-            measure("mstats()  ← Firebase 用的",               5_000) { legacyStats() }
+            measure("malloc_zone_statistics(nil = all zones)", 5_000) { zoneStats(everyZone: true) }
+            measure("mstats()  <- what Firebase uses", 5_000) { legacyStats() }
             measure("os_proc_available_memory()",           100_000) { UInt64(os_proc_available_memory()) }
-            measure("mach_absolute_time（基线）",           100_000) { mach_absolute_time() }
+            measure("mach_absolute_time (baseline)", 100_000) { mach_absolute_time() }
 
-            print("=== DO.PerfBenchmark 完 · 连跑三次看稳定性，首次可能含缺页 ===")
+            print("=== DO.PerfBenchmark done - run it three times; the first pass may include page faults ===")
         }
 
         private static func vmInfo() -> UInt64 {

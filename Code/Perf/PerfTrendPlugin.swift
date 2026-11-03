@@ -22,7 +22,7 @@ extension DO {
         static let shared = DO.PerfTrendPlugin()
 
         private init() {
-            super.init(identifier: "performance", title: "性能", icon: UIImage(systemName: "gauge"))
+            super.init(identifier: "performance", title: DO.Text.Perf.title, icon: UIImage(systemName: "gauge"))
         }
 
         static let metricCount = 3
@@ -54,7 +54,7 @@ extension DO {
                     points: cpu.points
                 ),
                 DO.TrendChart(
-                    title: "内存",
+                    title: DO.Text.Perf.memory,
                     unit: "MB",
                     range: 0...memoryTotal,
                     threshold: .above(memoryTotal * 0.8),
@@ -176,6 +176,21 @@ extension DO {
         func reportDidDismiss() {
             report = nil
             settingsDidDismiss()
+        }
+
+        /// Turns the tool off from anywhere: closes the reported chain, then hides the window.
+        func dismissAll() {
+            isVisible = false
+            refresh(force: true)
+
+            guard let navigator = report else {
+                window?.isHidden = true
+                return
+            }
+
+            navigator.dismiss(animated: true) { [weak self] in
+                self?.reportDidDismiss()
+            }
         }
 
         func settingsDidDismiss() {

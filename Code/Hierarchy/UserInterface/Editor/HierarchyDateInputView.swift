@@ -47,9 +47,9 @@ extension DO {
 
         private func setupSubviews() {
             let chips = UIStackView(arrangedSubviews: [
-                makeChip("现在", offset: 0),
-                makeChip("+1 天", offset: 86_400),
-                makeChip("+1 小时", offset: 3_600),
+                makeChip(DO.Text.Hierarchy.now, offset: 0),
+                makeChip(DO.Text.Hierarchy.plusOneDay, offset: 86_400),
+                makeChip(DO.Text.Hierarchy.plusOneHour, offset: 3_600),
             ])
             chips.axis = .horizontal
             chips.spacing = 8

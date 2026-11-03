@@ -26,9 +26,9 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            title = "网络"
+            title = DO.Text.Network.title
             navigationItem.rightBarButtonItem = UIBarButtonItem(
-                title: "清空",
+                title: DO.Text.Common.clear,
                 style: .plain,
                 target: self,
                 action: #selector(handleClear)
@@ -76,7 +76,7 @@ extension DO {
                         self?.reload(force: true)
                     }) { cell in
                         cell.update(
-                            title: capture.isEnabled ? "停止采集" : "开始采集",
+                            title: capture.isEnabled ? DO.Text.Common.stopCapture : DO.Text.Common.startCapture,
                             isDestructive: capture.isEnabled
                         )
                     }
@@ -85,11 +85,11 @@ extension DO {
 
             if records.isEmpty {
                 sections.append(Section(
-                    footer: "没有捕获到请求。采集只覆盖 URLSession —— WKWebView、WebSocket 和裸 socket 都不在其中；开启采集之前创建的 session 也要等下一个 session 建出来才会被覆盖。",
+                    footer: DO.Text.Network.emptyFooter,
                     rows: []
                 ))
             } else {
-                sections.append(Section(title: "请求（\(records.count)）", rows: records.map { row(for: $0) }))
+                sections.append(Section(title: DO.Text.Network.requests(records.count), rows: records.map { row(for: $0) }))
             }
 
             self.sections = sections
@@ -129,7 +129,7 @@ extension DO {
             if let status = record.status {
                 parts.append("\(status)")
             } else {
-                parts.append(record.error == nil ? "-" : "失败")
+                parts.append(record.error == nil ? "-" : DO.Text.Network.failed)
             }
             if let duration = record.duration {
                 parts.append(String(format: "%.0f ms", duration * 1000))

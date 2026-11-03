@@ -34,25 +34,25 @@ extension DO {
             // Pushed, not presented: the base class's close button would replace the back button.
             navigationItem.leftBarButtonItem = nil
 
-            title = record.url?.host ?? "网络"
+            title = record.url?.host ?? DO.Text.Network.title
             loadSections()
         }
 
         private func loadSections() {
             sections = [
-                Section(title: "概要", rows: [
-                    valueRow("URL", record.url?.absoluteString ?? "-"),
-                    valueRow("Method", record.method),
-                    valueRow("Status", statusText),
-                    valueRow("Duration", record.duration.map { String(format: "%.1f ms", $0 * 1000) } ?? "-"),
+                Section(title: DO.Text.Network.overviewSection, rows: [
+                    valueRow(DO.Text.Network.rowURL, record.url?.absoluteString ?? "-"),
+                    valueRow(DO.Text.Network.rowMethod, record.method),
+                    valueRow(DO.Text.Network.rowStatus, statusText),
+                    valueRow(DO.Text.Network.rowDuration, record.duration.map { String(format: "%.1f ms", $0 * 1000) } ?? "-"),
                 ]),
-                Section(title: "请求", rows: [
-                    textRow("请求头", text: headersText(record.requestHeaders)),
-                    textRow("请求体", text: bodyText(record.requestBody)),
+                Section(title: DO.Text.Network.requestSection, rows: [
+                    textRow(DO.Text.Network.requestHeaders, text: headersText(record.requestHeaders)),
+                    textRow(DO.Text.Network.requestBody, text: bodyText(record.requestBody)),
                 ]),
-                Section(title: "响应", rows: [
-                    textRow("响应头", text: headersText(record.responseHeaders)),
-                    textRow("响应体", text: bodyText(record.responseBody)),
+                Section(title: DO.Text.Network.responseSection, rows: [
+                    textRow(DO.Text.Network.responseHeaders, text: headersText(record.responseHeaders)),
+                    textRow(DO.Text.Network.responseBody, text: bodyText(record.responseBody)),
                 ]),
             ]
         }
@@ -76,14 +76,14 @@ extension DO {
                     animated: true
                 )
             }) { cell in
-                cell.update(title: title, detail: text == nil ? "无" : Self.summary(of: text!))
+                cell.update(title: title, detail: text == nil ? DO.Text.Network.none : Self.summary(of: text!))
                 cell.selectionStyle = text == nil ? .none : .default
             }
         }
 
         private static func summary(of text: String) -> String {
             let firstLine = text.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""
-            return firstLine.isEmpty ? "查看" : String(firstLine.prefix(80))
+            return firstLine.isEmpty ? DO.Text.Network.view : String(firstLine.prefix(80))
         }
 
         private func headersText(_ headers: [String: String]) -> String? {
@@ -98,7 +98,7 @@ extension DO {
             guard let body = body else { return nil }
 
             guard let text = body.text else {
-                return "<\(body.byteCount) bytes of binary data>"
+                return DO.Text.Network.binaryBody(body.byteCount)
             }
 
             var result = text
@@ -110,7 +110,7 @@ extension DO {
             }
 
             if body.truncated {
-                result += "\n\n… 已截断，只保留前 \(DO.NetworkBody.maxBytes) 字节"
+                result += DO.Text.Network.truncatedBody(maxBytes: DO.NetworkBody.maxBytes)
             }
             return result
         }

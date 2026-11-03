@@ -13,17 +13,17 @@ import Foundation
 
 extension DO {
 
-    /// 面包屑的路径栈（纯逻辑，只认 id，不依赖 UIKit / ``DO.FileNode``）。值语义，栈里恒有根。
+    /// Breadcrumb stack: pure logic over ids, value semantics, always rooted.
     struct FilePathStack: Equatable {
 
-        /// 从根到当前层，恒非空
+        /// Root to current; never empty.
         private(set) var ids: [String]
 
         init(rootID: String) {
             self.ids = [rootID]
         }
 
-        /// 深度（含根），最小 1
+        /// Depth including the root; at least 1.
         var depth: Int { return ids.count }
 
         var rootID: String { return ids[0] }
@@ -34,7 +34,7 @@ extension DO {
             return ids.firstIndex(of: id)
         }
 
-        /// 追加一层；id 已在栈中则视为绕回来，先回退到该层（防环）。返回该层下标。
+        /// Push one level; an id already in the stack means a cycle, so trim back to it first.
         @discardableResult
         mutating func push(_ id: String) -> Int {
             if let index = index(of: id) {
@@ -45,7 +45,7 @@ extension DO {
             return ids.count - 1
         }
 
-        /// 保留前 depth 层（点面包屑）；越界一律 clamp 到根，不崩
+        /// Keep the first `depth` levels; out-of-range clamps to the root.
         mutating func trim(toDepth depth: Int) {
             let count = max(1, min(depth, ids.count))
             ids.removeSubrange(count..<ids.count)

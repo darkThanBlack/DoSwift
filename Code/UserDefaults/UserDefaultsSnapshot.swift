@@ -29,7 +29,7 @@ extension DO {
 
             var summary: String {
                 if let data = value as? Data {
-                    return "Data · \(data.count) bytes"
+                    return DO.Text.UserDefaults.dataSummary(data.count)
                 }
 
                 let clipped = String(String(describing: value).prefix(150))
@@ -54,7 +54,7 @@ extension DO {
 
             let searchList: [(name: String, title: String, values: [String: Any])] = [
                 (UserDefaults.argumentDomain, UserDefaults.argumentDomain, volatile(UserDefaults.argumentDomain)),
-                (appName, "App", defaults.persistentDomain(forName: appName) ?? [:]),
+                (appName, DO.Text.UserDefaults.appDomain, defaults.persistentDomain(forName: appName) ?? [:]),
                 (UserDefaults.globalDomain, UserDefaults.globalDomain, defaults.persistentDomain(forName: UserDefaults.globalDomain) ?? [:]),
                 (UserDefaults.registrationDomain, UserDefaults.registrationDomain, volatile(UserDefaults.registrationDomain)),
             ]
@@ -79,7 +79,7 @@ extension DO {
                 domains.append(Domain(name: name, title: title, items: sorted(items)))
             }
             if !unattributed.isEmpty {
-                domains.append(Domain(name: "", title: "Other Domains", items: sorted(unattributed)))
+                domains.append(Domain(name: "", title: DO.Text.UserDefaults.otherDomains, items: sorted(unattributed)))
             }
 
             return DO.UserDefaultsSnapshot(domains: domains)

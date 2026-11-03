@@ -47,7 +47,7 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            title = "Settings"
+            title = DO.Text.Common.settings
 
             navigationItem.leftBarButtonItem = nil
 
@@ -68,13 +68,13 @@ extension DO {
                 footer: source.detail,
                 rows: [
                     makeRow(Item(
-                        title: "Show",
-                        detail: "Include these lines in the list.",
+                        title: DO.Text.Console.show,
+                        detail: DO.Text.Console.showDetail,
                         kind: .enabled(source)
                     )),
                     makeRow(Item(
-                        title: "Merge same timestamp",
-                        detail: "Consecutive lines sharing a timestamp become one block.",
+                        title: DO.Text.Console.mergeSameTimestamp,
+                        detail: DO.Text.Console.mergeDetail,
                         kind: .merge(source)
                     )),
                 ]
@@ -85,30 +85,26 @@ extension DO {
             let source = DO.ConsoleLine.Source.unifiedLog
 
             guard DO.ConsoleUnifiedLog.isAvailable else {
-                return Section(title: source.title, footer: "Unavailable on this system.", rows: [])
+                return Section(title: source.title, footer: DO.Text.Console.unavailable, rows: [])
             }
 
             return Section(
                 title: source.title,
-                footer: source.detail + ". "
-                      + "One read costs about a second regardless of how much is there, so it runs "
-                      + "when you open the page or tap the button — never on a timer. Interpolated "
-                      + "values are private by default: only what was logged with `privacy: .public` "
-                      + "(and numbers) can be read.",
+                footer: source.detail + ". " + DO.Text.Console.unifiedLogFooter,
                 rows: [
                     makeRow(Item(
-                        title: "Show",
-                        detail: "Include these lines in the list.",
+                        title: DO.Text.Console.show,
+                        detail: DO.Text.Console.showDetail,
                         kind: .enabled(source)
                     )),
                     makeRow(Item(
-                        title: "Merge same timestamp",
-                        detail: "Off by default — unified log entries already carry their own boundaries.",
+                        title: DO.Text.Console.mergeSameTimestamp,
+                        detail: DO.Text.Console.mergeDetailUnifiedLog,
                         kind: .merge(source)
                     )),
                     makeRow(Item(
-                        title: "No Subsystem",
-                        detail: "A bare `Logger()` has an empty subsystem — could be yours, could be a framework's",
+                        title: DO.Text.Console.noSubsystem,
+                        detail: DO.Text.Console.noSubsystemDetail,
                         kind: .emptySubsystem
                     )),
                 ]

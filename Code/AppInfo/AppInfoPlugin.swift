@@ -19,7 +19,7 @@ extension DO {
         public static let shared = DO.AppInfoPlugin()
 
         private init() {
-            super.init(identifier: "app_info", title: "App信息", icon: UIImage(systemName: "info.circle"))
+            super.init(identifier: "app_info", title: DO.Text.AppInfo.title, icon: UIImage(systemName: "info.circle"))
         }
 
         public override func show() {

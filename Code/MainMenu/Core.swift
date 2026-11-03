@@ -23,13 +23,23 @@ extension DO {
         /// Your APP's window.
         private(set) weak var appWindow: UIWindow?
         
-        /// It is strongly recommended to pass in an accurate window. Automated get app window can never be guaranteed to be 100% accurate.
+        /// Your APP's scene. Overlay windows attach to it; see `DO.OverlayWindow`.
+        private(set) weak var appScene: UIWindowScene?
+        
+        /// Pass an accurate window / scene; automated detection can never be 100% right.
+        ///
+        /// - Parameters:
+        ///   - appWindow: the host's key window
+        ///   - appScene: the host's window scene; when given, every overlay window is created in it
         public func setup(
-            appWindow: UIWindow?,
+            appScene: UIWindowScene? = nil,
+            appWindow: UIWindow? = nil,
             plugins: [DO.Plugin] = []
         ) {
-            guard let w = appWindow ?? keyWindow() else {
-                assertionFailure("appWindow is nil")
+            self.appScene = appScene ?? appWindow?.windowScene ?? keyWindowScene()
+            
+            guard let w = appWindow ?? keyWindow() ?? appScene?.windows.first else {
+                assertionFailure("appWindow / appScene is nil")
                 return
             }
             
@@ -37,7 +47,7 @@ extension DO {
             
             self.menuGroups = defMenuGroups
             let customGroup = DO.MenuGroup(
-                title: "Custom",
+                title: DO.Text.Common.custom,
                 items: plugins.map({ DO.MenuItem(plugin: $0) })
             )
             if customGroup.items.isEmpty == false {
@@ -60,6 +70,9 @@ extension DO {
         /// [refer](https://stackoverflow.com/questions/57134259)
         @available(iOS 13.0, *)
         private func keyWindowScene() -> UIWindowScene? {
+            if let scene = appScene {
+                return scene
+            }
             return UIApplication
                 .shared
                 .connectedScenes
@@ -97,7 +110,7 @@ extension DO {
 
         private lazy var defMenuGroups: [DO.MenuGroup] = {
             
-            let common = DO.MenuGroup(title: "Info", items: [
+            let common = DO.MenuGroup(title: DO.Text.Menu.infoGroup, items: [
                 DO.MenuItem(plugin: DO.AppInfoPlugin.shared),
                 DO.MenuItem(plugin: DO.ConsolePlugin.shared),
                 DO.MenuItem(plugin: DO.NetworkPlugin.shared),
@@ -105,11 +118,11 @@ extension DO {
                 DO.MenuItem(plugin: DO.SandboxPlugin.shared),
             ])
             
-            let performance = DO.MenuGroup(title: "Performance", items: [
+            let performance = DO.MenuGroup(title: DO.Text.Perf.title, items: [
                 DO.MenuItem(plugin: DO.PerfTrendPlugin.shared),
             ])
 
-            let visual = DO.MenuGroup(title: "Visual", items: [
+            let visual = DO.MenuGroup(title: DO.Text.Menu.visualGroup, items: [
                 DO.MenuItem(plugin: DO.HierarchyPlugin.shared),
             ])
             

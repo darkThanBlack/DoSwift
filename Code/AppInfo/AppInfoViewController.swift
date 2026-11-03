@@ -21,9 +21,9 @@ extension DO {
         override func viewDidLoad() {
             super.viewDidLoad()
 
-            title = "App 信息"
+            title = DO.Text.AppInfo.title
             navigationItem.rightBarButtonItem = UIBarButtonItem(
-                title: "复制 JSON",
+                title: DO.Text.AppInfo.copyJSON,
                 style: .plain,
                 target: self,
                 action: #selector(copyJSON)
@@ -58,7 +58,7 @@ extension DO {
         private var displaySections: [DO.AppInfoSection] {
             var data = DO.AppInfo.shared.sections()
             if !customRows.isEmpty {
-                data.append((title: "自定义", rows: customRows))
+                data.append((title: DO.Text.Common.custom, rows: customRows))
             }
             return data
         }
