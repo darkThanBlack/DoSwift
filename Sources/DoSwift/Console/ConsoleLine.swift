@@ -15,7 +15,7 @@ extension DO {
 
     struct ConsoleLine {
 
-        enum Source: String, CaseIterable {
+        enum Source: String, Codable, CaseIterable {
 
             case standardOutput
             case standardError

@@ -18,6 +18,12 @@ extension DO {
         static let shared = DO.ConsoleStore()
 
         private init() {
+            let settings = DO.ConsoleSettings.load()
+            persistedSettings = settings
+            filter.sources = settings.sources
+            filter.includesEmptySubsystem = settings.includesEmptySubsystem
+            mergesSameTimestamp = settings.mergesSameTimestamp
+
             capture.onLine = { [weak self] line in
                 self?.append(line)
             }
@@ -57,13 +63,34 @@ extension DO {
         }
 
         var filter = Filter() {
-            didSet { notify() }
+            didSet {
+                persistSettings()
+                notify()
+            }
         }
 
-        /// Sources whose consecutive same-timestamp lines fold into one block. Default: stderr —
-        /// `NSLog` dumps a whole object as one message. Not `print`, not the unified log.
-        var mergesSameTimestamp: Set<DO.ConsoleLine.Source> = [.standardError] {
-            didSet { notify() }
+        /// Sources whose consecutive same-timestamp lines fold into one block. Both fd streams by
+        /// default — a multi-line dump lands on either one. The unified log already has boundaries.
+        var mergesSameTimestamp: Set<DO.ConsoleLine.Source> = [.standardOutput, .standardError] {
+            didSet {
+                persistSettings()
+                notify()
+            }
+        }
+
+        /// Last value written to `UserDefaults`. `filter` also carries the search keyword, so
+        /// without this every keystroke would re-encode and write the whole struct.
+        private var persistedSettings = DO.ConsoleSettings()
+
+        private func persistSettings() {
+            let settings = DO.ConsoleSettings(
+                sources: filter.sources,
+                mergesSameTimestamp: mergesSameTimestamp,
+                includesEmptySubsystem: filter.includesEmptySubsystem
+            )
+            guard settings != persistedSettings else { return }
+            persistedSettings = settings
+            settings.save()
         }
 
         private var pausedStorage = false
