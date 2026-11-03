@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   
   s.source_files = 'Code/**/*.{swift,m,h}'
   s.resource_bundles = {
-    'DoSwiftKitResources' => ['Resources/**/*.{json,strings}']
+    'DoSwiftKitResources' => ['Resources/**/*.{json,strings,xcprivacy}']
   }
   
   # Build settings

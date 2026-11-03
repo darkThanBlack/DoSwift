@@ -28,7 +28,8 @@ DoSwift/
 ├── Resources/                     # 随包资源（与 Code/ 平级）
 │   ├── DoSwiftHierarchyDefine.json
 │   ├── en.lproj/Localizable.strings
-│   └── zh-Hans.lproj/Localizable.strings
+│   ├── zh-Hans.lproj/Localizable.strings
+│   └── PrivacyInfo.xcprivacy
 ├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen）
 ├── Tests/                         # SPM 测试
 ├── docs/                          # 开发指南

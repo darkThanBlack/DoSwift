@@ -21,7 +21,8 @@ DoSwift/
 ├── Resources/                     # 随包资源（与 Code/ 平级）
 │   ├── DoSwiftHierarchyDefine.json
 │   ├── en.lproj/Localizable.strings
-│   └── zh-Hans.lproj/Localizable.strings
+│   ├── zh-Hans.lproj/Localizable.strings
+│   └── PrivacyInfo.xcprivacy
 ├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen 管理，单 scene）
 ├── Tests/                         # SPM 测试目标
 ├── docs/                          # 开发指南
@@ -169,6 +170,20 @@ swift build --triple arm64-apple-ios13.0-simulator --sdk "$SDK"
 ```
 
 产物在 `.build/arm64-apple-ios-simulator/debug/`，资源包名 `DoSwiftKit_DoSwiftKit.bundle`。
+
+## 隐私清单
+
+`Resources/PrivacyInfo.xcprivacy` 随资源包分发（SPM 与 CocoaPods 都落在 bundle 根部），
+声明本库用到的 required-reason API：
+
+| 类别 | 用在哪 | 理由码 |
+|---|---|---|
+| `UserDefaults` | UserDefaults 模块、HierarchyConfig、Perf 配置 | CA92.1 |
+| `FileTimestamp` | AppInfo 读可执行文件时间 | C617.1 |
+| `SystemBootTime` | 网络耗时、Perf 采样（`CACurrentMediaTime` / `mach_absolute_time`） | 35F9.1 |
+
+本库不采集、不上传任何数据（`NSPrivacyCollectedDataTypes` 为空）。
+新增 required-reason API 时要同步补理由码，否则集成方提审会被拒。
 
 ## 已知限制
 
