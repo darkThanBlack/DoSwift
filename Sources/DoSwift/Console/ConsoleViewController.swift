@@ -56,27 +56,6 @@ extension DO {
             return label
         }()
 
-        /// Mirrors the network page's start / stop row. Capture is explicit here as well: the
-        /// pipe takes over fd 1 and fd 2, so it must never be attached behind the caller's back.
-        private lazy var captureBar: UIView = {
-            let view = UIView()
-            view.backgroundColor = .systemBackground
-            return view
-        }()
-
-        private lazy var captureButton: UIButton = {
-            let button = UIButton(type: .system)
-            button.titleLabel?.font = .systemFont(ofSize: 15)
-            button.addTarget(self, action: #selector(toggleCapture), for: .touchUpInside)
-            return button
-        }()
-
-        private lazy var captureSeparator: UIView = {
-            let view = UIView()
-            view.backgroundColor = .separator
-            return view
-        }()
-
         private lazy var searchController: UISearchController = {
             let controller = UISearchController(searchResultsController: nil)
             controller.searchResultsUpdater = self
@@ -97,6 +76,15 @@ extension DO {
             style: .plain,
             target: self,
             action: #selector(togglePause)
+        )
+
+        /// Capture is explicit: the pipe takes over fd 1 and fd 2, so it must never be attached
+        /// behind the caller's back.
+        private lazy var captureItem = UIBarButtonItem(
+            image: UIImage(systemName: "record.circle"),
+            style: .plain,
+            target: self,
+            action: #selector(toggleCapture)
         )
 
         private lazy var unifiedLogItem = UIBarButtonItem(
@@ -138,18 +126,13 @@ extension DO {
 
             let spacer = { UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil) }
             toolbarItems = [
-                spacer(), unifiedLogItem, spacer(), pauseItem, spacer(), clearItem, spacer(), exportItem, spacer(),
+                spacer(), captureItem, spacer(), unifiedLogItem, spacer(),
+                pauseItem, spacer(), clearItem, spacer(), exportItem, spacer(),
             ]
 
             view.backgroundColor = .systemBackground
             tableView.translatesAutoresizingMaskIntoConstraints = false
             statusLabel.translatesAutoresizingMaskIntoConstraints = false
-            captureBar.translatesAutoresizingMaskIntoConstraints = false
-            captureButton.translatesAutoresizingMaskIntoConstraints = false
-            captureSeparator.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(captureBar)
-            captureBar.addSubview(captureButton)
-            captureBar.addSubview(captureSeparator)
             view.addSubview(tableView)
             view.addSubview(statusLabel)
 
@@ -162,20 +145,7 @@ extension DO {
                 emptyLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 24),
                 emptyLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -24),
 
-                captureBar.topAnchor.constraint(equalTo: view.topAnchor),
-                captureBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                captureBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-
-                captureButton.centerXAnchor.constraint(equalTo: captureBar.centerXAnchor),
-                captureButton.topAnchor.constraint(equalTo: captureBar.topAnchor, constant: 12),
-                captureButton.bottomAnchor.constraint(equalTo: captureBar.bottomAnchor, constant: -12),
-
-                captureSeparator.leadingAnchor.constraint(equalTo: captureBar.leadingAnchor),
-                captureSeparator.trailingAnchor.constraint(equalTo: captureBar.trailingAnchor),
-                captureSeparator.bottomAnchor.constraint(equalTo: captureBar.bottomAnchor),
-                captureSeparator.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale),
-
-                tableView.topAnchor.constraint(equalTo: captureBar.bottomAnchor),
+                tableView.topAnchor.constraint(equalTo: view.topAnchor),
                 tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
                 tableView.bottomAnchor.constraint(equalTo: statusLabel.topAnchor),
@@ -218,7 +188,6 @@ extension DO {
 
             tableView.reloadData()
             updateEmptyState()
-            updateCaptureButton()
             statusLabel.text = statusText
             updateToolbarItems()
         }
@@ -229,18 +198,12 @@ extension DO {
 
             if store.capturedCount == 0 {
                 emptyLabel.text = "Nothing captured yet.\n"
-                    + "A pipe only sees output written after it is attached — start capture above,\n"
+                    + "A pipe only sees output written after it is attached — tap record below,\n"
                     + "or call DO.ConsolePlugin.shared.start() at launch to keep the whole session."
             } else {
                 emptyLabel.text = "All \(store.capturedCount) captured lines are hidden by the filter.\n"
                     + "Check Settings → Sources."
             }
-        }
-
-        private func updateCaptureButton() {
-            let capturing = DO.ConsoleStore.shared.isCapturing
-            captureButton.setTitle(capturing ? "停止采集" : "开始采集", for: .normal)
-            captureButton.setTitleColor(capturing ? .systemRed : view.tintColor, for: .normal)
         }
 
         private func updateToolbarItems() {
@@ -251,6 +214,10 @@ extension DO {
 
             clearItem.isEnabled = store.capturedCount > 0
             exportItem.isEnabled = store.capturedCount > 0
+
+            captureItem.image = UIImage(systemName: store.isCapturing ? "stop.circle" : "record.circle")
+            captureItem.tintColor = store.isCapturing ? .systemRed : nil
+            captureItem.accessibilityLabel = store.isCapturing ? "停止采集" : "开始采集"
 
             let refreshing = store.unifiedLog.isRefreshing
             unifiedLogItem.isEnabled = !refreshing && DO.ConsoleUnifiedLog.isAvailable
