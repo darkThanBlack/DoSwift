@@ -16,7 +16,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.darkThanBlack.demo.DoSwift
         IPHONEOS_DEPLOYMENT_TARGET: 13.0
-        SWIFT_VERSION: 5.9
+        SWIFT_VERSION: 5.7
         # 1: iPhone
         TARGETED_DEVICE_FAMILY: 1
         UILaunchStoryboardName: LaunchScreen

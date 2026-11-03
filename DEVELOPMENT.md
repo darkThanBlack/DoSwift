@@ -1,180 +1,141 @@
 # DoSwift 开发指南
 
-## 📋 完成项目总览
-
-✅ **已完成功能**：
-- DoSwift.podspec CocoaPods 规范文件
-- 完整的 Example 项目（参照 DTBKit 架构）
-- dev pods 开发模式配置
-- 示例代码和演示界面
-
-## 🚀 项目结构
+## 项目结构
 
 ```
 DoSwift/
-├── Sources/DoSwift/           # DoSwift 核心源码
-│   ├── DoSwift.swift         # 命名空间和协议
-│   ├── DoSwiftCore.swift     # 核心管理器
-│   ├── Window/               # 窗口处理框架
-│   │   ├── DoSwiftWindow.swift
-│   │   ├── WindowManager.swift
-│   │   └── DoSwiftMenuItem.swift
-│   └── UI/                   # UI 组件
-│       ├── FloatingViewController.swift
-│       ├── FloatingButton.swift
-│       └── MenuContainerView.swift
-├── Example/                  # 示例项目
-│   ├── Example/             # 源码
-│   ├── Podfile             # CocoaPods 配置
-│   ├── project.yml         # XcodeGen 配置
-│   └── README.md           # 示例说明
-├── DoSwift.podspec         # CocoaPods 规范
-├── Package.swift           # SPM 配置
-└── README.md              # 主要文档
+├── Code/                          # 全部源码（唯一 target）
+│   ├── DO.swift                   # public enum DO {} —— 全库命名空间
+│   ├── AppInfo/                   # App / 设备 / 权限信息
+│   ├── Common/                    # 通用组件
+│   │   ├── FileBrowser/           # 文件浏览器：PathBarView + FileListView + 三个协议
+│   │   └── Trend/                 # 趋势图：折线 / 柱状 / 文本，三种消费者同一取数接口
+│   ├── Console/                   # 日志采集（stdout / stderr / os_log）与控制台
+│   ├── Hierarchy/                 # UI 结构检查器
+│   ├── MainMenu/                  # 浮窗入口、插件协议、分组菜单
+│   ├── Network/                   # URLSession 抓包
+│   ├── Perf/                      # CPU / 内存 / FPS 采样与报表
+│   ├── Runtime/                   # Swizzler
+│   ├── Sandbox/                   # 沙盒文件浏览器
+│   └── UserDefaults/              # UserDefaults 浏览与删除
+├── Resources/                     # 随包资源（与 Code/ 平级）
+│   └── DoSwiftHierarchyDefine.json
+├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen 管理）
+├── Tests/                         # SPM 测试目标
+├── Scripts/ci.sh                  # 交互式开发脚本
+├── DoSwift.podspec
+└── Package.swift
 ```
 
-## 🛠 开发环境设置
+打包口径：
 
-### 1. 使用 Example 项目进行开发
+| 集成方式 | 源码 | 资源 |
+|---|---|---|
+| CocoaPods | `Code/**/*.{swift,m,h}` | `resource_bundles => { 'DoSwiftResources' => ['Resources/**/*.{json}'] }` |
+| SwiftPM | `target(path: ".")` + `sources: ["Code"]` | `resources: [.process("Resources")]` |
+
+SwiftPM 只认包根目录之下的资源，而 `Resources/` 与 `Code/` 平级，所以 target 声明成包根，
+再用 `sources` / `resources` 收窄、`exclude` 排掉 `Example` / `Tests` / `Scripts` 等目录。
+
+## 开发环境
 
 ```bash
-# 进入示例项目目录
-cd DoSwift/Example
-
-# 生成 Xcode 项目
-xcodegen generate
-
-# 安装 dev pods
+cd Example
+xcodegen generate     # 只有改了 project.yml 才需要
 pod install
-
-# 打开工作区
 open DoSwiftExample.xcworkspace
 ```
 
-### 2. dev pods 开发模式特点
+示例工程用 dev pod（`pod 'DoSwift', :path => '../'`）直接引用本仓库，改完源码重新构建即可，
+不需要重装 pod。`Example/project.yml` 里 `platform: [iOS]` 会派生 target 名（`DoSwift_Example_iOS`），
+所以显式写了 `platformSuffix: ""` 保住 `DoSwift_Example` 这个名字。
 
-- **本地路径引用**：`pod 'DoSwift/Complete', :path => '../'`
-- **实时编译**：修改源码后直接构建，无需重新安装 pod
-- **模块化测试**：可以分模块测试不同功能
+## 架构
 
-## 🎯 核心特性实现
+### 1. 命名空间
 
-### 1. 标准 UIWindow 框架
+全库只有 `public enum DO {}`，没有顶层符号。所有类型写成 `extension DO { ... }`，
+对外可见的内容加 `public`。
 
-参考 **MOONAssistiveTouch** 的设计理念：
-- `DoSwiftWindow`：自定义窗口，支持事件穿透
-- `noResponseView`：指定不响应触摸的区域
-- `hitTest` 重写：实现智能事件分发
-
-### 2. 悬浮控件系统
-
-- `FloatingButton`：支持拖拽、边缘吸附、自动淡化
-- `MenuContainerView`：多级菜单系统，支持子菜单导航
-- `DoSwiftMenuItem`：灵活的菜单项数据模型
-
-### 3. 插件化架构
-
-- `DoSwiftCore`：统一管理入口
-- `WindowManager`：窗口生命周期管理
-- 支持运行时动态添加/移除功能
-
-## 🐛 已知问题及解决方案
-
-### 1. podspec 验证失败
-
-**问题**：模块依赖和 iOS 版本兼容性错误
-
-**解决方案**：
-- 已调整最低支持版本为 iOS 13.0（支持 `systemBackground` 等新 API）
-- 使用 `Complete` 子模块包含所有源码，避免模块依赖问题
-
-### 2. 当前状态
-
-由于 podspec 还有依赖错误，建议：
-
-1. **直接使用 Example 项目**进行开发和测试
-2. **采用 dev pods 模式**，修改源码实时生效
-3. **后续优化**：待功能稳定后再解决 podspec 验证问题
-
-## 📱 使用示例
-
-### 1. 基本集成
+### 2. 插件与入口
 
 ```swift
-import DoSwift
-
-// 在 AppDelegate 中初始化
-DoSwiftCore.shared.initialize()
-DoSwiftCore.shared.show() // 显示悬浮窗
-```
-
-### 2. 自定义菜单
-
-```swift
-let menuItems: [DoSwiftMenuItem] = [
-    DoSwiftMenuItem(
-        identifier: "custom",
-        title: "自定义功能",
-        icon: UIImage(systemName: "star")
-    ) { _ in
-        print("执行自定义功能")
-    }
-]
-
-DoSwiftCore.shared.initialize(with: menuItems)
-```
-
-### 3. 运行时添加功能
-
-```swift
-let newItem = DoSwiftMenuItem(
-    identifier: "runtime",
-    title: "动态添加",
-    icon: UIImage(systemName: "plus")
-) { _ in
-    // 新功能逻辑
+public protocol Plugin {
+    var identifier: String { get }
+    var title: String { get }
+    var icon: UIImage? { get }
+    var actionHandler: (() -> ())? { get }
 }
-
-DoSwiftCore.shared.addMenuItem(newItem)
 ```
 
-## 🔄 与 DoKit-iOS 的改进
+- `DO.DefaultPlugin`：`shared` 单例 + `prepare()` + `show()` / `hide()` 的窗口骨架。
+- `DO.Core.shared.setup(appWindow:plugins:)`：注册自定义插件、显示主菜单浮窗。
+  推荐显式传入当前 App 的 window —— 自动探测 `keyWindow` 走的是兜底分支，不能保证 100% 准确。
 
-| 特性 | DoKit-iOS | DoSwift |
-|-----|-----------|---------|
-| 语言 | Objective-C | 纯 Swift |
-| 最低版本 | iOS 11.0 | iOS 13.0 |
-| 架构 | 单体架构 | 插件化设计 |
-| 依赖管理 | CocoaPods | SPM + CocoaPods |
-| UI 框架 | UIKit | SwiftUI + UIKit |
-| 平台代码 | 包含滴滴平台 | 纯工具功能 |
+### 3. 窗口
 
-## 🎨 与 MOONAssistiveTouch 的差异
+每个工具**各建自己的** `DO.OverlayWindow` 实例，不共享宿主。类共享的只有 `OverlayWindow`
+本身，它比 `UIWindow` 多的唯一实质能力是 `addNoResponseView`（登记一个 view，命中时
+`hitTest` 返回 nil，事件透到业务 App）。
 
-| 特性 | MOONAssistiveTouch | DoSwift |
-|-----|-------------------|---------|
-| 菜单系统 | 简单菜单 | 多级菜单 + 导航栈 |
-| 扩展性 | 固定功能 | 插件化架构 |
-| 现代化程度 | iOS 8+ | iOS 13+ 新特性 |
+- 层级工具（`HierarchyPlugin`）：登记 `noResponseView`，触摸要漏下去。
+- 信息展示类工具（AppInfo / Console / Network / Sandbox / UserDefaults / Perf）：不登记，
+  它们要改数据，事件漏下去是 bug。
 
-## 🚦 下一步计划
+level 一般用 `.alert - 1`，主菜单用 `.statusBar`。
 
-1. **解决 podspec 验证问题**
-2. **实现具体调试插件**：
-   - 网络监控插件
-   - 内存分析插件
-   - 性能监控插件
-   - 日志查看插件
-3. **SwiftUI 界面重构**
-4. **完善文档和测试覆盖率**
+### 4. 菜单与列表
 
-## 💡 开发建议
+`DO.Core` 内置三组：`Info`（AppInfo / Console / Network / UserDefaults / Sandbox）、
+`Performance`（Perf）、`Visual`（Hierarchy），自定义插件插到最前的 `Custom` 组。
 
-目前 **Example 项目已完全可用**，建议：
+列表页统一继承 `DO.SectionTableViewController`，用 `Section` / `Row(cellClass:onTrigger:configure:)`
+描述，cell 事件统一走 `SectionCellDelegate.trigger`（不特化 `didSelectRowAt`）。
 
-1. 在 `DoSwiftExample.xcworkspace` 中进行开发
-2. 修改 `../Sources/DoSwift/` 下的源码
-3. 直接构建运行测试效果
-4. 后续解决 podspec 问题后可发布到 CocoaPods
+### 5. 外观
 
-项目架构设计完整，核心功能已实现，可以开始具体的调试工具开发！
+一律取系统值：语义色（`.label` / `.secondaryLabel` / `systemBackground` / `.secondarySystemFill`）、
+`.preferredFont(forTextStyle:)`、`.insetGrouped` 表格。cell 全部自绘 —— iOS 13 上
+`textLabel` / `detailTextLabel` 已弃用，用系统 cell 反而踩弃用公告。
+
+### 6. Hierarchy：JSON 数据驱动
+
+把「每个控件暴露哪些属性 + 枚举描述」从几千行硬编码（`NSObject+DoraemonHierarchy.m` 2527 行、
+`DoraemonEnumDescription.m` 880 行）搬进 `Resources/DoSwiftHierarchyDefine.json`：
+
+- `Pinned`：置顶分组
+- `types`：`{ 类名: { properties: [KVC keyPath], overrides: { key: { enumType, userEditable } } } }`
+- `enums`：`{ 枚举名: { rawValue: 名称 } }`
+
+`HierarchyPropertyEngine` 按类继承链匹配条目、KVC 读值；写回要求 `userEditable` + 可解析的
+`ValueKind` + 真实 setter 三者齐备，否则该行保持只读。资源查找顺序：
+`Bundle.main` → `Bundle(for: engine)` → 各自的 `DoSwiftResources.bundle`。
+
+取舍（已知、可接受）：丢编译期类型检查（枚举 rawValue 是裸 int）；纯 Swift 非 `@objc`
+属性读不到，只显示到父类层。
+
+## 验证
+
+无第三方依赖，整库一条命令做完整编译期验证（zsh 下别把文件列表存进变量再展开）：
+
+```bash
+SDK=$(xcrun --sdk iphonesimulator --show-sdk-path)
+xcrun swiftc -typecheck -sdk "$SDK" -target arm64-apple-ios13.0-simulator $(find Code -name '*.swift')
+```
+
+SPM：
+
+```bash
+swift build --triple arm64-apple-ios13.0-simulator --sdk "$SDK"
+```
+
+产物在 `.build/arm64-apple-ios-simulator/debug/`，资源包名 `DoSwift_DoSwift.bundle`。
+
+## 已知限制
+
+- **SPM 下 Hierarchy 的 JSON 找不到**：`HierarchyPropertyEngine` 只查 `DoSwiftResources.bundle`
+  （CocoaPods 的 `resource_bundles` 名），SPM 生成的是 `DoSwift_DoSwift.bundle`。
+  用 SPM 集成时这张属性表不会加载，面板里只剩内存里能反射到的部分。
+- Console 的 stdout / stderr 只能看到「管道接上之后」的输出；Unified Log 需要 iOS 15。
+- Network 只覆盖 `URLSession`：WKWebView / WebSocket / 裸 socket 抓不到，`httpBodyStream`
+  上传抓不到。

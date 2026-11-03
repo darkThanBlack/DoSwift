@@ -108,7 +108,7 @@ extension DO {
         }
     }
 
-    struct HierarchyPropertiesRoot: Decodable {
+    struct DoSwiftHierarchyDefineRoot: Decodable {
         let pinned: [DO.HierarchyPinnedGroup]?
         let types: [String: DO.HierarchyTypeEntry]
         let enums: [String: [String: String]]
@@ -126,7 +126,7 @@ extension DO {
         let writeKey: String
     }
 
-    /// Read-only property panel driven by `HierarchyProperties.json`.
+    /// Read-only property panel driven by `DoSwiftHierarchyDefine.json`.
     ///
     /// Nothing here knows about any particular property. The JSON says which class exposes
     /// which keys; this class reads them through KVC and renders one row each. That is what
@@ -166,12 +166,12 @@ extension DO {
 
         private func loadJSON() {
             guard let url = resolveURL() else {
-                print("[Hierarchy] HierarchyProperties.json not found. Check Bundle resource.")
+                print("[Hierarchy] DoSwiftHierarchyDefine.json not found. Check Bundle resource.")
                 return
             }
             do {
                 let data = try Data(contentsOf: url)
-                let root = try JSONDecoder().decode(DO.HierarchyPropertiesRoot.self, from: data)
+                let root = try JSONDecoder().decode(DO.DoSwiftHierarchyDefineRoot.self, from: data)
                 types = root.types
                 enumTables = root.enums.mapValues { table -> [DO.HierarchyEnumValue] in
                     table.compactMap { key, name in
@@ -185,7 +185,7 @@ extension DO {
                     }
                 }
             } catch {
-                print("[Hierarchy] Failed to load HierarchyProperties.json: \(error)")
+                print("[Hierarchy] Failed to load DoSwiftHierarchyDefine.json: \(error)")
             }
         }
 
@@ -193,20 +193,20 @@ extension DO {
         /// CocoaPods `resource_bundles` (a nested `<name>.bundle`).
         private func resolveURL() -> URL? {
             let frameworkBundle = Bundle(for: DO.HierarchyPropertyEngine.self)
-            if let url = Bundle.main.url(forResource: "HierarchyProperties", withExtension: "json") {
+            if let url = Bundle.main.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
                 return url
             }
-            if let url = frameworkBundle.url(forResource: "HierarchyProperties", withExtension: "json") {
+            if let url = frameworkBundle.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
                 return url
             }
             if let bundleURL = Bundle.main.url(forResource: "DoSwiftResources", withExtension: "bundle"),
                let bundle = Bundle(url: bundleURL),
-               let url = bundle.url(forResource: "HierarchyProperties", withExtension: "json") {
+               let url = bundle.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
                 return url
             }
             if let bundleURL = frameworkBundle.url(forResource: "DoSwiftResources", withExtension: "bundle"),
                let bundle = Bundle(url: bundleURL),
-               let url = bundle.url(forResource: "HierarchyProperties", withExtension: "json") {
+               let url = bundle.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
                 return url
             }
             return nil
