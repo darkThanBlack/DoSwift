@@ -22,7 +22,7 @@ targets:
         UILaunchStoryboardName: LaunchScreen
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-          - $(PODS_CONFIGURATION_BUILD_DIR)/DoSwift
+          - $(PODS_CONFIGURATION_BUILD_DIR)/DoSwiftKit
         LIBRARY_SEARCH_PATHS:
           - $(inherited)
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: $(inherited)
@@ -34,7 +34,7 @@ targets:
         - -Wno-implicit-retain-self
     sources:
       ## Metadata
-      - path: "../DoSwift.podspec"
+      - path: "../DoSwiftKit.podspec"
         group: "Metadata"
       - path: "../README.md"
         group: "Metadata"

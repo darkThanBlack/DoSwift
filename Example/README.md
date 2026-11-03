@@ -11,7 +11,7 @@ Example/
 │   ├── SceneDelegate.swift      # 建 window，DEBUG 下 setup
 │   ├── Info.plist               # UIApplicationSceneManifest 单 scene
 │   └── LaunchScreen.storyboard
-├── Podfile                      # pod 'DoSwift', :path => '../'
+├── Podfile                      # pod 'DoSwiftKit', :path => '../'
 ├── Podfile.lock
 ├── project.yml                  # XcodeGen 配置
 └── README.md
@@ -32,7 +32,7 @@ xcconfig / Pods 链接一起抹掉，表现为 `Unable to find module dependency
 
 ## dev pod
 
-`Podfile` 用 `:path => '../'` 指向仓库根目录，CocoaPods 按 `DoSwift.podspec` 里的
+`Podfile` 用 `:path => '../'` 指向仓库根目录，CocoaPods 按 `DoSwiftKit.podspec` 里的
 `source_files`（`Code/**`）和 `resource_bundles`（`Resources/**`）组织编译。
 
 改 `Code/` 下的源码后直接重新构建即可，不需要重新 `pod install`；只有改了 podspec 或

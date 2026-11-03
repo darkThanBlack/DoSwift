@@ -57,6 +57,7 @@ extension DO {
             show()
         }
         
+        /// Do not call directly
         public override func makeWindow() -> DO.OverlayWindow {
             let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .statusBar)
             let root = DO.MainViewController()
@@ -66,8 +67,10 @@ extension DO {
             return w
         }
         
-        /// Current scene in general — [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
-        /// [refer](https://stackoverflow.com/questions/57134259)
+        /// Current scene in general
+        ///
+        ///  - [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
+        ///  - [refer](https://stackoverflow.com/questions/57134259)
         @available(iOS 13.0, *)
         private func keyWindowScene() -> UIWindowScene? {
             if let scene = appScene {
@@ -80,30 +83,22 @@ extension DO {
                 .first
         }
         
-        /// Current window in general for nonscene-based app — [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
-        /// [refer](https://stackoverflow.com/questions/57134259)
+        /// Current window in general for nonscene-based app
+        ///
+        /// - [best practices](https://darkthanblack.github.io/blogs/04-bp-keywindow)
+        /// - [refer](https://stackoverflow.com/questions/57134259)
         private func keyWindow() -> UIWindow? {
-            
-            func style3() -> UIWindow? {
-                if #available(iOS 15.0, *) {
-                    return keyWindowScene()?.keyWindow
-                }
-                return nil
-            }
-
-            func style2() -> UIWindow? {
+            if #available(iOS 15.0, *) {
+                return keyWindowScene()?.keyWindow
+            } else {
                 if #available(iOS 13.0, *) {
                     return keyWindowScene()?
                         .windows
                         .first(where: { $0.isKeyWindow })
+                } else {
+                    return UIApplication.shared.keyWindow
                 }
-                return nil
             }
-
-            func style1() -> UIWindow? {
-                return UIApplication.shared.keyWindow
-            }
-            return style3() ?? style2() ?? style1()
         }
         
         private lazy var menuGroups: [DO.MenuGroup] = []

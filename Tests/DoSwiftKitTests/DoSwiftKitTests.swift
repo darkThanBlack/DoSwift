@@ -11,11 +11,11 @@
 
 import XCTest
 
-@testable import DoSwift
+@testable import DoSwiftKit
 
 /// Placeholder suite that keeps the target alive: the network capture tests, and the swizzler
 /// tests ported from Firebase, will land here.
-final class DoSwiftTests: XCTestCase {
+final class DoSwiftKitTests: XCTestCase {
 
     func testCoreIsSingleton() {
         XCTAssertTrue(DO.Core.shared === DO.Core.shared)

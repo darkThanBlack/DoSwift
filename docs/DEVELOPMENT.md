@@ -9,7 +9,7 @@ DoSwift/
 │   ├── AppInfo/                   # App / 设备 / 权限信息
 │   ├── Common/                    # 通用组件
 │   │   ├── FileBrowser/           # 文件浏览器：PathBarView + FileListView + 三个协议
-│   │   └── Trend/                 # 趋势图：折线 / 柱状 / 文本，三种消费者同一取数接口
+│   │   └── Trend/                 # 趋势图：折线 / 单行文本，同一取数接口，报表叠泳道
 │   ├── Console/                   # 日志采集（stdout / stderr / os_log）与控制台
 │   ├── Hierarchy/                 # UI 结构检查器
 │   ├── MainMenu/                  # 浮窗入口、插件协议、分组菜单
@@ -22,22 +22,27 @@ DoSwift/
 │   ├── DoSwiftHierarchyDefine.json
 │   ├── en.lproj/Localizable.strings
 │   └── zh-Hans.lproj/Localizable.strings
-├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen 管理）
+├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen 管理，单 scene）
 ├── Tests/                         # SPM 测试目标
+├── docs/                          # 开发指南
 ├── Scripts/ci.sh                  # 交互式开发脚本
-├── DoSwift.podspec
-└── Package.swift
+├── DoSwiftKit.podspec
+├── Package.swift
+├── README.md                      # 英文（GitHub 默认）
+└── README-zh-CN.md                # 简中
 ```
 
 打包口径：
 
 | 集成方式 | 源码 | 资源 |
 |---|---|---|
-| CocoaPods | `Code/**/*.{swift,m,h}` | `resource_bundles => { 'DoSwiftResources' => ['Resources/**/*.{json,strings}'] }` |
+| CocoaPods | `Code/**/*.{swift,m,h}` | `resource_bundles => { 'DoSwiftKitResources' => ['Resources/**/*.{json,strings}'] }` |
 | SwiftPM | `target(path: ".")` + `sources: ["Code"]` | `resources: [.process("Resources")]` |
 
 SwiftPM 只认包根目录之下的资源，而 `Resources/` 与 `Code/` 平级，所以 target 声明成包根，
 再用 `sources` / `resources` 收窄、`exclude` 排掉 `Example` / `Tests` / `Scripts` 等目录。
+白名单是 `sources` / `resources`，`exclude` 只负责消掉 unhandled-files 警告（列表过期只报警告，不报错）。
+有本地化资源时必须声明 `defaultLocalization`，这里取 `"en"`，与源语言一致。
 
 ## 开发环境
 
@@ -48,7 +53,11 @@ pod install
 open DoSwiftExample.xcworkspace
 ```
 
-示例工程用 dev pod（`pod 'DoSwift', :path => '../'`）直接引用本仓库，改完源码重新构建即可，
+顺序不能反：`xcodegen generate` 是整份重写 `.xcodeproj`，会把 `pod install` 写进去的
+xcconfig 和 Pods 链接一起抹掉，表现是 `Unable to find module dependency: 'DoSwift'`。
+示例工程是单 `UIWindowScene`，window 建在 `SceneDelegate` 里。
+
+示例工程用 dev pod（`pod 'DoSwiftKit', :path => '../'`）直接引用本仓库，改完源码重新构建即可，
 不需要重装 pod。`Example/project.yml` 里 `platform: [iOS]` 会派生 target 名（`DoSwift_Example_iOS`），
 所以显式写了 `platformSuffix: ""` 保住 `DoSwift_Example` 这个名字。
 
@@ -70,7 +79,7 @@ public protocol Plugin {
 }
 ```
 
-- `DO.DefaultPlugin`：`shared` 单例 + `prepare()` + `show()` / `hide()` 的窗口骨架。
+- `DO.DefaultPlugin`：`show()` / `hide()` / `makeWindow()` 的窗口骨架，子类各自提供 `shared`。
 - `DO.Core.shared.setup(appWindow:appScene:plugins:)`：注册自定义插件、显示主菜单浮窗。
   推荐 window 和 scene 都显式传入 —— 自动探测走的是兜底分支，多 scene 下不能保证准确。
   `appScene` 决定浮窗挂到哪个 `UIWindowScene`；只传 window 时会用它的 `windowScene`。
@@ -102,7 +111,12 @@ level 一般用 `.alert - 1`，主菜单用 `.statusBar`。
 `.preferredFont(forTextStyle:)`、`.insetGrouped` 表格。cell 全部自绘 —— iOS 13 上
 `textLabel` / `detailTextLabel` 已弃用，用系统 cell 反而踩弃用公告。
 
-### 6. Hierarchy：JSON 数据驱动
+### 6. 注释
+
+一律英文，一到两行。只写「为什么」——为什么这里要这样绕、为什么默认值是这个、踩过什么坑。
+「做了什么」由代码本身表达，不重复。开发期日志与断言里的文案也是英文。
+
+### 7. Hierarchy：JSON 数据驱动
 
 把「每个控件暴露哪些属性 + 枚举描述」从几千行硬编码（`NSObject+DoraemonHierarchy.m` 2527 行、
 `DoraemonEnumDescription.m` 880 行）搬进 `Resources/DoSwiftHierarchyDefine.json`：
@@ -113,7 +127,7 @@ level 一般用 `.alert - 1`，主菜单用 `.statusBar`。
 
 `HierarchyPropertyEngine` 按类继承链匹配条目、KVC 读值；写回要求 `userEditable` + 可解析的
 `ValueKind` + 真实 setter 三者齐备，否则该行保持只读。资源查找顺序：
-`Bundle.main` → `Bundle(for: engine)` → 各自的 `DoSwiftResources.bundle`。
+`Bundle.main` → `DO.resourceBundle`（SPM 是 `Bundle.module`，CocoaPods 是 `DoSwiftKitResources.bundle`）。
 
 取舍（已知、可接受）：丢编译期类型检查（枚举 rawValue 是裸 int）；纯 Swift 非 `@objc`
 属性读不到，只显示到父类层。
@@ -131,8 +145,8 @@ static func recordCount(_ count: Int) -> String {
 ```
 
 - 表在 `Resources/{en,zh-Hans}.lproj/Localizable.strings`，源语言 `en`
-- `DO.resourceBundle` 负责定位：SPM 是 `Bundle.module`（`DoSwift_DoSwift.bundle`），
-  CocoaPods 是 `DoSwiftResources.bundle`；**两边都能命中**，缺失时退回英文 `value`
+- `DO.resourceBundle` 负责定位：SPM 是 `Bundle.module`（`DoSwiftKit_DoSwiftKit.bundle`），
+  CocoaPods 是 `DoSwiftKitResources.bundle`；**两边都能命中**，缺失时退回英文 `value`
 - 术语不翻译：UserDefaults / Sandbox / Bundle ID / URL / Method / Status / Duration /
   CPU / FPS / MB / os_log / fd1 等，中英两版都保持原词
 - 复数没有用 `.stringsdict`：涉及数量的文案改成了与数量无关的写法
@@ -154,7 +168,7 @@ SPM：
 swift build --triple arm64-apple-ios13.0-simulator --sdk "$SDK"
 ```
 
-产物在 `.build/arm64-apple-ios-simulator/debug/`，资源包名 `DoSwift_DoSwift.bundle`。
+产物在 `.build/arm64-apple-ios-simulator/debug/`，资源包名 `DoSwiftKit_DoSwiftKit.bundle`。
 
 ## 已知限制
 

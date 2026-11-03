@@ -11,7 +11,7 @@
 
 import XCTest
 
-@testable import DoSwift
+@testable import DoSwiftKit
 
 /// Answers every request with a fixed payload so the capture pipeline can be tested offline.
 private final class StubProtocol: URLProtocol {

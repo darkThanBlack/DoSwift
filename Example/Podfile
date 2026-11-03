@@ -7,7 +7,7 @@ platform :ios, '13.0'
 target 'DoSwift_Example' do
 
   # Development pods using path for local development
-  pod 'DoSwift', :path => '../'
+  pod 'DoSwiftKit', :path => '../'
 
   # Optional: Add DTBKit for enhanced functionality
   # pod 'DTBKit/Basic', :git => 'https://github.com/darkThanBlack/DTBKit.git', :branch => 'main'

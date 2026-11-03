@@ -1,16 +1,16 @@
 PODS:
-  - DoSwift (0.1.0)
+  - DoSwiftKit (1.0.0)
 
 DEPENDENCIES:
-  - DoSwift (from `../`)
+  - DoSwiftKit (from `../`)
 
 EXTERNAL SOURCES:
-  DoSwift:
+  DoSwiftKit:
     :path: "../"
 
 SPEC CHECKSUMS:
-  DoSwift: cae03d821b86cc594d0233473b2edc7e9d7929b4
+  DoSwiftKit: 48860a90f20f2d08cef329399f05d5a4b32f4bdc
 
-PODFILE CHECKSUM: 7fb1bc42b8a8989540854c1babf94fa9db4055be
+PODFILE CHECKSUM: 400b689d74bc72973f752fdfdd24df2f44d62aef
 
 COCOAPODS: 1.16.2

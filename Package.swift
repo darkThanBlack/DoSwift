@@ -2,15 +2,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "DoSwift",
+    name: "DoSwiftKit",
     defaultLocalization: "en",
     platforms: [
         .iOS(.v13)
     ],
     products: [
         .library(
-            name: "DoSwift",
-            targets: ["DoSwift"]
+            name: "DoSwiftKit",
+            targets: ["DoSwiftKit"]
         )
     ],
     targets: [
@@ -18,7 +18,7 @@ let package = Package(
         // SwiftPM only accepts resources below `path`, so the target is the root and
         // `sources` / `resources` narrow it; `exclude` only silences the unhandled-files warning.
         .target(
-            name: "DoSwift",
+            name: "DoSwiftKit",
             path: ".",
             exclude: [
                 ".build",
@@ -28,7 +28,7 @@ let package = Package(
                 "Scripts",
                 "Tests",
                 "Package.swift",
-                "DoSwift.podspec",
+                "DoSwiftKit.podspec",
                 "LICENSE",
                 "README.md",
                 "CLAUDE.md",
@@ -39,8 +39,8 @@ let package = Package(
             resources: [.process("Resources")]
         ),
         .testTarget(
-            name: "DoSwiftTests",
-            dependencies: ["DoSwift"],
+            name: "DoSwiftKitTests",
+            dependencies: ["DoSwiftKit"],
             path: "Tests"
         )
     ]

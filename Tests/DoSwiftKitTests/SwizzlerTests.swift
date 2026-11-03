@@ -11,7 +11,7 @@
 
 import XCTest
 
-@testable import DoSwift
+@testable import DoSwiftKit
 
 private final class Greeter: NSObject {
 

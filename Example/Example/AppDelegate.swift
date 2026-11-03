@@ -11,7 +11,7 @@
 
 import UIKit
 
-import DoSwift
+import DoSwiftKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {

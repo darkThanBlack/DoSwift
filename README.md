@@ -1,6 +1,6 @@
 # DoSwift
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](#)  [![iOS](https://img.shields.io/badge/iOS-13.0%2B-blue.svg)](#)  [![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](#)
+[![Version](https://img.shields.io/github/v/tag/darkThanBlack/DoSwift?label=version)](#)  [![iOS](https://img.shields.io/badge/iOS-13.0%2B-blue.svg)](#)  [![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](#)
 
 **English** | [简体中文](https://github.com/darkThanBlack/DoSwift/README-zh-CN.md)
 
@@ -45,7 +45,7 @@ November 2026
 #### CocoaPods
 
 ```ruby
-pod 'DoSwift', '1.0.0'
+pod 'DoSwiftKit', '1.0.0'
 ```
 
 #### SwiftPM

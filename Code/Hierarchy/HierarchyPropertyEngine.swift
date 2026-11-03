@@ -181,7 +181,7 @@ extension DO {
 
         /// Resolves the JSON resource: a host that drops the file into the main bundle wins,
         /// otherwise it comes from `DO.resourceBundle` (SPM → `Bundle.module`,
-        /// CocoaPods → `DoSwiftResources.bundle`).
+        /// CocoaPods → `DoSwiftKitResources.bundle`).
         private func resolveURL() -> URL? {
             if let url = Bundle.main.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json") {
                 return url

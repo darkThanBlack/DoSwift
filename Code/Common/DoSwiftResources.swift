@@ -15,13 +15,13 @@ extension DO {
 
     /// This library's own resources: `Localizable.strings` and `DoSwiftHierarchyDefine.json`.
     ///
-    /// - SPM: `Bundle.module`, i.e. `DoSwift_DoSwift.bundle`
-    /// - CocoaPods: the `resource_bundles` output, `DoSwiftResources.bundle`
+    /// - SPM: `Bundle.module`, i.e. `DoSwiftKit_DoSwiftKit.bundle`
+    /// - CocoaPods: the `resource_bundles` output, `DoSwiftKitResources.bundle`
     static let resourceBundle: Bundle = {
         #if SWIFT_PACKAGE
         return Bundle.module
         #else
-        let name = "DoSwiftResources"
+        let name = "DoSwiftKitResources"
         let hosts = [Bundle.main, Bundle(for: DO.ResourcesToken.self)]
         for host in hosts {
             if let url = host.url(forResource: name, withExtension: "bundle"),

@@ -16,7 +16,7 @@ DoSwift/
 │   ├── AppInfo/                   # App / 设备 / 权限信息
 │   ├── Common/                    # 通用组件
 │   │   ├── FileBrowser/           # 文件浏览器（路径栏 + 列表 + 三个协议）
-│   │   └── Trend/                 # 趋势图（折线 / 柱状 / 文本）
+│   │   └── Trend/                 # 趋势图（浮窗折线 / 单行文本，报表叠泳道）
 │   ├── Console/                   # 日志采集与控制台
 │   ├── Hierarchy/                 # UI 结构检查器（JSON 数据驱动）
 │   ├── MainMenu/                  # 浮窗入口、插件协议、分组菜单
@@ -31,9 +31,9 @@ DoSwift/
 │   └── zh-Hans.lproj/Localizable.strings
 ├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen）
 ├── Tests/                         # SPM 测试
-├── docs/                          # 开发指南、LLM 代码规范
+├── docs/                          # 开发指南
 ├── Scripts/ci.sh
-├── DoSwift.podspec
+├── DoSwiftKit.podspec
 ├── Package.swift
 ├── README.md                      # 英文（GitHub 默认）
 └── README-zh-CN.md                # 简中
@@ -42,9 +42,11 @@ DoSwift/
 `Code/` 与 `Resources/` 是**平级**的顶层目录，打包方式各异：
 
 - **CocoaPods**：`source_files = 'Code/**/*.{swift,m,h}'`，资源走
-  `resource_bundles => { 'DoSwiftResources' => ['Resources/**/*.{json,strings}'] }`
+  `resource_bundles => { 'DoSwiftKitResources' => ['Resources/**/*.{json,strings}'] }`
 - **SPM**：SwiftPM 只认包根目录之下的资源，所以 target 声明为 `path: "."`，再用
-  `sources: ["Code"]` / `resources: [.process("Resources")]` 收窄，其余目录列进 `exclude`
+  `sources: ["Code"]` / `resources: [.process("Resources")]` 收窄，其余目录列进 `exclude`。
+  白名单是 `sources` / `resources`，`exclude` 只负责消掉 unhandled-files 警告；
+  有本地化资源，`defaultLocalization: "en"` 必须显式声明
 
 ## 开发命令
 
@@ -55,11 +57,15 @@ pod install
 open DoSwiftExample.xcworkspace
 ```
 
+顺序不能反：`xcodegen generate` 会整份重写 `.xcodeproj`，把 `pod install` 写进去的
+xcconfig 一起抹掉，表现是 `Unable to find module dependency: 'DoSwift'`。
+示例工程是单 `UIWindowScene`，window 在 `SceneDelegate` 里建。
+
 ## 模块骨架
 
 - **命名空间**：`public enum DO {}`，所有类型写成 `extension DO { ... }`；对外可见的加 `public`。
 - **插件**：`DO.Plugin`（`identifier` / `title` / `icon` / `actionHandler`）+ 基类
-  `DO.DefaultPlugin`（`shared` / `prepare()` / `show` / `hide` 的窗口骨架）。
+  `DO.DefaultPlugin`（`show` / `hide` / `makeWindow` 的窗口骨架，子类各自提供 `shared`）。
   `DO.Core.shared.setup(appWindow:appScene:plugins:)` 注册并显示浮窗；自定义插件排在最前的
   `Custom` 组。`appScene` 决定浮窗挂到哪个 `UIWindowScene`，不传则按前台状态猜。
 - **窗口**：每个工具**各建自己的** `DO.OverlayWindow`（level 一般 `.alert - 1`），不共享宿主；
@@ -68,6 +74,7 @@ open DoSwiftExample.xcworkspace
   描述；cell 事件统一走 `SectionCellDelegate.trigger`，不特化 `didSelectRowAt`。
 - **外观**：语义色（`.label` / `.secondaryLabel` / `systemBackground`）+ `.preferredFont`；
   cell 一律自绘——iOS 13 上 `textLabel` / `detailTextLabel` 已弃用，用系统 cell 等于踩弃用公告。
+- **注释**：一律英文，一到两行；只写「为什么」，不复述代码。
 
 ## Hierarchy：JSON 数据驱动
 
@@ -82,7 +89,7 @@ open DoSwiftExample.xcworkspace
   `HierarchyCategoryModel` / `HierarchyCellModel`；写回需同时满足 `userEditable`、可解析的
   `ValueKind`、真实 setter，缺一即只读。编辑 UI 在 `UserInterface/Editor/`。
 - **资源查找**：先看 `Bundle.main`，找不到再走 `DO.resourceBundle`
-  （SPM → `Bundle.module`，CocoaPods → `DoSwiftResources.bundle`）。
+  （SPM → `Bundle.module`，CocoaPods → `DoSwiftKitResources.bundle`）。
 
 数据驱动的取舍（已知、可接受）：
 - 丢编译期类型检查——枚举 rawValue 是裸 int，靠 JSON 里的名字自解释
@@ -117,13 +124,12 @@ xcrun swiftc -typecheck -sdk "$SDK" -target arm64-apple-ios13.0-simulator $(find
 ```
 
 SPM 侧：`swift build --triple arm64-apple-ios13.0-simulator --sdk "$SDK"`（产物在
-`.build/arm64-apple-ios-simulator/debug/`，资源包名 `DoSwift_DoSwift.bundle`）。
+`.build/arm64-apple-ios-simulator/debug/`，资源包名 `DoSwiftKit_DoSwiftKit.bundle`）。
 
 ## 文档
 
 - `README.md` 英文（GitHub 默认展示），`README-zh-CN.md` 简中，两份内容保持同步
 - `docs/DEVELOPMENT.md`：架构、打包口径、国际化、验证命令
-- `docs/LLM_CODE_STANDARDS.md`：代码规范
 
 ## 原 DoKit-iOS 源码路径
 
