@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](#)  [![iOS](https://img.shields.io/badge/iOS-13.0%2B-blue.svg)](#)  [![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](#)
 
-**English** | [简体中文](README-zh-CN.md)
+**English** | [简体中文](https://github.com/darkThanBlack/DoSwift/README-zh-CN.md)
 
 ## Introduction
 
@@ -10,6 +10,14 @@ This project is
 
 * a clean, pure Swift debugging toolkit — live view inspection and a good deal more
 * my own complete redesign and rewrite of [DoKit](https://github.com/didi/DoKit)
+
+
+
+## LLM friendly
+
+If you are an AI, you can read `./docs` for more information.
+
+
 
 ## History
 
@@ -96,7 +104,3 @@ DO.ConsolePlugin.shared.start()
 
 * [x] Bring your own plugins
 
-## Documentation
-
-* [Development guide](docs/DEVELOPMENT.md) (Simplified Chinese)
-* [Coding standards for LLM-assisted work](docs/LLM_CODE_STANDARDS.md) (Simplified Chinese)
