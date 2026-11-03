@@ -31,9 +31,12 @@ DoSwift/
 │   └── zh-Hans.lproj/Localizable.strings
 ├── Example/                       # CocoaPods dev pod 示例工程（XcodeGen）
 ├── Tests/                         # SPM 测试
+├── docs/                          # 开发指南、LLM 代码规范
 ├── Scripts/ci.sh
 ├── DoSwift.podspec
-└── Package.swift
+├── Package.swift
+├── README.md                      # 英文（GitHub 默认）
+└── README-zh-CN.md                # 简中
 ```
 
 `Code/` 与 `Resources/` 是**平级**的顶层目录，打包方式各异：
@@ -115,6 +118,12 @@ xcrun swiftc -typecheck -sdk "$SDK" -target arm64-apple-ios13.0-simulator $(find
 
 SPM 侧：`swift build --triple arm64-apple-ios13.0-simulator --sdk "$SDK"`（产物在
 `.build/arm64-apple-ios-simulator/debug/`，资源包名 `DoSwift_DoSwift.bundle`）。
+
+## 文档
+
+- `README.md` 英文（GitHub 默认展示），`README-zh-CN.md` 简中，两份内容保持同步
+- `docs/DEVELOPMENT.md`：架构、打包口径、国际化、验证命令
+- `docs/LLM_CODE_STANDARDS.md`：代码规范
 
 ## 原 DoKit-iOS 源码路径
 
