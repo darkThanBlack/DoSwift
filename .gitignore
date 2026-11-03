@@ -5,7 +5,7 @@
 *.gpx
 
 # Jazzy
-docs/
+# docs/
 
 # Wiki
 DTBKit.wiki/
