@@ -1,4 +1,4 @@
-# DoSwift
+# DoSwiftKit
 
 [![Version](https://img.shields.io/github/v/tag/darkThanBlack/DoSwiftKit?label=version)](#)  [![iOS](https://img.shields.io/badge/iOS-13.0%2B-blue.svg)](#)  [![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](#)
 
@@ -51,7 +51,15 @@
 #### Cocoapods
 
 ```ruby
-pod 'DoSwiftKit', '1.0.0'
+# pod trunk 已是历史绝唱, 支持使用私有 spec
+# source 'https://github.com/CocoaPods/Specs.git'
+# pod 'DoSwiftKit', '1.0.0'
+
+# 不用 source, 直接指定
+pod 'DoSwiftKit',
+  :git => 'https://github.com/darkThanBlack/DoSwiftKit.git',
+  :branch => 'main',
+  :tag => '1.0.0'
 ```
 
 #### SwiftPM
@@ -67,12 +75,14 @@ pod 'DoSwiftKit', '1.0.0'
 ```swift
 /// 在 Appdelegate.swift / SceneDelegate.swift 内
 
+#if DEBUG
 // 虽然框架会尝试检测，依然强烈建议传入明确的 scene 和 window 对象
 DO.Core.shared.setup(appScene: windowScene, appWindow: window)
 
 // 如果需要立即启动相应监控的话
 DO.NetworkPlugin.shared.start()
 DO.ConsolePlugin.shared.start()
+#endif
 ```
 
 
@@ -110,11 +120,9 @@ DO.ConsolePlugin.shared.start()
 * [x] UserDefaults 浏览
 * [x] 沙盒文件浏览
 
-#### Custom
+#### 自定义
 
 * [x] 允许自定义插件
 
-## 文档
 
-* [开发指南](docs/DEVELOPMENT.md)
-* [LLM 代码规范](docs/LLM_CODE_STANDARDS.md)
+

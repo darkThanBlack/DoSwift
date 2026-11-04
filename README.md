@@ -1,10 +1,10 @@
-# DoSwift
+# DoSwiftKit
 
 [![Version](https://img.shields.io/github/v/tag/darkThanBlack/DoSwiftKit?label=version)](#)  [![iOS](https://img.shields.io/badge/iOS-13.0%2B-blue.svg)](#)  [![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](#)
 
 **English** | [简体中文](https://github.com/darkThanBlack/DoSwiftKit/README-zh-CN.md)
 
-## Introduction
+## Intro
 
 This project is
 
@@ -31,7 +31,9 @@ By 2025 the main repository had become effectively dead, and I keep it barely al
 
 Small patches were never going to be enough for a project this old and this Objective-C. The AI era finally made a solo rewrite possible.
 
-## Releases
+
+
+## Release
 
 #### 1.0.0
 
@@ -40,12 +42,22 @@ November 2026
 * Visual inspection is by far the most complete part
 * The other tools work, but I did not polish them much — several of them already have better alternatives
 
-## Installation
+
+
+## Install
 
 #### CocoaPods
 
 ```ruby
-pod 'DoSwiftKit', '1.0.0'
+# pod trunk archived, use private spec:
+# source 'https://github.com/CocoaPods/Specs.git'
+# pod 'DoSwiftKit', '1.0.0'
+
+# or:
+pod 'DoSwiftKit',
+  :git => 'https://github.com/darkThanBlack/DoSwiftKit.git',
+  :branch => 'main',
+  :tag => '1.0.0'
 ```
 
 #### SwiftPM
@@ -54,20 +66,26 @@ pod 'DoSwiftKit', '1.0.0'
 .package(url: "https://github.com/darkThanBlack/DoSwiftKit.git", from: "1.0.0")
 ```
 
+
+
 ## Usage
 
 ```swift
 /// In AppDelegate.swift / SceneDelegate.swift
 
+#if DEBUG
 // The framework tries to detect them, but an explicit scene and window are strongly recommended.
 DO.Core.shared.setup(appScene: windowScene, appWindow: window)
 
 // If you want the monitors running right away
 DO.NetworkPlugin.shared.start()
 DO.ConsolePlugin.shared.start()
+#endif
 ```
 
-## Features
+
+
+## Feature
 
 #### Overall
 
