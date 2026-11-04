@@ -21,10 +21,10 @@ Pod::Spec.new do |s|
   取色、量距、看层级、直接修改属性；另有网络抓包、控制台、性能采样、UserDefaults 与沙盒浏览。
   DESC
   
-  s.homepage         = 'https://github.com/darkThanBlack/DoSwift'
+  s.homepage         = 'https://github.com/darkThanBlack/DoSwiftKit'
   s.license          = { :type => 'WTFPL', :file => 'LICENSE' }
   s.author           = { 'darkThanBlack' => '331614794@qq.com' }
-  s.source           = { :git => 'https://github.com/darkThanBlack/DoSwift.git', :tag => s.version.to_s }
+  s.source           = { :git => 'https://github.com/darkThanBlack/DoSwiftKit.git', :tag => s.version.to_s }
   
   s.ios.deployment_target = '13.0'
   s.swift_versions = '5.9'

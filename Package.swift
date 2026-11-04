@@ -14,26 +14,20 @@ let package = Package(
         )
     ],
     targets: [
-        // Sources live in Code/, resources in Resources/ — siblings at the package root.
-        // SwiftPM only accepts resources below `path`, so the target is the root and
-        // `sources` / `resources` narrow it; `exclude` only silences the unhandled-files warning.
+        // `exclude` only silences the unhandled-files warning
         .target(
             name: "DoSwiftKit",
             path: ".",
             exclude: [
-                ".build",
-                ".claude",
-                ".swiftpm",
                 "Example",
                 "Scripts",
                 "Tests",
-                "Package.swift",
+                "docs",
                 "DoSwiftKit.podspec",
                 "LICENSE",
                 "README.md",
-                "CLAUDE.md",
-                "DEVELOPMENT.md",
-                "LLM_CODE_STANDARDS.md"
+                "README-zh-CN.md",
+                "CLAUDE.md"
             ],
             sources: ["Code"],
             resources: [.process("Resources")]
