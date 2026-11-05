@@ -41,7 +41,7 @@ extension DO {
         }
 
         public override func makeWindow() -> DO.OverlayWindow {
-            let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+            let w = DO.OverlayWindow(frame: DO.Core.screenBounds, level: .alert - 1)
             w.rootViewController = UINavigationController(rootViewController: list)
             return w
         }

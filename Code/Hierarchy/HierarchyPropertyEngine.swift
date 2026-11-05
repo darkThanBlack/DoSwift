@@ -25,7 +25,8 @@ extension DO {
         let overrides: [String: DO.HierarchyPropertyOverride]?
     }
 
-    struct HierarchyPinnedGroup: Decodable {
+    /// One JSON group: a section title plus the keys it lists, in display order.
+    struct HierarchyGroup: Decodable {
         let group: String
         let properties: [String]
     }
@@ -57,7 +58,7 @@ extension DO {
         /// inspected because `CGRect` and `CGSize` share a class.
         static func probe(_ value: Any) -> DO.ValueKind {
             switch value {
-            case is UIColor: return .color(value as! UIColor)
+            case let color as UIColor: return .color(color)
 
             case let number as NSNumber:
                 switch String(cString: number.objCType) {
@@ -74,11 +75,12 @@ extension DO {
                 if encoding.contains("UIEdgeInsets") { return .insets(box.uiEdgeInsetsValue) }
                 return .unknown(value)
 
-            case is UIFont:              return .font(value as! UIFont)
-            case is UIImage:             return .image(value as! UIImage)
-            case is Date, is NSDate:     return .date(value as! Date)
-            case is NSAttributedString:  return .attributedText(value as! NSAttributedString)
-            case is String, is NSString: return .text(value as! String)
+            case let font as UIFont:                   return .font(font)
+            case let image as UIImage:                 return .image(image)
+            case let date as Date:                     return .date(date)
+            case let attributed as NSAttributedString: return .attributedText(attributed)
+            case let text as String:                   return .text(text)
+            case let cls as AnyClass:                  return .unknown(String(describing: cls))
 
             default:
                 return .unknown(value)
@@ -107,12 +109,12 @@ extension DO {
     }
 
     struct DoSwiftHierarchyDefineRoot: Decodable {
-        let pinned: [DO.HierarchyPinnedGroup]?
+        let groups: [DO.HierarchyGroup]?
         let types: [String: DO.HierarchyTypeEntry]
         let enums: [String: [String: String]]
 
         private enum CodingKeys: String, CodingKey {
-            case pinned = "Pinned"
+            case groups = "Pinned"
             case types
             case enums
         }
@@ -138,17 +140,8 @@ extension DO {
         private var types: [String: DO.HierarchyTypeEntry] = [:]
         private var enumTables: [String: [DO.HierarchyEnumValue]] = [:]
 
-        private var pinnedKeys: [String] = []
-
-        private static let pinnedSectionTitle = DO.Text.Hierarchy.pinnedSection
-
-        /// Keys with no KVC counterpart. They are computed from the object itself, so they
-        /// never reach `value(forKey:)`.
-        private static let syntheticKeys: [String: String] = [
-            "class":       "className",
-            "address":     "address",
-            "layer.class": "layerClass",
-        ]
+        /// Groups are rendered first, in JSON order; every key appears at most once.
+        private var groups: [DO.HierarchyGroup] = []
 
         private init() {
             loadJSON()
@@ -169,11 +162,7 @@ extension DO {
                     }
                     .sorted { $0.value < $1.value }
                 }
-                for group in root.pinned ?? [] {
-                    for key in group.properties where !pinnedKeys.contains(key) {
-                        pinnedKeys.append(key)
-                    }
-                }
+                groups = root.groups ?? []
             } catch {
                 print("[Hierarchy] Failed to load DoSwiftHierarchyDefine.json: \(error)")
             }
@@ -189,20 +178,31 @@ extension DO {
             return DO.resourceBundle.url(forResource: "DoSwiftHierarchyDefine", withExtension: "json")
         }
 
+        /// JSON groups first (their own titles and order), then the class chain from NSObject
+        /// down. A key rendered by a group is not repeated in a class section.
         func categoryModels(for view: UIView) -> [DO.HierarchyCategoryModel] {
             let chain = classChain(view)
             var result: [DO.HierarchyCategoryModel] = []
+            var rendered: Set<String> = []
 
-            let pinnedRows = pinnedKeys.compactMap { cellModel(for: view, key: $0, chain: chain) }
-            if !pinnedRows.isEmpty {
-                result.append(DO.HierarchyCategoryModel(title: Self.pinnedSectionTitle, items: pinnedRows))
+            for group in groups {
+                let rows = group.properties.compactMap { key -> DO.HierarchyCellModel? in
+                    guard !rendered.contains(key) else { return nil }
+                    guard let model = cellModel(for: view, key: key, chain: chain, requiresDeclaration: false)
+                    else { return nil }
+                    rendered.insert(key)
+                    return model
+                }
+                if !rows.isEmpty {
+                    result.append(DO.HierarchyCategoryModel(title: group.group, items: rows))
+                }
             }
 
             for className in chain {
                 guard let entry = types[className] else { continue }
                 let rows = entry.properties
-                    .filter { !pinnedKeys.contains($0) }
-                    .compactMap { cellModel(for: view, key: $0, chain: chain) }
+                    .filter { !rendered.contains($0) }
+                    .compactMap { cellModel(for: view, key: $0, chain: chain, requiresDeclaration: true) }
                 if !rows.isEmpty {
                     result.append(DO.HierarchyCategoryModel(title: className, items: rows))
                 }
@@ -212,43 +212,47 @@ extension DO {
         }
 
         func cellModel(for view: UIView, key: String) -> DO.HierarchyCellModel? {
-            return cellModel(for: view, key: key, chain: classChain(view))
+            return cellModel(for: view, key: key, chain: classChain(view), requiresDeclaration: false)
         }
 
         private struct ResolvedProperty {
             let key: String
-            let synthetic: String?
             let kind: DO.ValueKind?
             let desc: String?
             let isUserEditable: Bool
         }
 
-        private func cellModel(for view: UIView, key: String, chain: [String]) -> DO.HierarchyCellModel? {
-            guard let resolved = resolve(key: key, view: view, chain: chain),
+        private func cellModel(
+            for view: UIView,
+            key: String,
+            chain: [String],
+            requiresDeclaration: Bool
+        ) -> DO.HierarchyCellModel? {
+            guard let resolved = resolve(key: key, view: view, chain: chain,
+                                         requiresDeclaration: requiresDeclaration),
                   let model = makeCellModel(for: view, resolved: resolved)
             else { return nil }
 
-            if resolved.isUserEditable, let kind = resolved.kind,
-               canEdit(kind), let writeKey = kvcWriteKey(for: key, on: view) {
+            if resolved.isUserEditable, let kind = resolved.kind, canEdit(kind),
+               !key.contains("."), let writeKey = kvcWriteKey(for: key, on: view) {
                 model.edit = DO.HierarchyEditDescriptor(key: key, kind: kind, writeKey: writeKey)
             }
             return model
         }
 
-        private func resolve(key: String, view: UIView, chain: [String]) -> ResolvedProperty? {
-            var override: DO.HierarchyPropertyOverride?
-            if !pinnedKeys.contains(key) {
-                guard let className = chain.first(where: { types[$0]?.properties.contains(key) == true })
-                else { return nil }        // not declared for this chain -> not applicable
-                override = types[className]?.overrides?[key]
-            }
+        private func resolve(
+            key: String,
+            view: UIView,
+            chain: [String],
+            requiresDeclaration: Bool
+        ) -> ResolvedProperty? {
+            // The nearest class that declares the key also supplies its overrides; group keys
+            // can resolve without a declaration but still pick up an override when one exists.
+            let declaring = chain.first { types[$0]?.properties.contains(key) == true }
+            if requiresDeclaration, declaring == nil { return nil }
 
+            let override = declaring.flatMap { types[$0]?.overrides?[key] }
             let isUserEditable = override?.userEditable ?? true
-
-            if let synthetic = Self.syntheticKeys[key] {
-                return ResolvedProperty(key: key, synthetic: synthetic, kind: nil,
-                                        desc: override?.desc, isUserEditable: isUserEditable)
-            }
 
             guard let value = safeValue(forKeyPath: key, on: view) else { return nil }
 
@@ -260,27 +264,16 @@ extension DO {
                 kind = DO.ValueKind.probe(value)
             }
 
-            return ResolvedProperty(key: key, synthetic: nil, kind: kind,
+            return ResolvedProperty(key: key, kind: kind,
                                     desc: override?.desc, isUserEditable: isUserEditable)
         }
 
         private func makeCellModel(for view: UIView, resolved: ResolvedProperty) -> DO.HierarchyCellModel? {
-            let title = resolved.desc ?? resolved.key
-
-            if let synthetic = resolved.synthetic {
-                return cell(title, syntheticText(synthetic, view), separator: synthetic == "layerClass")
-            }
-
             guard let kind = resolved.kind else { return nil }
 
-            return cell(title, displayText(of: kind), separator: false)
-        }
-
-        private func cell(_ title: String?, _ detail: String?, separator: Bool) -> DO.HierarchyCellModel {
-            let model = DO.HierarchyCellModel(title: title, detailTitle: detail)
-            if !separator {
-                model.noneInsets()
-            }
+            let model = DO.HierarchyCellModel(title: resolved.desc ?? resolved.key,
+                                              detailTitle: displayText(of: kind))
+            model.noneInsets()
             return model
         }
 
@@ -290,7 +283,7 @@ extension DO {
             case .int(let v):           return "\(v)"
             case .double(let v):        return DO.HierarchyFormatterTool.format(NSNumber(value: v))
             case .text(let v):          return formatText(v)
-            case .color(let v):         return v.hierarchy_description
+            case .color(let v):         return DO.HierarchyFormatterTool.description(of: v)
             case .font(let v):          return fontDescription(v)
             case .image(let v):         return formatImage(v)
             case .date(let v):          return DO.HierarchyFormatterTool.string(from: v) ?? "<null>"
@@ -329,7 +322,7 @@ extension DO {
                 return Double(string).map(DO.ValueKind.double)
 
             case .color:
-                return UIColor.hierarchy_color(from: string).map(DO.ValueKind.color)
+                return DO.HierarchyFormatterTool.color(from: string).map(DO.ValueKind.color)
 
             case .font(let current):
                 return Double(string).map { DO.ValueKind.font(current.withSize(CGFloat($0))) }
@@ -354,21 +347,12 @@ extension DO {
         private func canEdit(_ kind: DO.ValueKind) -> Bool {
             switch kind {
             case .bool, .text, .int, .double, .enumValue,
-                 .color, .font, .date, .size, .insets:     return true
+                 .color, .font, .date, .size, .insets,
+                 .frame, .point:                            return true
             case .image, .attributedText:
                 return false
-            case .frame, .point:
-                return false                                // layout output; edited elsewhere
             case .unknown:
                 return false                                // unknown probe
-            }
-        }
-
-        private func syntheticText(_ synthetic: String, _ view: UIView) -> String {
-            switch synthetic {
-            case "className":  return String(describing: type(of: view))
-            case "layerClass": return String(describing: type(of: view.layer))
-            default:           return String(format: "%p", Int(bitPattern: Unmanaged.passUnretained(view).toOpaque()))
             }
         }
 
@@ -390,7 +374,8 @@ extension DO {
         /// Applies an edit. Each guard mirrors one in the UI, so a rejection means the JSON and
         /// the live value disagree — log it, never crash the host app over a debug panel.
         func write(_ newValue: DO.ValueKind, forKey key: String, to view: UIView) {
-            guard let resolved = resolve(key: key, view: view, chain: classChain(view)),
+            guard let resolved = resolve(key: key, view: view, chain: classChain(view),
+                                        requiresDeclaration: false),
                   resolved.isUserEditable, let oldKind = resolved.kind else {
                 print("[Hierarchy] \(key): this row is read-only")
                 return
@@ -482,19 +467,19 @@ extension DO {
         }
 
         private func formatText(_ value: Any?) -> String {
-            if value == nil { return "<nil>" }
+            guard let value = value else { return "<nil>" }
             if let s = value as? String {
                 return s.isEmpty ? "<empty string>" : s
             }
-            return "\(value!)"
+            return "\(value)"
         }
 
         func formatObject(_ value: Any?) -> String {
-            if value == nil { return "<nil>" }
+            guard let value = value else { return "<nil>" }
             if let s = value as? String {
                 return s.isEmpty ? "<empty string>" : s
             }
-            return "\(value!)"
+            return "\(value)"
         }
 
         func formatImage(_ image: UIImage?) -> String {

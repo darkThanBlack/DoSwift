@@ -57,9 +57,15 @@ extension DO {
             show()
         }
         
+        /// Frame for every tool overlay. Collected here so multi-scene support is a one-line
+        /// change later; the implementation is still the screen-wide bounds.
+        static var screenBounds: CGRect {
+            return UIScreen.main.bounds
+        }
+
         /// Do not call directly
         public override func makeWindow() -> DO.OverlayWindow {
-            let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .statusBar)
+            let w = DO.OverlayWindow(frame: Self.screenBounds, level: .statusBar)
             let root = DO.MainViewController()
             root.menuGroups = menuGroups
             w.rootViewController = root

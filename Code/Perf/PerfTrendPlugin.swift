@@ -199,7 +199,7 @@ extension DO {
         }
 
         override func makeWindow() -> DO.OverlayWindow {
-            let overlay = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+            let overlay = DO.OverlayWindow(frame: DO.Core.screenBounds, level: .alert - 1)
             overlay.backgroundColor = .clear
 
             let host = UIViewController()
@@ -233,8 +233,6 @@ extension DO {
 
             startEnabledSources()
             didLayout = false
-
-            DO.PerfBenchmark.run()
 
             return overlay
         }

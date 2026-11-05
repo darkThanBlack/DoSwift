@@ -312,10 +312,12 @@ extension DO.ConsoleViewController: UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(
+        guard let cell = tableView.dequeueReusableCell(
             withIdentifier: Self.cellIdentifier,
             for: indexPath
-        ) as! DO.ConsoleLineCell
+        ) as? DO.ConsoleLineCell else {
+            return UITableViewCell()
+        }
 
         cell.sectionDelegate = self
         cell.update(lines[indexPath.row])

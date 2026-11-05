@@ -57,6 +57,13 @@ extension DO {
                     .point(CGPoint(x: $0[0], y: $0[1]))
                 }
 
+            case .frame(let frame):
+                return DO.HierarchyNumberGridView(labels: ["x", "y", "width", "height"],
+                                               values: [Double(frame.origin.x), Double(frame.origin.y),
+                                                        Double(frame.size.width), Double(frame.size.height)]) {
+                    .frame(CGRect(x: $0[0], y: $0[1], width: $0[2], height: $0[3]))
+                }
+
             case .insets(let insets):
                 return DO.HierarchyNumberGridView(labels: ["top", "left", "bottom", "right"],
                                                values: [Double(insets.top), Double(insets.left),
@@ -64,7 +71,7 @@ extension DO {
                     .insets(UIEdgeInsets(top: $0[0], left: $0[1], bottom: $0[2], right: $0[3]))
                 }
 
-            case .bool, .image, .attributedText, .frame, .unknown:
+            case .bool, .image, .attributedText, .unknown:
                 return nil
             }
         }

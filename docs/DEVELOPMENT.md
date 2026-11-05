@@ -37,7 +37,7 @@ DoSwift/
 
 | 集成方式 | 源码 | 资源 |
 |---|---|---|
-| CocoaPods | `Code/**/*.{swift,m,h}` | `resource_bundles => { 'DoSwiftKitResources' => ['Resources/**/*.{json,strings}'] }` |
+| CocoaPods | `Code/**/*.{swift,m,h}` | `resource_bundles => { 'DoSwiftKitResources' => ['Resources/**/*.{json,strings,xcprivacy}'] }` |
 | SwiftPM | `target(path: ".")` + `sources: ["Code"]` | `resources: [.process("Resources")]` |
 
 SwiftPM 只认包根目录之下的资源，而 `Resources/` 与 `Code/` 平级，所以 target 声明成包根，
@@ -81,7 +81,7 @@ public protocol Plugin {
 ```
 
 - `DO.DefaultPlugin`：`show()` / `hide()` / `makeWindow()` 的窗口骨架，子类各自提供 `shared`。
-- `DO.Core.shared.setup(appWindow:appScene:plugins:)`：注册自定义插件、显示主菜单浮窗。
+- `DO.Core.shared.setup(appScene:appWindow:plugins:)`：注册自定义插件、显示主菜单浮窗。
   推荐 window 和 scene 都显式传入 —— 自动探测走的是兜底分支，多 scene 下不能保证准确。
   `appScene` 决定浮窗挂到哪个 `UIWindowScene`；只传 window 时会用它的 `windowScene`。
 
@@ -122,11 +122,13 @@ level 一般用 `.alert - 1`，主菜单用 `.statusBar`。
 把「每个控件暴露哪些属性 + 枚举描述」从几千行硬编码（`NSObject+DoraemonHierarchy.m` 2527 行、
 `DoraemonEnumDescription.m` 880 行）搬进 `Resources/DoSwiftHierarchyDefine.json`：
 
-- `Pinned`：置顶分组
+- `Pinned`：先于类分组渲染的普通分组，标题与顺序按数组；同一 key 只渲染一次
 - `types`：`{ 类名: { properties: [KVC keyPath], overrides: { key: { enumType, userEditable } } } }`
 - `enums`：`{ 枚举名: { rawValue: 名称 } }`
 
-`HierarchyPropertyEngine` 按类继承链匹配条目、KVC 读值；写回要求 `userEditable` + 可解析的
+`HierarchyPropertyEngine` 先渲染 JSON 分组，再按类继承链匹配条目、KVC 读值；`userEditable: false` 只用于
+「kind 可编辑、但属性只读或无 setter」的 key（image / attributedText / unknown 天然不可编辑，无需声明）；
+写回要求 `userEditable` + 可解析的
 `ValueKind` + 真实 setter 三者齐备，否则该行保持只读。资源查找顺序：
 `Bundle.main` → `DO.resourceBundle`（SPM 是 `Bundle.module`，CocoaPods 是 `DoSwiftKitResources.bundle`）。
 

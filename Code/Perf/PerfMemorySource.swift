@@ -89,6 +89,8 @@ extension DO {
                 guard let self = self else { return }
                 self.points.append(DO.TrendPoint(t: now, v: sample.value))
                 self.samples.append(sample)
+                DO.PerfHistory.trim(&self.points)
+                DO.PerfHistory.trim(&self.samples)
                 if self.totalMB == nil {
                     self.totalMB = sample.budget
                 }

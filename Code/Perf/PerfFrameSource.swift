@@ -97,6 +97,8 @@ extension DO {
 
             points.append(DO.TrendPoint(t: now, v: value))
             samples.append(Sample(t: now, fps: value, slow: slowFrames, frozen: frozenFrames, frames: frames))
+            DO.PerfHistory.trim(&points)
+            DO.PerfHistory.trim(&samples)
 
             frames = 0
             slowFrames = 0

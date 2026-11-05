@@ -191,7 +191,6 @@
 "hierarchy.title" = "Hierarchy";
 "hierarchy.detail_title" = "UI Structure";
 "hierarchy.info_title" = "UI Hierarchy";
-"hierarchy.pinned" = "Pinned";
 "hierarchy.visibility.never" = "Never";
 "hierarchy.visibility.while_dragging" = "While Dragging";
 "hierarchy.visibility.always" = "Always";

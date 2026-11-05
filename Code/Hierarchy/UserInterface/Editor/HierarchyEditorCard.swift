@@ -255,7 +255,7 @@ extension DO {
             cardView.translatesAutoresizingMaskIntoConstraints = false
             clipper.translatesAutoresizingMaskIntoConstraints = false
 
-            let cardWidth = UIScreen.main.bounds.width - 32
+            let cardWidth = DO.Core.screenBounds.width - 32
             NSLayoutConstraint.activate([
                 cardView.topAnchor.constraint(equalTo: contentView.topAnchor),
                 cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -269,7 +269,7 @@ extension DO {
                                                  constant: -16),
             ])
 
-            clipper.pinEdges(to: cardView)
+            Pinning.pin(clipper, to: cardView)
             buildCardContents()
         }
 
@@ -318,7 +318,7 @@ extension DO {
             [stack, header, content, titleStack, titleLabel, currentLabel, grabber, bottomBar, doneButton, input].forEach {
                 $0.translatesAutoresizingMaskIntoConstraints = false
             }
-            stack.pinEdges(to: clipper)
+            Pinning.pin(stack, to: clipper)
 
             NSLayoutConstraint.activate([
                 // header
@@ -342,11 +342,11 @@ extension DO {
                 content.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             ])
 
-            content.pinEdges(to: scrollView.contentLayoutGuide)
-            input.pinEdges(to: content, insets: UIEdgeInsets(top: DO.HierarchyEditorStyle.padding,
-                                                             left: DO.HierarchyEditorStyle.padding,
-                                                             bottom: DO.HierarchyEditorStyle.padding,
-                                                             right: DO.HierarchyEditorStyle.padding))
+            Pinning.pin(content, to: scrollView.contentLayoutGuide)
+            Pinning.pin(input, to: content, insets: UIEdgeInsets(top: DO.HierarchyEditorStyle.padding,
+                                                                 left: DO.HierarchyEditorStyle.padding,
+                                                                 bottom: DO.HierarchyEditorStyle.padding,
+                                                                 right: DO.HierarchyEditorStyle.padding))
 
             let hugContent = scrollView.heightAnchor.constraint(equalTo: content.heightAnchor)
             hugContent.priority = UILayoutPriority(rawValue: UILayoutPriority.defaultHigh.rawValue - 1)
@@ -400,23 +400,25 @@ extension DO {
 
 }
 
-private extension UIView {
+/// File-local layout helpers. Deliberately not a `UIView` extension: the library adds no
+/// members to UIKit types.
+private enum Pinning {
 
-    func pinEdges(to other: UIView, insets: UIEdgeInsets = .zero) {
+    static func pin(_ view: UIView, to other: UIView, insets: UIEdgeInsets = .zero) {
         NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: other.topAnchor, constant: insets.top),
-            leadingAnchor.constraint(equalTo: other.leadingAnchor, constant: insets.left),
-            trailingAnchor.constraint(equalTo: other.trailingAnchor, constant: -insets.right),
-            bottomAnchor.constraint(equalTo: other.bottomAnchor, constant: -insets.bottom),
+            view.topAnchor.constraint(equalTo: other.topAnchor, constant: insets.top),
+            view.leadingAnchor.constraint(equalTo: other.leadingAnchor, constant: insets.left),
+            view.trailingAnchor.constraint(equalTo: other.trailingAnchor, constant: -insets.right),
+            view.bottomAnchor.constraint(equalTo: other.bottomAnchor, constant: -insets.bottom),
         ])
     }
 
-    func pinEdges(to guide: UILayoutGuide, insets: UIEdgeInsets = .zero) {
+    static func pin(_ view: UIView, to guide: UILayoutGuide, insets: UIEdgeInsets = .zero) {
         NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: guide.topAnchor, constant: insets.top),
-            leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: insets.left),
-            trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -insets.right),
-            bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -insets.bottom),
+            view.topAnchor.constraint(equalTo: guide.topAnchor, constant: insets.top),
+            view.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: insets.left),
+            view.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -insets.right),
+            view.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -insets.bottom),
         ])
     }
 }

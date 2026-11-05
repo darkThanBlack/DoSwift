@@ -25,8 +25,8 @@ extension DO {
             super.init(frame: .zero)
             setupSubviews()
 
-            field.text = color.hierarchy_editableText
-            alphaSlider.value = Float(color.hierarchy_alpha)
+            field.text = DO.HierarchyFormatterTool.editableText(of: color)
+            alphaSlider.value = Float(DO.HierarchyFormatterTool.alpha(of: color))
             refresh()
         }
 
@@ -106,19 +106,19 @@ extension DO {
                 onValidityChange?(false)
                 return
             }
-            alphaSlider.value = Float(pending.hierarchy_alpha)
+            alphaSlider.value = Float(DO.HierarchyFormatterTool.alpha(of: pending))
             refresh()
             onValidityChange?(true)
         }
 
         @objc private func sliderChanged() {
             pending = pending.withAlphaComponent(CGFloat(alphaSlider.value))
-            field.text = pending.hierarchy_editableText
+            field.text = DO.HierarchyFormatterTool.editableText(of: pending)
             refresh()
         }
 
         private func syncPendingFromField() -> Bool {
-            guard let text = field.text, let parsed = UIColor.hierarchy_color(from: text) else { return false }
+            guard let text = field.text, let parsed = DO.HierarchyFormatterTool.color(from: text) else { return false }
             pending = parsed
             return true
         }

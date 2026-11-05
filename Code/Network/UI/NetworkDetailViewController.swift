@@ -76,7 +76,7 @@ extension DO {
                     animated: true
                 )
             }) { cell in
-                cell.update(title: title, detail: text == nil ? DO.Text.Network.none : Self.summary(of: text!))
+                cell.update(title: title, detail: text.map(Self.summary(of:)) ?? DO.Text.Network.none)
                 cell.selectionStyle = text == nil ? .none : .default
             }
         }

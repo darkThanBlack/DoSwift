@@ -43,7 +43,7 @@ DoSwift/
 `Code/` 与 `Resources/` 是**平级**的顶层目录，打包方式各异：
 
 - **CocoaPods**：`source_files = 'Code/**/*.{swift,m,h}'`，资源走
-  `resource_bundles => { 'DoSwiftKitResources' => ['Resources/**/*.{json,strings}'] }`
+  `resource_bundles => { 'DoSwiftKitResources' => ['Resources/**/*.{json,strings,xcprivacy}'] }`
 - **SPM**：SwiftPM 只认包根目录之下的资源，所以 target 声明为 `path: "."`，再用
   `sources: ["Code"]` / `resources: [.process("Resources")]` 收窄，其余目录列进 `exclude`。
   白名单是 `sources` / `resources`，`exclude` 只负责消掉 unhandled-files 警告；
@@ -67,7 +67,7 @@ xcconfig 一起抹掉，表现是 `Unable to find module dependency: 'DoSwift'`�
 - **命名空间**：`public enum DO {}`，所有类型写成 `extension DO { ... }`；对外可见的加 `public`。
 - **插件**：`DO.Plugin`（`identifier` / `title` / `icon` / `actionHandler`）+ 基类
   `DO.DefaultPlugin`（`show` / `hide` / `makeWindow` 的窗口骨架，子类各自提供 `shared`）。
-  `DO.Core.shared.setup(appWindow:appScene:plugins:)` 注册并显示浮窗；自定义插件排在最前的
+  `DO.Core.shared.setup(appScene:appWindow:plugins:)` 注册并显示浮窗；自定义插件排在最前的
   `Custom` 组。`appScene` 决定浮窗挂到哪个 `UIWindowScene`，不传则按前台状态猜。
 - **窗口**：每个工具**各建自己的** `DO.OverlayWindow`（level 一般 `.alert - 1`），不共享宿主；
   层级工具登记 `addNoResponseView` 让触摸透到业务 App，信息展示类工具不登记。
@@ -83,11 +83,12 @@ xcconfig 一起抹掉，表现是 `Unable to find module dependency: 'DoSwift'`�
 （`NSObject+DoraemonHierarchy.m` 2527 行、`DoraemonEnumDescription.m` 880 行），本工程改为数据驱动：
 
 - **`Resources/DoSwiftHierarchyDefine.json`** —— 唯一数据源
-  - `Pinned`：置顶分组，`[{ group, properties }]`
+  - `Pinned`：先于类分组渲染的普通分组，`[{ group, properties }]`，标题与顺序按数组；同一 key 只渲染一次
   - `types`：`{ 类名: { properties: [KVC keyPath], overrides: { key: { enumType, userEditable } } } }`
   - `enums`：`{ 枚举名: { rawValue: 名称 } }`
 - **`HierarchyPropertyEngine`**：按类继承链（`NSObject` → 子类）匹配条目，KVC 读值，生成
-  `HierarchyCategoryModel` / `HierarchyCellModel`；写回需同时满足 `userEditable`、可解析的
+  `HierarchyCategoryModel` / `HierarchyCellModel`；`userEditable: false` 只用于「kind 可编辑、但属性只读或无 setter」的 key，
+  image / attributedText / unknown 这类天然不可编辑的行不需要声明。写回需同时满足 `userEditable`、可解析的
   `ValueKind`、真实 setter，缺一即只读。编辑 UI 在 `UserInterface/Editor/`。
 - **资源查找**：先看 `Bundle.main`，找不到再走 `DO.resourceBundle`
   （SPM → `Bundle.module`，CocoaPods → `DoSwiftKitResources.bundle`）。

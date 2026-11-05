@@ -99,12 +99,24 @@ extension DO {
         }
 
         deinit {
-            for view in observeViews {
-                if let v = view as? UIView {
-                    stopObserving(v)
-                }
-            }
+            stopObservingAll()
+        }
+
+        /// Stops every KVO registration. Called when the tool hides: an observed view tree
+        /// must not stay retained while the panel is closed.
+        func stopObservingAll() {
+            let views = observeViews.allObjects
             observeViews.removeAllObjects()
+
+            for case let view as UIView in views {
+                detachObservation(view)
+            }
+        }
+
+        /// Re-applies the current selection after `stopObservingAll()`; the borders are rebuilt
+        /// so a re-shown panel matches what the picker points at.
+        func resumeSelection() {
+            applySelection(pickerView.selectedView())
         }
 
         private func beginObserving(_ view: UIView, borderWidth: CGFloat) {
@@ -115,7 +127,7 @@ extension DO {
             bv.backgroundColor = .clear
             self.view.addSubview(bv)
             self.view.sendSubviewToBack(bv)
-            bv.layer.borderColor = view.hierarchy_hashColor.cgColor
+            bv.layer.borderColor = borderColor(for: view).cgColor
             bv.layer.borderWidth = borderWidth
             bv.frame = frameInLocal(for: view)
             borderViews[view.hash] = bv
@@ -124,14 +136,16 @@ extension DO {
             observeViews.add(view)
         }
 
-        private func stopObserving(_ view: UIView) {
-            guard observeViews.contains(view) else { return }
-
-            let bv = borderViews[view.hash]
-            bv?.removeFromSuperview()
+        private func detachObservation(_ view: UIView) {
+            borderViews[view.hash]?.removeFromSuperview()
             borderViews.removeValue(forKey: view.hash)
             view.removeObserver(self, forKeyPath: "frame")
-            observeViews.remove(view)
+        }
+
+        /// Stable per-view tint, so neighbouring borders stay distinguishable.
+        private func borderColor(for view: UIView) -> UIColor {
+            let hue = CGFloat(view.hash & 0xFF) / 256.0
+            return UIColor(hue: hue, saturation: 0.8, brightness: 0.9, alpha: 1)
         }
 
         override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
@@ -193,7 +207,8 @@ extension DO {
             let appWindow = DO.HierarchyPlugin.shared.appWindow
             let pointInAppWindow = view.convert(pickerView.center, to: appWindow)
 
-            infoView.updatePixelColor(DO.ScreenSampler.color(at: pointInAppWindow, in: snapshot)?.hierarchy_description)
+            let picked = DO.ScreenSampler.color(at: pointInAppWindow, in: snapshot)
+            infoView.updatePixelColor(picked.map(DO.HierarchyFormatterTool.description(of:)))
 
             if shouldShowLoupe {
                 colorLoupeView.update(target: pickerView.center, clearance: loupeClearance, snapshot: snapshot)
@@ -223,15 +238,7 @@ extension DO {
         }
 
         private func applySelection(_ selectedView: UIView?) {
-            objc_sync_enter(self)
-            defer { objc_sync_exit(self) }
-
-            for view in observeViews {
-                if let v = view as? UIView {
-                    stopObserving(v)
-                }
-            }
-            observeViews.removeAllObjects()
+            stopObservingAll()
 
             guard let selectedView = selectedView else {
                 infoView.updateSelectedView(nil)
@@ -361,7 +368,8 @@ extension DO.HierarchyViewController: DO.HierarchyInfoViewDelegate {
     private func showParentSheet(_ selectView: UIView) {
         let parents = findParentViews(of: selectView)
         let actions = parents.map { String(describing: type(of: $0)) }
-        self.hierarchy_showActionSheet(title: DO.Text.Hierarchy.parentViewsSheet, actions: actions, currentAction: nil) { [weak self] index in
+        DO.HierarchyActionSheet.present(from: self, title: DO.Text.Hierarchy.parentViewsSheet, actions: actions) { [weak self] index in
+            guard parents.indices.contains(index) else { return }
             self?.setNewSelectView(parents[index])
         }
     }
@@ -369,7 +377,8 @@ extension DO.HierarchyViewController: DO.HierarchyInfoViewDelegate {
     private func showSubviewSheet(_ selectView: UIView) {
         let subviews = findSubviews(of: selectView)
         let actions = subviews.map { String(describing: type(of: $0)) }
-        self.hierarchy_showActionSheet(title: DO.Text.Hierarchy.subviewsSheet, actions: actions, currentAction: nil) { [weak self] index in
+        DO.HierarchyActionSheet.present(from: self, title: DO.Text.Hierarchy.subviewsSheet, actions: actions) { [weak self] index in
+            guard subviews.indices.contains(index) else { return }
             self?.setNewSelectView(subviews[index])
         }
     }

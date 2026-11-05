@@ -28,12 +28,30 @@ extension DO {
 
         var config: DO.HierarchyConfig = .load()
 
+        /// The overlay is retained across shows, so the observation must be released here.
+        private weak var root: DO.HierarchyViewController?
+
         override func makeWindow() -> DO.OverlayWindow {
-            let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+            let w = DO.OverlayWindow(frame: DO.Core.screenBounds, level: .alert - 1)
             let root = DO.HierarchyViewController()
+            self.root = root
             w.rootViewController = root
             w.addNoResponseView(root.view)
             return w
+        }
+
+        override func show() {
+            super.show()
+
+            // Only when the view already exists: forcing an early load would run `viewDidLoad`
+            // before the window has bounds and misplace the picker.
+            guard root?.isViewLoaded == true else { return }
+            root?.resumeSelection()
+        }
+
+        override func hide() {
+            root?.stopObservingAll()
+            super.hide()
         }
     }
 }

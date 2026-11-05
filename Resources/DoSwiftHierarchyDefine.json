@@ -1,15 +1,22 @@
 {
   "Pinned": [
     {
-      "group": "UIView",
+      "group": "Frame",
       "properties": [
         "frame",
         "bounds",
-        "center",
+        "center"
+      ]
+    },
+    {
+      "group": "Layer",
+      "properties": [
         "layer.position",
         "layer.zPosition",
         "layer.anchorPoint",
-        "layer.anchorPointZ"
+        "layer.anchorPointZ",
+        "layer.description",
+        "layer.class"
       ]
     }
   ],
@@ -17,16 +24,9 @@
     "NSObject": {
       "properties": [
         "class",
-        "address",
         "description"
       ],
       "overrides": {
-        "class": {
-          "userEditable": false
-        },
-        "address": {
-          "userEditable": false
-        },
         "description": {
           "userEditable": false
         }
@@ -34,8 +34,6 @@
     },
     "UIView": {
       "properties": [
-        "layer.description",
-        "layer.class",
         "contentMode",
         "tag",
         "isUserInteractionEnabled",
@@ -55,17 +53,8 @@
         "traitCollection.layoutDirection"
       ],
       "overrides": {
-        "layer.description": {
-          "userEditable": false
-        },
-        "layer.class": {
-          "userEditable": false
-        },
         "contentMode": {
           "enumType": "UIViewContentMode"
-        },
-        "traitCollection": {
-          "userEditable": false
         },
         "traitCollection.userInterfaceStyle": {
           "enumType": "UIUserInterfaceStyle",
@@ -103,9 +92,6 @@
         "shadowOffset"
       ],
       "overrides": {
-        "attributedText": {
-          "userEditable": false
-        },
         "textAlignment": {
           "enumType": "NSTextAlignment"
         },
@@ -165,16 +151,10 @@
         "currentTitle": {
           "userEditable": false
         },
-        "currentAttributedTitle": {
-          "userEditable": false
-        },
         "currentTitleColor": {
           "userEditable": false
         },
         "currentTitleShadowColor": {
-          "userEditable": false
-        },
-        "currentImage": {
           "userEditable": false
         },
         "lineBreakMode": {
@@ -188,14 +168,7 @@
         "highlightedImage",
         "isHighlighted"
       ],
-      "overrides": {
-        "image": {
-          "userEditable": false
-        },
-        "highlightedImage": {
-          "userEditable": false
-        }
-      }
+      "overrides": {}
     },
     "UITextField": {
       "properties": [
@@ -222,17 +195,8 @@
         "isSecureTextEntry"
       ],
       "overrides": {
-        "attributedText": {
-          "userEditable": false
-        },
         "textAlignment": {
           "enumType": "NSTextAlignment"
-        },
-        "background": {
-          "userEditable": false
-        },
-        "disabledBackground": {
-          "userEditable": false
         },
         "borderStyle": {
           "enumType": "UITextBorderStyle"
@@ -269,14 +233,7 @@
         "thumbTintColor",
         "isContinuous"
       ],
-      "overrides": {
-        "minimumValueImage": {
-          "userEditable": false
-        },
-        "maximumValueImage": {
-          "userEditable": false
-        }
-      }
+      "overrides": {}
     },
     "UISwitch": {
       "properties": [
@@ -313,12 +270,6 @@
       "overrides": {
         "progressViewStyle": {
           "enumType": "UIProgressViewStyle"
-        },
-        "progressImage": {
-          "userEditable": false
-        },
-        "trackImage": {
-          "userEditable": false
         }
       }
     },
@@ -432,9 +383,6 @@
       "overrides": {
         "numberOfSections": {
           "userEditable": false
-        },
-        "collectionViewLayout": {
-          "userEditable": false
         }
       }
     },
@@ -467,9 +415,6 @@
         "isSecureTextEntry"
       ],
       "overrides": {
-        "attributedText": {
-          "userEditable": false
-        },
         "textAlignment": {
           "enumType": "NSTextAlignment"
         },
@@ -512,11 +457,7 @@
       "properties": [
         "delegate"
       ],
-      "overrides": {
-        "delegate": {
-          "userEditable": false
-        }
-      }
+      "overrides": {}
     },
     "UINavigationBar": {
       "properties": [
@@ -603,9 +544,6 @@
       ],
       "overrides": {
         "isKeyWindow": {
-          "userEditable": false
-        },
-        "rootViewController": {
           "userEditable": false
         }
       }

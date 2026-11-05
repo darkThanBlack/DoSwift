@@ -191,7 +191,6 @@
 "hierarchy.title" = "视图结构";
 "hierarchy.detail_title" = "UI 结构";
 "hierarchy.info_title" = "UI 层级";
-"hierarchy.pinned" = "置顶";
 "hierarchy.visibility.never" = "从不";
 "hierarchy.visibility.while_dragging" = "拖动时";
 "hierarchy.visibility.always" = "始终";

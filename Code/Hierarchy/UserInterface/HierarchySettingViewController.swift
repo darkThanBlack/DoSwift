@@ -117,12 +117,11 @@ extension DO {
 
         private func pick(_ item: Item, keyPath: WritableKeyPath<DO.HierarchyConfig, DO.HierarchyConfig.Visibility>) {
             let options = DO.HierarchyConfig.Visibility.allCases
-            let current = DO.HierarchyPlugin.shared.config[keyPath: keyPath]
 
-            hierarchy_showActionSheet(
+            DO.HierarchyActionSheet.present(
+                from: self,
                 title: item.title,
-                actions: options.map { $0.title },
-                currentAction: current.title
+                actions: options.map { $0.title }
             ) { [weak self] index in
                 guard let self = self, options.indices.contains(index) else { return }
                 self.update { $0[keyPath: keyPath] = options[index] }

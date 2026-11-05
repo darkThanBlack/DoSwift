@@ -101,7 +101,8 @@ DO.ConsolePlugin.shared.start()
   * [x] The original synthesized every property in Objective-C; it is now rendered from JSON
 * [x] Edit object properties live
   * [x] Redesigned the editor UI and the set of editable properties
-  * [ ] Layout properties stay read-only for now — constraints need their own design
+  * [x] Frame / bounds / center editing, through the same editor as every other value
+  * [ ] Constraint inspection and editing need their own design
 * [ ] Redesign parent / child navigation
 * [ ] Audit business-specific fields one by one
 

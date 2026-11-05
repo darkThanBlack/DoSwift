@@ -62,7 +62,7 @@ extension DO {
         private func setupDoSwiftMenuHandle() {
             view.addSubview(handleView)
 
-            let handleSize = handleView.sizeThatFits(UIScreen.main.bounds.size)
+            let handleSize = handleView.sizeThatFits(DO.Core.screenBounds.size)
 
             let savedFrame: [String: CGFloat]? = UserDefaults.standard.object(forKey: DO.MenuHandle.handleFrameKey) as? [String: CGFloat]
 

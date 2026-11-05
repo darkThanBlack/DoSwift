@@ -156,7 +156,15 @@ extension DO.FileBrowserView: DO.PathBarViewDataSource {
     }
 
     func pathBar(_ bar: DO.PathBarView, itemFor index: Int) -> any DO.PathNode {
-        return pathDataSource!.fileBrowser(self, pathItemFor: index)
+        guard let pathDataSource = pathDataSource else {
+            return EmptyPathNode()
+        }
+        return pathDataSource.fileBrowser(self, pathItemFor: index)
+    }
+
+    /// Drawn as a blank crumb if a path is asked for while no data source is attached.
+    struct EmptyPathNode: DO.PathNode {
+        let nodeName: String? = nil
     }
 }
 

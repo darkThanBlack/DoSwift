@@ -298,7 +298,6 @@ extension DO.Text {
         static let pluginTitle = DO.Text.string("hierarchy.title", "Hierarchy")
         static let detailTitle = DO.Text.string("hierarchy.detail_title", "UI Structure")
         static let infoTitle = DO.Text.string("hierarchy.info_title", "UI Hierarchy")
-        static let pinnedSection = DO.Text.string("hierarchy.pinned", "Pinned")
         static let never = DO.Text.string("hierarchy.visibility.never", "Never")
         static let whileDragging = DO.Text.string("hierarchy.visibility.while_dragging", "While Dragging")
         static let always = DO.Text.string("hierarchy.visibility.always", "Always")

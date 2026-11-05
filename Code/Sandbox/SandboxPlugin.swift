@@ -25,7 +25,7 @@ extension DO {
         private let browser = DO.SandboxViewController()
 
         override func makeWindow() -> DO.OverlayWindow {
-            let w = DO.OverlayWindow(frame: UIScreen.main.bounds, level: .alert - 1)
+            let w = DO.OverlayWindow(frame: DO.Core.screenBounds, level: .alert - 1)
             w.rootViewController = UINavigationController(rootViewController: browser)
             return w
         }

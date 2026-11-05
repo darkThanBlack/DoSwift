@@ -76,6 +76,8 @@ extension DO {
                 if let percent = percent {
                     self.points.append(DO.TrendPoint(t: now, v: percent))
                 }
+                DO.PerfHistory.trim(&self.samples)
+                DO.PerfHistory.trim(&self.points)
                 self.onChange?()
             }
         }

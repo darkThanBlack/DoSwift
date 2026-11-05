@@ -29,7 +29,7 @@ extension DO {
 
         @discardableResult
         func noneInsets() -> DO.HierarchyCellModel {
-            separatorInsets = UIEdgeInsets(top: 0, left: UIScreen.main.bounds.width, bottom: 0, right: 0)
+            separatorInsets = UIEdgeInsets(top: 0, left: DO.Core.screenBounds.width, bottom: 0, right: 0)
             return self
         }
     }
