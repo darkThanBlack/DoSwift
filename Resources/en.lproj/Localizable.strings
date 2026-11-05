@@ -229,6 +229,14 @@
 "hierarchy.editor.done" = "Done";
 "hierarchy.editor.font_preview" = "The quick brown fox 0123456789";
 "hierarchy.editor.count" = "%1$d characters · %2$d lines";
+"hierarchy.constraints.title" = "Constraint";
+"hierarchy.constraints.constant" = "Constant";
+"hierarchy.constraints.priority" = "Priority";
+"hierarchy.constraints.active" = "Active";
+"hierarchy.constraints.empty" = "No constraints involve this view.";
+"hierarchy.constraints.inactive" = "inactive";
+"hierarchy.constraints.section" = "Constraints (%d)";
+"hierarchy.constraints.revert" = "Revert Changes (%d)";
 
 /* UserDefaults */
 "userdefaults.title" = "UserDefaults";

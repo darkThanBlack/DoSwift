@@ -335,6 +335,18 @@ extension DO.Text {
         static let plusOneHour = DO.Text.string("hierarchy.editor.plus_hour", "+1 hour")
         static let done = DO.Text.string("hierarchy.editor.done", "Done")
         static let fontPreview = DO.Text.string("hierarchy.editor.font_preview", "The quick brown fox 0123456789")
+        static let constraintTitle = DO.Text.string("hierarchy.constraints.title", "Constraint")
+        static let constraintConstant = DO.Text.string("hierarchy.constraints.constant", "Constant")
+        static let constraintPriority = DO.Text.string("hierarchy.constraints.priority", "Priority")
+        static let constraintActive = DO.Text.string("hierarchy.constraints.active", "Active")
+        static let constraintEmpty = DO.Text.string("hierarchy.constraints.empty", "No constraints involve this view.")
+        static let constraintInactive = DO.Text.string("hierarchy.constraints.inactive", "inactive")
+        static func constraintSection(_ count: Int) -> String {
+            return DO.Text.format("hierarchy.constraints.section", "Constraints (%d)", count)
+        }
+        static func constraintRevert(_ count: Int) -> String {
+            return DO.Text.format("hierarchy.constraints.revert", "Revert Changes (%d)", count)
+        }
         static func characterAndLineCount(_ characters: Int, _ lines: Int) -> String {
             return DO.Text.format("hierarchy.editor.count", "%1$d characters · %2$d lines", characters, lines)
         }

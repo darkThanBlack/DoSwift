@@ -87,6 +87,7 @@ xcconfig 一起抹掉，表现是 `Unable to find module dependency: 'DoSwift'`�
   - `types`：`{ 类名: { properties: [KVC keyPath], overrides: { key: { enumType, userEditable } } } }`
   - `enums`：`{ 枚举名: { rawValue: 名称 } }`
 - **`HierarchyPropertyEngine`**：按类继承链（`NSObject` → 子类）匹配条目，KVC 读值，生成
+  `HierarchyConstraintEngine` 处理运行时约束（不进入 JSON）：收集、格式化、改 constant/priority/isActive、记录原值。
   `HierarchyCategoryModel` / `HierarchyCellModel`；`userEditable: false` 只用于「kind 可编辑、但属性只读或无 setter」的 key，
   image / attributedText / unknown 这类天然不可编辑的行不需要声明。写回需同时满足 `userEditable`、可解析的
   `ValueKind`、真实 setter，缺一即只读。编辑 UI 在 `UserInterface/Editor/`。

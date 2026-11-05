@@ -126,6 +126,9 @@ level 一般用 `.alert - 1`，主菜单用 `.statusBar`。
 - `types`：`{ 类名: { properties: [KVC keyPath], overrides: { key: { enumType, userEditable } } } }`
 - `enums`：`{ 枚举名: { rawValue: 名称 } }`
 
+`HierarchyConstraintEngine` 单独处理运行时集合：沿当前视图与祖先收集参与的约束，
+格式化方程，编辑 `constant` / `priority` / `isActive`，并记录原值供还原；约束不进入 JSON。
+
 `HierarchyPropertyEngine` 先渲染 JSON 分组，再按类继承链匹配条目、KVC 读值；`userEditable: false` 只用于
 「kind 可编辑、但属性只读或无 setter」的 key（image / attributedText / unknown 天然不可编辑，无需声明）；
 写回要求 `userEditable` + 可解析的

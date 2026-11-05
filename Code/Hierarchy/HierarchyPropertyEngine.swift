@@ -391,10 +391,7 @@ extension DO {
             guard let writeKey = kvcWriteKey(for: key, on: view) else { return }
 
             view.setValue(newValue.boxed, forKey: writeKey)
-
-            view.setNeedsLayout()
-            view.invalidateIntrinsicContentSize()
-            view.window?.layoutIfNeeded()
+            DO.HierarchyLayoutRefresh.refresh(view)
 
         }
 
