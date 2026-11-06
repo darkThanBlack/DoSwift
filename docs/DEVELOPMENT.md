@@ -122,12 +122,12 @@ level 一般用 `.alert - 1`，主菜单用 `.statusBar`。
 把「每个控件暴露哪些属性 + 枚举描述」从几千行硬编码（`NSObject+DoraemonHierarchy.m` 2527 行、
 `DoraemonEnumDescription.m` 880 行）搬进 `Resources/DoSwiftHierarchyDefine.json`：
 
-- `Pinned`：先于类分组渲染的普通分组，标题与顺序按数组；同一 key 只渲染一次
+- `Pinned`：先于类分组渲染的普通分组，标题与顺序按数组；分组可带 `overrides`（如 `enumType`），优先于类条目；同一 key 只渲染一次
 - `types`：`{ 类名: { properties: [KVC keyPath], overrides: { key: { enumType, userEditable } } } }`
 - `enums`：`{ 枚举名: { rawValue: 名称 } }`
 
 `HierarchyConstraintEngine` 单独处理运行时集合：沿当前视图与祖先收集参与的约束，
-格式化方程，编辑 `constant` / `priority` / `isActive`，并记录原值供还原；约束不进入 JSON。
+格式化方程，编辑 `constant` / `priority`；约束不进入 JSON。
 
 `HierarchyPropertyEngine` 先渲染 JSON 分组，再按类继承链匹配条目、KVC 读值；`userEditable: false` 只用于
 「kind 可编辑、但属性只读或无 setter」的 key（image / attributedText / unknown 天然不可编辑，无需声明）；

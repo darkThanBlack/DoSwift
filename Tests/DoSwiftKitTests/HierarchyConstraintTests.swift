@@ -18,11 +18,6 @@ final class HierarchyConstraintTests: XCTestCase {
 
     private var engine: DO.HierarchyConstraintEngine { DO.HierarchyConstraintEngine.shared }
 
-    override func setUp() {
-        super.setUp()
-        engine.revertAll(in: UIView())
-    }
-
     private func summary(_ constraint: NSLayoutConstraint, in view: UIView) -> DO.HierarchyConstraintSummary {
         return engine.summary(for: constraint, from: view)
     }
@@ -36,10 +31,10 @@ final class HierarchyConstraintTests: XCTestCase {
         constraint.isActive = true
 
         let result = summary(constraint, in: child)
-        XCTAssertEqual(result.left, "UIView.centerX")
+        XCTAssertEqual(result.left, "self.centerX")
         XCTAssertEqual(result.relation, "==")
-        XCTAssertEqual(result.right, "UIView.centerX")
-        XCTAssertEqual(result.fullText, "UIView.centerX == UIView.centerX")
+        XCTAssertEqual(result.right, "superview.centerX")
+        XCTAssertEqual(result.fullText, "self.centerX == superview.centerX")
     }
 
     func testWidthWithPriority() {
@@ -48,7 +43,7 @@ final class HierarchyConstraintTests: XCTestCase {
         constraint.priority = UILayoutPriority(750)
         constraint.isActive = true
 
-        XCTAssertEqual(summary(constraint, in: view).fullText, "UIView.width == 44 @750")
+        XCTAssertEqual(summary(constraint, in: view).fullText, "self.width == 44 @750")
     }
 
     func testMultiplierConstantAndInactive() {
@@ -60,7 +55,25 @@ final class HierarchyConstraintTests: XCTestCase {
                                                       multiplier: 1.5,
                                                       constant: -8)
         XCTAssertEqual(summary(constraint, in: child).fullText,
-                       "UIView.width == UIView.width × 1.5 - 8 \(DO.Text.Hierarchy.constraintInactive)")
+                       "self.width == superview.width × 1.5 - 8 \(DO.Text.Hierarchy.constraintInactive)")
+    }
+
+    func testRolesFollowTheSelectedView() {
+        let parent = UIView()
+        let child = UIView()
+        parent.addSubview(child)
+        let grandchild = UIView()
+        child.addSubview(grandchild)
+
+        let selectedIsSecond = parent.leadingAnchor.constraint(equalTo: child.leadingAnchor)
+        selectedIsSecond.isActive = true
+        XCTAssertEqual(summary(selectedIsSecond, in: child).fullText,
+                       "superview.leading == self.leading")
+
+        let otherIsSubview = grandchild.leadingAnchor.constraint(equalTo: child.leadingAnchor)
+        otherIsSubview.isActive = true
+        XCTAssertEqual(summary(otherIsSubview, in: child).fullText,
+                       "subview.UIView.leading == self.leading")
     }
 
     func testCollectionWalksTheAncestors() {
@@ -73,12 +86,12 @@ final class HierarchyConstraintTests: XCTestCase {
         let center = child.centerXAnchor.constraint(equalTo: parent.centerXAnchor)
         center.isActive = true
 
-        let entries = engine.entries(involving: child)
-        XCTAssertEqual(entries.first { $0.constraint === width }?.owner, child)
-        XCTAssertEqual(entries.first { $0.constraint === center }?.owner, parent)
+        let constraints = engine.constraints(involving: child)
+        XCTAssertTrue(constraints.contains { $0 === width })
+        XCTAssertTrue(constraints.contains { $0 === center })
     }
 
-    func testEditAndRevert() {
+    func testEditConstantAndPriority() {
         let parent = UIView()
         let child = UIView()
         parent.addSubview(child)
@@ -88,18 +101,9 @@ final class HierarchyConstraintTests: XCTestCase {
 
         engine.setConstant(20, on: constraint, in: child)
         engine.setPriority(UILayoutPriority(250), on: constraint, in: child)
-        engine.setActive(false, on: constraint, in: child)
 
         XCTAssertEqual(constraint.constant, 20)
         XCTAssertEqual(constraint.priority.rawValue, 250)
-        XCTAssertFalse(constraint.isActive)
-        XCTAssertEqual(engine.editedCount, 1)
-
-        engine.revertAll(in: child)
-
-        XCTAssertEqual(constraint.constant, 10)
-        XCTAssertEqual(constraint.priority.rawValue, UILayoutPriority.required.rawValue)
         XCTAssertTrue(constraint.isActive)
-        XCTAssertEqual(engine.editedCount, 0)
     }
 }

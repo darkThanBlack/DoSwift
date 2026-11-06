@@ -16,7 +16,7 @@ extension DO {
     @objc(DOHierarchyDetailViewController)
     class HierarchyDetailViewController: DO.SectionTableViewController {
 
-        var selectView: UIView?
+        weak var selectView: UIView?
 
         override func viewDidLoad() {
             super.viewDidLoad()
@@ -45,43 +45,33 @@ extension DO {
 
         private func constraintSection(for view: UIView) -> Section {
             let engine = DO.HierarchyConstraintEngine.shared
-            let entries = engine.entries(involving: view)
+            let constraints = engine.constraints(involving: view)
 
-            var rows: [Row] = entries.map { entry in
-                let summary = engine.summary(for: entry.constraint, from: view)
+            let rows: [Row] = constraints.map { constraint in
+                let summary = engine.summary(for: constraint, from: view)
                 return Row(
                     cellClass: DO.SelectorCell.self,
-                    onTrigger: { [weak self] _ in self?.presentConstraintEditor(entry, view: view) }
+                    onTrigger: { [weak self, weak view] _ in
+                        guard let view = view else { return }
+                        self?.presentConstraintEditor(constraint, view: view)
+                    }
                 ) { cell in
                     cell.titleNumberOfLines = 0
                     cell.update(title: summary.fullText, detail: nil)
                 }
             }
 
-            if engine.editedCount > 0 {
-                rows.append(Row(
-                    cellClass: DO.ActionCell.self,
-                    onTrigger: { [weak self] _ in
-                        guard let self = self, let view = self.selectView else { return }
-                        engine.revertAll(in: view)
-                        self.loadData()
-                    }
-                ) { cell in
-                    cell.update(title: DO.Text.Hierarchy.constraintRevert(engine.editedCount))
-                })
-            }
-
             return Section(
-                title: DO.Text.Hierarchy.constraintSection(entries.count),
-                footer: entries.isEmpty ? DO.Text.Hierarchy.constraintEmpty : nil,
+                title: DO.Text.Hierarchy.constraintSection(constraints.count),
+                footer: constraints.isEmpty ? DO.Text.Hierarchy.constraintEmpty : nil,
                 rows: rows
             )
         }
 
-        private func presentConstraintEditor(_ entry: DO.HierarchyConstraintEntry, view: UIView) {
-            let summary = DO.HierarchyConstraintEngine.shared.summary(for: entry.constraint, from: view)
+        private func presentConstraintEditor(_ constraint: NSLayoutConstraint, view: UIView) {
+            let summary = DO.HierarchyConstraintEngine.shared.summary(for: constraint, from: view)
             let card = DO.HierarchyConstraintEditorCard(
-                constraint: entry.constraint,
+                constraint: constraint,
                 summary: summary,
                 targetView: view
             ) { [weak self] in
@@ -129,7 +119,8 @@ extension DO {
             guard let view = selectView,
                   let input = DO.HierarchyValueInputFactory.make(for: edit.kind) else { return }
 
-            let card = DO.HierarchyEditorCard(key: edit.key, kind: edit.kind, input: input) { [weak self] value in
+            let card = DO.HierarchyEditorCard(key: edit.key, kind: edit.kind, input: input) { [weak self, weak view] value in
+                guard let view = view else { return }
                 DO.HierarchyPropertyEngine.shared.write(value, forKey: edit.key, to: view)
                 self?.loadData()
             }

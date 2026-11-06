@@ -232,11 +232,9 @@
 "hierarchy.constraints.title" = "约束";
 "hierarchy.constraints.constant" = "Constant";
 "hierarchy.constraints.priority" = "Priority";
-"hierarchy.constraints.active" = "Active";
 "hierarchy.constraints.empty" = "该视图没有参与任何约束。";
 "hierarchy.constraints.inactive" = "未启用";
 "hierarchy.constraints.section" = "约束 (%d)";
-"hierarchy.constraints.revert" = "还原修改 (%d)";
 
 /* UserDefaults */
 "userdefaults.title" = "UserDefaults";

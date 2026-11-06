@@ -232,11 +232,9 @@
 "hierarchy.constraints.title" = "Constraint";
 "hierarchy.constraints.constant" = "Constant";
 "hierarchy.constraints.priority" = "Priority";
-"hierarchy.constraints.active" = "Active";
 "hierarchy.constraints.empty" = "No constraints involve this view.";
 "hierarchy.constraints.inactive" = "inactive";
 "hierarchy.constraints.section" = "Constraints (%d)";
-"hierarchy.constraints.revert" = "Revert Changes (%d)";
 
 /* UserDefaults */
 "userdefaults.title" = "UserDefaults";

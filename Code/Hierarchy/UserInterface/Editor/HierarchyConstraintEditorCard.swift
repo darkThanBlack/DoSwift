@@ -20,12 +20,11 @@ extension DO {
 
         private let constraint: NSLayoutConstraint
         private let summary: DO.HierarchyConstraintSummary
-        private let targetView: UIView
+        private weak var targetView: UIView?
         private let onCommit: () -> Void
 
         private let originalConstant: CGFloat
         private let originalPriority: UILayoutPriority
-        private let originalActive: Bool
 
         init(
             constraint: NSLayoutConstraint,
@@ -40,7 +39,6 @@ extension DO {
 
             self.originalConstant = constraint.constant
             self.originalPriority = constraint.priority
-            self.originalActive = constraint.isActive
 
             super.init(nibName: nil, bundle: nil)
         }
@@ -101,12 +99,6 @@ extension DO {
         private lazy var priorityField: DO.HierarchyNumberFieldView = {
             return DO.HierarchyNumberFieldView(isInteger: true, step: 50,
                                                value: Double(constraint.priority.rawValue), prominent: false)
-        }()
-
-        private lazy var activeSwitch: UISwitch = {
-            let control = UISwitch()
-            control.isOn = constraint.isActive
-            return control
         }()
 
         private func setupCard() {
@@ -171,7 +163,6 @@ extension DO {
             let bodyStack = UIStackView(arrangedSubviews: [
                 makeRow(DO.Text.Hierarchy.constraintConstant, constantField),
                 makeRow(DO.Text.Hierarchy.constraintPriority, priorityField),
-                makeRow(DO.Text.Hierarchy.constraintActive, activeSwitch),
             ])
             bodyStack.axis = .vertical
             bodyStack.spacing = DO.HierarchyEditorStyle.rowGap
@@ -226,12 +217,6 @@ extension DO {
             row.axis = .horizontal
             row.alignment = .center
             row.spacing = 12
-
-            if control is UISwitch {
-                let spacer = UIView()
-                spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-                row.insertArrangedSubview(spacer, at: 1)
-            }
             return row
         }
 
@@ -266,14 +251,13 @@ extension DO {
             guard let constant = currentConstant(), let priority = currentPriority() else { return }
 
             let engine = DO.HierarchyConstraintEngine.shared
-            if constant != originalConstant {
-                engine.setConstant(constant, on: constraint, in: targetView)
-            }
-            if priority != originalPriority {
-                engine.setPriority(priority, on: constraint, in: targetView)
-            }
-            if activeSwitch.isOn != originalActive {
-                engine.setActive(activeSwitch.isOn, on: constraint, in: targetView)
+            if let targetView = targetView {
+                if constant != originalConstant {
+                    engine.setConstant(constant, on: constraint, in: targetView)
+                }
+                if priority != originalPriority {
+                    engine.setPriority(priority, on: constraint, in: targetView)
+                }
             }
 
             onCommit()

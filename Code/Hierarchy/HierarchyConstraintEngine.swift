@@ -13,11 +13,6 @@ import UIKit
 
 extension DO {
 
-    struct HierarchyConstraintEntry {
-        let constraint: NSLayoutConstraint
-        let owner: UIView
-    }
-
     /// The equation split into pieces. The list shows `fullText`; the editor card shows
     /// `skeleton` because the values it appends already have input fields.
     struct HierarchyConstraintSummary {
@@ -50,16 +45,6 @@ extension DO {
 
         static let shared = DO.HierarchyConstraintEngine()
 
-        private struct Original {
-            let constraint: NSLayoutConstraint
-            let constant: CGFloat
-            let priority: UILayoutPriority
-            let isActive: Bool
-        }
-
-        private var originals: [ObjectIdentifier: Original] = [:]
-        private var order: [ObjectIdentifier] = []
-
         private init() {}
 
         // MARK: - Collection
@@ -67,9 +52,9 @@ extension DO {
         /// Constraints involving `view`, walking the selected view and its ancestors. Only
         /// constraints that are actually installed in a `constraints` array show up, which
         /// keeps the synthesized content-size / autoresizing ones out.
-        func entries(involving view: UIView) -> [DO.HierarchyConstraintEntry] {
+        func constraints(involving view: UIView) -> [NSLayoutConstraint] {
             var seen = Set<ObjectIdentifier>()
-            var result: [DO.HierarchyConstraintEntry] = []
+            var result: [NSLayoutConstraint] = []
 
             let arrangedStack = (view.superview as? UIStackView).flatMap { stack in
                 return stack.arrangedSubviews.contains(view) ? stack : nil
@@ -83,7 +68,7 @@ extension DO {
                     if let arrangedStack = arrangedStack, owner === arrangedStack { continue }
                     guard involves(constraint, view) else { continue }
                     guard seen.insert(ObjectIdentifier(constraint)).inserted else { continue }
-                    result.append(DO.HierarchyConstraintEntry(constraint: constraint, owner: owner))
+                    result.append(constraint)
                 }
                 node = owner.superview
             }
@@ -99,11 +84,11 @@ extension DO {
         // MARK: - Display
 
         func summary(for constraint: NSLayoutConstraint, from view: UIView) -> DO.HierarchyConstraintSummary {
-            let left = "\(name(of: constraint.firstItem)).\(Self.name(of: constraint.firstAttribute))"
+            let left = "\(role(of: constraint.firstItem, relativeTo: view)).\(Self.name(of: constraint.firstAttribute))"
 
             var right: String?
             if let item = constraint.secondItem {
-                right = "\(name(of: item)).\(Self.name(of: constraint.secondAttribute))"
+                right = "\(role(of: item, relativeTo: view)).\(Self.name(of: constraint.secondAttribute))"
             }
 
             var multiplier: String?
@@ -136,12 +121,25 @@ extension DO {
             )
         }
 
-        private func name(of item: AnyObject?) -> String {
+        /// Names an item by its relation to the inspected view, so the equation reads without
+        /// knowing which class the constraint was authored on. The selected view is not always
+        /// `firstItem`, so `self` can appear on either side.
+        private func role(of item: AnyObject?, relativeTo view: UIView) -> String {
             if let item = item as? UIView {
+                if item === view { return "self" }
+                if item === view.superview { return "superview" }
+                if item === view.window { return "window" }
+                if item.isDescendant(of: view) {
+                    // Several subviews can share a class, so keep it in the label.
+                    return "subview.\(String(describing: type(of: item)))"
+                }
                 return String(describing: type(of: item))
             }
             if let guide = item as? UILayoutGuide {
-                return guide.identifier.isEmpty ? "guide" : guide.identifier
+                if !guide.identifier.isEmpty { return guide.identifier }
+                if guide.owningView === view { return "self.guide" }
+                if guide.owningView === view.superview { return "superview.guide" }
+                return "guide"
             }
             return item.map { String(describing: type(of: $0)) } ?? "?"
         }
@@ -188,47 +186,14 @@ extension DO {
 
         // MARK: - Editing
 
-        var editedCount: Int { originals.count }
-
         func setConstant(_ constant: CGFloat, on constraint: NSLayoutConstraint, in view: UIView) {
-            record(constraint)
             constraint.constant = constant
             DO.HierarchyLayoutRefresh.refresh(view)
         }
 
         func setPriority(_ priority: UILayoutPriority, on constraint: NSLayoutConstraint, in view: UIView) {
-            record(constraint)
             constraint.priority = priority
             DO.HierarchyLayoutRefresh.refresh(view)
-        }
-
-        func setActive(_ isActive: Bool, on constraint: NSLayoutConstraint, in view: UIView) {
-            record(constraint)
-            constraint.isActive = isActive
-            DO.HierarchyLayoutRefresh.refresh(view)
-        }
-
-        /// Puts every edited constraint back the way it was found.
-        func revertAll(in view: UIView) {
-            for key in order {
-                guard let original = originals[key] else { continue }
-                original.constraint.constant = original.constant
-                original.constraint.priority = original.priority
-                original.constraint.isActive = original.isActive
-            }
-            originals.removeAll()
-            order.removeAll()
-            DO.HierarchyLayoutRefresh.refresh(view)
-        }
-
-        private func record(_ constraint: NSLayoutConstraint) {
-            let key = ObjectIdentifier(constraint)
-            guard originals[key] == nil else { return }
-            originals[key] = Original(constraint: constraint,
-                                      constant: constraint.constant,
-                                      priority: constraint.priority,
-                                      isActive: constraint.isActive)
-            order.append(key)
         }
     }
 }

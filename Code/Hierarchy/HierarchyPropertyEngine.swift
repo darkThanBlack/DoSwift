@@ -25,10 +25,12 @@ extension DO {
         let overrides: [String: DO.HierarchyPropertyOverride]?
     }
 
-    /// One JSON group: a section title plus the keys it lists, in display order.
+    /// One JSON group: a section title plus the keys it lists, in display order. Groups may
+    /// carry their own display metadata (enum tables, descriptions) without a type entry.
     struct HierarchyGroup: Decodable {
         let group: String
         let properties: [String]
+        let overrides: [String: DO.HierarchyPropertyOverride]?
     }
 
     struct HierarchyEnumValue {
@@ -188,7 +190,9 @@ extension DO {
             for group in groups {
                 let rows = group.properties.compactMap { key -> DO.HierarchyCellModel? in
                     guard !rendered.contains(key) else { return nil }
-                    guard let model = cellModel(for: view, key: key, chain: chain, requiresDeclaration: false)
+                    guard let model = cellModel(for: view, key: key, chain: chain,
+                                                requiresDeclaration: false,
+                                                groupOverrides: group.overrides)
                     else { return nil }
                     rendered.insert(key)
                     return model
@@ -212,7 +216,8 @@ extension DO {
         }
 
         func cellModel(for view: UIView, key: String) -> DO.HierarchyCellModel? {
-            return cellModel(for: view, key: key, chain: classChain(view), requiresDeclaration: false)
+            return cellModel(for: view, key: key, chain: classChain(view),
+                             requiresDeclaration: false, groupOverrides: nil)
         }
 
         private struct ResolvedProperty {
@@ -226,10 +231,12 @@ extension DO {
             for view: UIView,
             key: String,
             chain: [String],
-            requiresDeclaration: Bool
+            requiresDeclaration: Bool,
+            groupOverrides: [String: DO.HierarchyPropertyOverride]? = nil
         ) -> DO.HierarchyCellModel? {
             guard let resolved = resolve(key: key, view: view, chain: chain,
-                                         requiresDeclaration: requiresDeclaration),
+                                         requiresDeclaration: requiresDeclaration,
+                                         groupOverrides: groupOverrides),
                   let model = makeCellModel(for: view, resolved: resolved)
             else { return nil }
 
@@ -244,14 +251,14 @@ extension DO {
             key: String,
             view: UIView,
             chain: [String],
-            requiresDeclaration: Bool
+            requiresDeclaration: Bool,
+            groupOverrides: [String: DO.HierarchyPropertyOverride]? = nil
         ) -> ResolvedProperty? {
-            // The nearest class that declares the key also supplies its overrides; group keys
-            // can resolve without a declaration but still pick up an override when one exists.
+            // Group metadata wins; otherwise the nearest declaring class supplies the overrides.
             let declaring = chain.first { types[$0]?.properties.contains(key) == true }
             if requiresDeclaration, declaring == nil { return nil }
 
-            let override = declaring.flatMap { types[$0]?.overrides?[key] }
+            let override = groupOverrides?[key] ?? declaring.flatMap { types[$0]?.overrides?[key] }
             let isUserEditable = override?.userEditable ?? true
 
             guard let value = safeValue(forKeyPath: key, on: view) else { return nil }
@@ -375,7 +382,7 @@ extension DO {
         /// the live value disagree — log it, never crash the host app over a debug panel.
         func write(_ newValue: DO.ValueKind, forKey key: String, to view: UIView) {
             guard let resolved = resolve(key: key, view: view, chain: classChain(view),
-                                        requiresDeclaration: false),
+                                        requiresDeclaration: false, groupOverrides: nil),
                   resolved.isUserEditable, let oldKind = resolved.kind else {
                 print("[Hierarchy] \(key): this row is read-only")
                 return

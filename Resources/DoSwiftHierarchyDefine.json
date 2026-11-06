@@ -18,6 +18,28 @@
         "layer.description",
         "layer.class"
       ]
+    },
+    {
+      "group": "Stack",
+      "properties": [
+        "axis",
+        "distribution",
+        "alignment",
+        "spacing",
+        "baselineRelativeArrangement",
+        "isLayoutMarginsRelativeArrangement"
+      ],
+      "overrides": {
+        "axis": {
+          "enumType": "UILayoutConstraintAxis"
+        },
+        "distribution": {
+          "enumType": "UIStackViewDistribution"
+        },
+        "alignment": {
+          "enumType": "UIStackViewAlignment"
+        }
+      }
     }
   ],
   "types": {
@@ -50,7 +72,8 @@
         "traitCollection.userInterfaceStyle",
         "traitCollection.verticalSizeClass",
         "traitCollection.horizontalSizeClass",
-        "traitCollection.layoutDirection"
+        "traitCollection.layoutDirection",
+        "translatesAutoresizingMaskIntoConstraints"
       ],
       "overrides": {
         "contentMode": {
@@ -768,6 +791,27 @@
       "-1": "unspecified",
       "0": "leftToRight",
       "1": "rightToLeft"
+    },
+    "UILayoutConstraintAxis": {
+      "0": "horizontal",
+      "1": "vertical"
+    },
+    "UIStackViewDistribution": {
+      "0": "fill",
+      "1": "fillEqually",
+      "2": "fillProportionally",
+      "3": "equalSpacing",
+      "4": "equalCentering"
+    },
+    "UIStackViewAlignment": {
+      "0": "fill",
+      "1": "leading",
+      "2": "top",
+      "3": "firstBaseline",
+      "4": "center",
+      "5": "trailing",
+      "6": "bottom",
+      "7": "lastBaseline"
     }
   }
 }

@@ -83,11 +83,12 @@ xcconfig 一起抹掉，表现是 `Unable to find module dependency: 'DoSwift'`�
 （`NSObject+DoraemonHierarchy.m` 2527 行、`DoraemonEnumDescription.m` 880 行），本工程改为数据驱动：
 
 - **`Resources/DoSwiftHierarchyDefine.json`** —— 唯一数据源
-  - `Pinned`：先于类分组渲染的普通分组，`[{ group, properties }]`，标题与顺序按数组；同一 key 只渲染一次
+  - `Pinned`：先于类分组渲染的普通分组，`[{ group, properties, overrides? }]`，标题与顺序按数组；
+    `overrides` 可带 `enumType` 等展示信息，优先于类条目；同一 key 只渲染一次
   - `types`：`{ 类名: { properties: [KVC keyPath], overrides: { key: { enumType, userEditable } } } }`
   - `enums`：`{ 枚举名: { rawValue: 名称 } }`
 - **`HierarchyPropertyEngine`**：按类继承链（`NSObject` → 子类）匹配条目，KVC 读值，生成
-  `HierarchyConstraintEngine` 处理运行时约束（不进入 JSON）：收集、格式化、改 constant/priority/isActive、记录原值。
+  `HierarchyConstraintEngine` 处理运行时约束（不进入 JSON）：收集、格式化、改 constant/priority。
   `HierarchyCategoryModel` / `HierarchyCellModel`；`userEditable: false` 只用于「kind 可编辑、但属性只读或无 setter」的 key，
   image / attributedText / unknown 这类天然不可编辑的行不需要声明。写回需同时满足 `userEditable`、可解析的
   `ValueKind`、真实 setter，缺一即只读。编辑 UI 在 `UserInterface/Editor/`。
